@@ -596,16 +596,16 @@ function buildXLSX(data) {
     orangeDk: 'C85E0F',
     orangeLt: 'FFF4ED',
     orangeMd: 'FDE8D0',
-    navy:     '1A2744',
+    navy:     '1A56DB',
     white:    'FFFFFF',
-    headBg:   '1A2744',
-    tblHdBg:  'FFF4ED',
-    tblHdTxt: '7C3A0E',
-    rowAlt:   'FFFBF7',
+    headBg:   '1A56DB',
+    tblHdBg:  'EEF2FF',
+    tblHdTxt: '1E3A8A',
+    rowAlt:   'F8FAFF',
     okBg:     'D1FAE5', okTxt: '065F46',
     noBg:     'FEE2E2', noTxt: '991B1B',
-    border:   'FDE8D0',
-    metaBg:   'FFF4ED',
+    border:   'BFDBFE',
+    metaBg:   'EEF2FF',
     gray:     '9CA3AF',
     bodyTxt:  '374151',
   };
@@ -790,14 +790,146 @@ function exportXLSX() {
 }
 
 /* ══════════════════════════════════════════
-   PDF (via Print)
+   BUILD CLEAN PRINT HTML  — HumanSoft CI
+══════════════════════════════════════════ */
+function buildPrintHTML(data, autoPrint) {
+  const respBadge = {'Humansoft':'r-hs','Client':'r-cl','Humansoft / Client':'r-both'};
+  const statBadge = {'Not started':'s-ns','In progress':'s-prog','Done':'s-done','On hold':'s-hold'};
+  function e(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function nl(s){ return e(s).replace(/\n/g,'<br>'); }
+  function fd(s){ if(!s)return '—'; const d=new Date(s); return d.getDate()+'/'+(d.getMonth()+1)+'/'+d.getFullYear(); }
+
+  const ppRows = data.pp.map(function(p){
+    return '<tr><td class="no">'+p.no+'</td><td>'+nl(p.req)+'</td>'+
+      '<td class="c">'+(p.sup?'<span class="ok">✓</span>':'')+'</td>'+
+      '<td class="c">'+(p.not?'<span class="no-mk">✗</span>':'')+'</td>'+
+      '<td class="sol">'+nl(p.sol)+'</td></tr>';
+  }).join('');
+
+  const soRows = data.so.map(function(s){
+    return '<tr><td class="no">'+s.no+'</td><td><strong>'+e(s.item)+'</strong></td>'+
+      '<td>'+nl(s.det)+'</td></tr>';
+  }).join('');
+
+  const tlRows = data.tl.map(function(t){
+    return '<tr><td class="no">'+t.no+'</td>'+
+      '<td><span class="badge '+(respBadge[t.res]||'r-hs')+'">'+e(t.res)+'</span></td>'+
+      '<td>'+nl(t.task)+'</td><td>'+nl(t.det)+'</td>'+
+      '<td><span class="badge '+(statBadge[t.st]||'s-ns')+'">'+e(t.st)+'</span></td></tr>';
+  }).join('');
+
+  const ap = autoPrint !== false
+    ? '<scr'+'ipt>window.addEventListener("load",function(){setTimeout(function(){window.print();},700);});<\/scr'+'ipt>'
+    : '';
+
+  return '<!DOCTYPE html>\n<html lang="th">\n<head>\n<meta charset="UTF-8">\n'+
+    '<title>Summary Report – '+e(data.domain)+'</title>\n'+
+    '<link rel="preconnect" href="https://fonts.googleapis.com">\n'+
+    '<link href="https://fonts.googleapis.com/css2?family=Anuphan:wght@300;400;500;600;700&display=swap" rel="stylesheet">\n'+
+    '<style>\n'+
+    ':root{--blue:#1A56DB;--blue-dk:#1240B0;--blue-lt:#EEF2FF;--blue-md:#BFDBFE;'+
+    '--orange:#F47B20;--orange-dk:#C85E0F;--orange-lt:#FFF4ED;--orange-md:#FDE8D0;'+
+    '--green-bg:#D1FAE5;--green-txt:#065F46;--red-bg:#FEE2E2;--red-txt:#991B1B;'+
+    '--row-alt:#F8FAFF;--gray:#9CA3AF;--body:#374151;--border:#DBEAFE;}\n'+
+    '*{box-sizing:border-box;margin:0;padding:0;}\n'+
+    'body{font-family:\'Anuphan\',sans-serif;font-size:12px;color:#1A1F2E;background:#E5E7EB;}\n'+
+    '.page{width:210mm;min-height:297mm;background:white;margin:0 auto;padding:0 0 12mm;}\n'+
+    '.top-bar-blue{height:6px;background:var(--blue);}\n'+
+    '.top-bar-orange{height:3px;background:var(--orange);}\n'+
+    '.header{display:flex;justify-content:space-between;align-items:flex-end;padding:10px 10mm 9px;border-bottom:2px solid var(--orange);background:white;}\n'+
+    '.header-left h1{font-size:21px;font-weight:700;color:var(--blue);line-height:1.1;}\n'+
+    '.header-left p{font-size:10px;color:var(--gray);margin-top:2px;font-style:italic;}\n'+
+    '.header-right{text-align:right;}\n'+
+    '.header-right .brand{font-size:16px;font-weight:800;color:var(--orange);display:block;}\n'+
+    '.header-right .doc-id{font-size:9px;font-weight:700;color:var(--orange);display:block;margin-top:2px;}\n'+
+    '.header-right .doc-dt{font-size:8px;color:var(--gray);display:block;margin-top:1px;}\n'+
+    '.meta-strip{display:flex;gap:28px;background:var(--blue-lt);padding:7px 10mm;border-bottom:1px solid var(--blue-md);}\n'+
+    '.meta-item{display:flex;flex-direction:column;gap:1px;}\n'+
+    '.meta-lbl{font-size:7.5px;font-weight:700;color:var(--blue-dk);text-transform:uppercase;letter-spacing:.5px;}\n'+
+    '.meta-val{font-size:11px;font-weight:600;color:var(--blue);}\n'+
+    '.content{padding:0 10mm;}\n'+
+    '.section-hd{background:var(--blue);color:white;font-size:11px;font-weight:700;'+
+    'padding:6px 10mm;margin:10px -10mm 0;border-left:4px solid var(--orange);display:flex;align-items:center;gap:6px;}\n'+
+    '.tbl{width:100%;border-collapse:collapse;font-size:9.5px;}\n'+
+    '.tbl th{background:var(--blue-lt);color:#1E3A8A;font-weight:700;font-size:8.5px;'+
+    'padding:5px 6px;text-align:left;border:0.5px solid var(--blue-md);}\n'+
+    '.tbl th.c{text-align:center;}\n'+
+    '.tbl td{padding:5px 6px;border:0.5px solid #EEF2FF;vertical-align:top;line-height:1.45;}\n'+
+    '.tbl tr:nth-child(even) td{background:var(--row-alt);}\n'+
+    '.tbl td.no{text-align:center;color:var(--gray);font-weight:600;width:24px;}\n'+
+    '.tbl td.c{text-align:center;}\n'+
+    '.ok{color:var(--green-txt);font-weight:700;font-size:13px;}\n'+
+    '.no-mk{color:var(--red-txt);font-weight:700;font-size:13px;}\n'+
+    '.sol{font-size:8.5px;color:#4B5563;font-style:italic;}\n'+
+    '.badge{border-radius:4px;padding:1px 6px;font-size:8px;font-weight:700;white-space:nowrap;display:inline-block;}\n'+
+    '.s-ns{background:#FEF9C3;color:#854D0E;}\n'+
+    '.s-prog{background:var(--blue-lt);color:var(--blue-dk);}\n'+
+    '.s-done{background:var(--green-bg);color:var(--green-txt);}\n'+
+    '.s-hold{background:var(--red-bg);color:var(--red-txt);}\n'+
+    '.r-hs{background:var(--blue-lt);color:var(--blue-dk);}\n'+
+    '.r-cl{background:var(--green-bg);color:var(--green-txt);}\n'+
+    '.r-both{background:var(--orange-lt);color:var(--orange-dk);}\n'+
+    '.bottom-bar{display:flex;height:5px;margin-top:12mm;}\n'+
+    '.bb-blue{flex:2;background:var(--blue);}\n'+
+    '.bb-orange{flex:1;background:var(--orange);}\n'+
+    '@media print{body{background:white;}.page{margin:0;box-shadow:none;width:100%;min-height:unset;}@page{size:A4 portrait;margin:0;}}\n'+
+    '</style>\n</head>\n<body>\n'+ap+'\n'+
+    '<div class="page">\n'+
+    '  <div class="top-bar-blue"></div>\n'+
+    '  <div class="top-bar-orange"></div>\n'+
+    '  <div class="header">\n'+
+    '    <div class="header-left"><h1>Summary Report</h1><p>Proposal Summary Document</p></div>\n'+
+    '    <div class="header-right">\n'+
+    '      <span class="brand">HumanSoft</span>\n'+
+    '      <span class="doc-id">FM-SE-03</span>\n'+
+    '      <span class="doc-dt">วันที่เริ่มใช้/ แก้ไข : 02 กุมภาพันธ์ 2569/ 00</span>\n'+
+    '    </div>\n  </div>\n'+
+    '  <div class="meta-strip">\n'+
+    '    <div class="meta-item"><span class="meta-lbl">Domain</span><span class="meta-val">'+e(data.domain||'—')+'</span></div>\n'+
+    '    <div class="meta-item"><span class="meta-lbl">บริษัท (Company)</span><span class="meta-val">'+e(data.company||'—')+'</span></div>\n'+
+    '    <div class="meta-item"><span class="meta-lbl">วันที่อัปเดต</span><span class="meta-val">'+fd(data.date)+'</span></div>\n'+
+    '  </div>\n'+
+    '  <div class="content">\n'+
+    '    <div class="section-hd">🎯 สรุป Pain Point หลัก</div>\n'+
+    '    <table class="tbl"><thead><tr>\n'+
+    '      <th style="width:24px" class="c">No.</th>\n'+
+    '      <th style="width:36%">Requirement / ความต้องการ</th>\n'+
+    '      <th style="width:7%" class="c">รองรับ ✓</th>\n'+
+    '      <th style="width:8%" class="c">ยังไม่รองรับ</th>\n'+
+    '      <th>Solutions / แนวทาง</th>\n'+
+    '    </tr></thead><tbody>'+ppRows+'</tbody></table>\n'+
+    '    <div class="section-hd">🎁 Special Offers</div>\n'+
+    '    <table class="tbl"><thead><tr>\n'+
+    '      <th style="width:24px" class="c">No.</th>\n'+
+    '      <th style="width:22%">รายการ</th>\n'+
+    '      <th>รายละเอียด</th>\n'+
+    '    </tr></thead><tbody>'+soRows+'</tbody></table>\n'+
+    '    <div class="section-hd">📅 Timeline</div>\n'+
+    '    <table class="tbl"><thead><tr>\n'+
+    '      <th style="width:24px" class="c">No.</th>\n'+
+    '      <th style="width:18%">ผู้รับผิดชอบ</th>\n'+
+    '      <th style="width:18%">Task / กระบวนการ</th>\n'+
+    '      <th style="width:36%">รายละเอียด</th>\n'+
+    '      <th style="width:12%">Status</th>\n'+
+    '    </tr></thead><tbody>'+tlRows+'</tbody></table>\n'+
+    '  </div>\n'+
+    '  <div class="bottom-bar"><div class="bb-blue"></div><div class="bb-orange"></div></div>\n'+
+    '</div>\n</body>\n</html>';
+}
+
+/* ══════════════════════════════════════════
+   PDF (via Clean Print Window)
 ══════════════════════════════════════════ */
 function exportPDF() {
   const data = collect();
   if (!data.domain) { toast('กรุณาระบุ Domain ก่อน','err'); return; }
-  syncPrint();
-  toast('กำลังเปิด Print dialog…','inf');
-  setTimeout(() => window.print(), 400);
+  const html = buildPrintHTML(data, true);
+  const win = window.open('','_blank','width=900,height=800');
+  if (!win) { toast('ไม่สามารถเปิดหน้าต่างใหม่ได้ กรุณาอนุญาต popup','err'); return; }
+  win.document.open();
+  win.document.write(html);
+  win.document.close();
+  toast('กำลังเปิดหน้า PDF…','inf');
 }
 
 /* ══════════════════════════════════════════
@@ -900,21 +1032,36 @@ async function apiFetch(url,opts) {
 }
 
 async function makePDFBlob() {
-  syncPrint();
-  const nops=[...document.querySelectorAll('.no-print')];
-  nops.forEach(el=>{el._d=el.style.display;el.style.display='none';});
-  const el=document.getElementById('reportContainer');
-  const canvas=await html2canvas(el,{scale:1.5,useCORS:true});
-  nops.forEach(el=>el.style.display=el._d||'');
-  const {jsPDF}=window.jspdf;
-  const pdf=new jsPDF('l','mm','a4');
-  const W=297,H=210;
-  const iH=canvas.height*W/canvas.width;
-  const img=canvas.toDataURL('image/jpeg',.88);
-  pdf.addImage(img,'JPEG',0,0,W,Math.min(iH,H));
-  let left=iH-H,y=0;
-  while(left>0){y=left-iH;pdf.addPage();pdf.addImage(img,'JPEG',0,y,W,iH);left-=H;}
-  return pdf.output('blob');
+  const data = collect();
+  const html = buildPrintHTML(data, false);
+  return new Promise(function(resolve, reject) {
+    const iframe = document.createElement('iframe');
+    iframe.style.cssText = 'position:fixed;top:0;left:-9999px;width:794px;height:1123px;border:none;opacity:0;pointer-events:none;z-index:-1;';
+    document.body.appendChild(iframe);
+    iframe.onload = async function() {
+      try {
+        await new Promise(function(r){ setTimeout(r, 1200); }); // wait for fonts
+        const el = iframe.contentDocument.querySelector('.page') || iframe.contentDocument.body;
+        const canvas = await html2canvas(el, {scale:1.5, useCORS:true, allowTaint:true, windowWidth:794, windowHeight:1123});
+        if (document.body.contains(iframe)) document.body.removeChild(iframe);
+        const {jsPDF} = window.jspdf;
+        const pdf = new jsPDF('p','mm','a4');
+        const W=210, H=297;
+        const iH = canvas.height * W / canvas.width;
+        const img = canvas.toDataURL('image/jpeg',.88);
+        pdf.addImage(img,'JPEG',0,0,W,Math.min(iH,H));
+        let rem = iH-H, yp = 0;
+        while (rem > 0) { yp -= H; pdf.addPage(); pdf.addImage(img,'JPEG',0,yp,W,iH); rem -= H; }
+        resolve(pdf.output('blob'));
+      } catch(err) {
+        if (document.body.contains(iframe)) document.body.removeChild(iframe);
+        reject(err);
+      }
+    };
+    iframe.contentDocument.open();
+    iframe.contentDocument.write(html);
+    iframe.contentDocument.close();
+  });
 }
 
 /* ── UI helpers ── */
