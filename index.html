@@ -213,10 +213,9 @@ input[type=checkbox] { width:17px;height:17px;accent-color:var(--blue);cursor:po
 <nav class="navbar">
   <div class="nav-brand">📋 Summary Report Form <span>HumanSoft</span></div>
   <div class="nav-actions">
-    <span id="navPill" class="pill pill-off" style="display:none">● Drive</span>
     <button class="btn btn-outline no-print" onclick="exportPDF()">🖨 PDF</button>
     <button class="btn btn-white no-print"   onclick="exportXLSX()">📥 XLSX</button>
-    <button class="btn btn-success no-print" id="btnDrive" onclick="saveToDrive()" disabled>☁️ บันทึกลง Drive</button>
+    <button class="btn btn-success no-print" id="btnDrive" onclick="saveToDrive()">☁️ บันทึกลง Drive</button>
   </div>
 </nav>
 
@@ -350,7 +349,7 @@ input[type=checkbox] { width:17px;height:17px;accent-color:var(--blue);cursor:po
   </div>
 
   <!-- ── 5. Google Drive Settings ── -->
-  <div class="card no-print" id="driveCard">
+  <div class="card no-print" id="driveCard" style="display:none">
     <div class="card-hd">
       <div class="card-title">☁️ ตั้งค่า Google Drive <span class="badge b-purple">ทำครั้งเดียว</span></div>
     </div>
@@ -808,62 +807,58 @@ function exportPDF() {
 }
 
 /* ══════════════════════════════════════════
-   GOOGLE DRIVE
+   GOOGLE DRIVE  (auto-auth, no UI)
 ══════════════════════════════════════════ */
-let _token=null, _tc=null;
+const CLIENT_ID = '916300766857-05ptshdmtdo2nkrb5dbjd8jp0ossdui6.apps.googleusercontent.com';
+let _token = null, _tc = null;
 
-function connectDrive() {
-  const cid = document.getElementById('clientId').value.trim();
-  if (!cid) { toast('กรุณาใส่ Google Client ID ก่อน','err'); return; }
-  if (!window.google?.accounts?.oauth2) { toast('GIS ยังโหลดไม่เสร็จ รอสักครู่','err'); return; }
+function _initTC() {
+  if (_tc) return;
+  if (!window.google?.accounts?.oauth2) return;
   _tc = google.accounts.oauth2.initTokenClient({
-    client_id: cid,
+    client_id: CLIENT_ID,
     scope: 'https://www.googleapis.com/auth/drive',
-    callback: resp => {
-      if (resp.error) { toast('เชื่อมต่อไม่สำเร็จ: '+resp.error,'err'); return; }
-      _token = resp.access_token;
-      setDriveUI(true); toast('✅ เชื่อมต่อ Google Drive สำเร็จ!','ok');
-    },
+    callback: () => {},       // จะถูก override ตอน requestAccessToken
+    error_callback: () => {},
   });
-  _tc.requestAccessToken({prompt:'consent'});
 }
 
-function disconnectDrive() {
-  if (_token) google.accounts.oauth2.revoke(_token,()=>{});
-  _token=null; setDriveUI(false); toast('ออกจากระบบแล้ว','inf');
-}
-
-function setDriveUI(on) {
-  document.getElementById('drivePill').className  = 'pill '+(on?'pill-ok':'pill-off');
-  document.getElementById('drivePill').textContent = on?'● เชื่อมต่อแล้ว':'● ยังไม่ได้เชื่อมต่อ';
-  document.getElementById('btnDrive').disabled = !on;
-  document.getElementById('btnDisc').style.display = on?'':'none';
-  const np=document.getElementById('navPill');
-  np.style.display=on?'':'none'; np.className='pill '+(on?'pill-ok':'pill-off');
-  np.textContent=on?'● Drive':'';
+function _getToken() {
+  return new Promise((resolve, reject) => {
+    if (_token) { resolve(_token); return; }
+    _initTC();
+    if (!_tc) { reject(new Error('Google API ยังโหลดไม่เสร็จ กรุณารอสักครู่แล้วลองใหม่')); return; }
+    _tc.callback = resp => {
+      if (resp.error) { reject(new Error(resp.error)); return; }
+      _token = resp.access_token;
+      resolve(_token);
+    };
+    _tc.error_callback = err => reject(new Error(err.type || 'auth_error'));
+    _tc.requestAccessToken({ prompt: '' });
+  });
 }
 
 async function saveToDrive() {
-  if (!_token) { toast('กรุณาเชื่อมต่อ Drive ก่อน','err'); return; }
-  const data=collect();
-  if (!data.domain) { toast('กรุณาระบุ Domain ก่อน','err'); return; }
+  const data = collect();
+  if (!data.domain) { toast('กรุณาระบุ Domain ก่อน', 'err'); return; }
   try {
+    await _getToken();
     showOvl('กำลังสร้าง / หาโฟลเดอร์…');
     const fId = await findOrMakeFolder(data.domain);
     showOvl('กำลังสร้างไฟล์ XLSX…');
     const wb = buildXLSX(data);
-    const arr = XLSX.write(wb,{bookType:'xlsx',type:'array'});
-    const xlsxBlob = new Blob([arr],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    const arr = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+    const xlsxBlob = new Blob([arr], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
     showOvl('กำลังอัพโหลด XLSX…');
-    await uploadFile(xlsxBlob,`${data.domain}_summary_report.xlsx`,
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',fId);
+    await uploadFile(xlsxBlob, `${data.domain}_summary_report.xlsx`,
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', fId);
     showOvl('กำลังสร้าง PDF…');
     const pdfBlob = await makePDFBlob();
     showOvl('กำลังอัพโหลด PDF…');
-    await uploadFile(pdfBlob,`${data.domain}_summary_report.pdf`,'application/pdf',fId);
+    await uploadFile(pdfBlob, `${data.domain}_summary_report.pdf`, 'application/pdf', fId);
     hideOvl();
-    toast(`✅ บันทึกลง Drive สำเร็จ! โฟลเดอร์: "Shared/${data.domain}"`,'ok');
-  } catch(e) { hideOvl(); toast('เกิดข้อผิดพลาด: '+e.message,'err'); console.error(e); }
+    toast(`✅ บันทึกลง Drive สำเร็จ! โฟลเดอร์: "Shared/${data.domain}"`, 'ok');
+  } catch (e) { hideOvl(); toast('เกิดข้อผิดพลาด: ' + e.message, 'err'); console.error(e); }
 }
 
 const TARGET_FOLDER_ID = '1O4fHpZsDVuwOog_B-1re3qqyRFISa_fE';
