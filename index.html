@@ -397,7 +397,7 @@ input[type=checkbox] { width:17px;height:17px;accent-color:var(--primary);cursor
           <div class="drive-icon">🗂️</div>
           <div class="drive-info">
             <h4>บันทึกอัตโนมัติลง Google Drive</h4>
-            <p>สร้าง subfolder ตามชื่อ Domain ใน <a href="https://drive.google.com/drive/folders/1O4fHpZsDVuwOog_B-1re3qqyRFISa_fE" target="_blank">Shared Folder</a> → บันทึก XLSX + PDF</p>
+            <p>สร้าง subfolder ตามชื่อ Domain ใน <a href="https://drive.google.com/drive/folders/1Li1cTg9Pn_1TD0QIOZ5OJM3q6-vCGfrk" target="_blank">Shared Folder</a> → บันทึก XLSX + PDF</p>
           </div>
         </div>
         <div id="drivePill" class="pill pill-off">● ยังไม่ได้เชื่อมต่อ</div>
@@ -996,7 +996,7 @@ async function saveToDrive() {
   } catch (e) { hideOvl(); toast('เกิดข้อผิดพลาด: ' + e.message, 'err'); console.error(e); }
 }
 
-const TARGET_FOLDER_ID = '1O4fHpZsDVuwOog_B-1re3qqyRFISa_fE';
+const TARGET_FOLDER_ID = '1Li1cTg9Pn_1TD0QIOZ5OJM3q6-vCGfrk';
 
 async function findOrMakeFolder(name) {
   const q=encodeURIComponent(`name='${name}' and mimeType='application/vnd.google-apps.folder' and '${TARGET_FOLDER_ID}' in parents and trashed=false`);
