@@ -6,135 +6,174 @@
   <title>Summary Report Form – HumanSoft</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <!-- xlsx-js-style: SheetJS + full cell styling support -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
-  <!-- html2canvas + jsPDF for Drive PDF upload -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <style>
 /* ═══════════════════════════════════════════════
-   BASE
+   HumanSoft CI — Base Variables
 ═══════════════════════════════════════════════ */
 :root {
-  --blue:    #1155cc;
-  --blue-dk: #0d47a1;
-  --orange:  #e46117;
-  --green:   #0f7b4d;
-  --red:     #c62828;
-  --text:    #202124;
-  --muted:   #5f6368;
-  --border:  #dadce0;
-  --bg:      #f1f3f4;
-  --card:    #ffffff;
-  --r:       10px;
+  --primary:    #F47B20;
+  --primary-dk: #C85E0F;
+  --primary-lt: #FFF4ED;
+  --primary-md: #FDE8D0;
+  --navy:       #1A56DB;
+  --navy-dk:    #1240B0;
+  --navy-lt:    #EEF2FF;
+  --green:      #059669;
+  --green-dk:   #047857;
+  --red:        #DC2626;
+  --text:       #1A1F2E;
+  --muted:      #6B7280;
+  --border:     #E5E7EB;
+  --bg:         #F4F6FA;
+  --card:       #FFFFFF;
+  --r:          10px;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: 'Sarabun', sans-serif; background: var(--bg); color: var(--text); font-size: 15px; }
 
 /* ── Navbar ── */
 .navbar {
-  background: var(--blue); color: #fff;
-  height: 56px; padding: 0 20px;
+  background: var(--navy); color: #fff;
+  height: 58px; padding: 0 24px;
   display: flex; align-items: center; justify-content: space-between;
   position: sticky; top: 0; z-index: 200;
-  box-shadow: 0 2px 10px rgba(0,0,0,.25); gap: 10px; flex-wrap: wrap;
+  box-shadow: 0 2px 12px rgba(0,0,0,.3); gap: 10px; flex-wrap: wrap;
 }
-.nav-brand { font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 8px; white-space: nowrap; }
-.nav-brand span { opacity: .7; font-size: 11.5px; font-weight: 400; }
+.nav-brand {
+  font-size: 15px; font-weight: 700;
+  display: flex; align-items: center; gap: 10px; white-space: nowrap;
+}
+.nav-brand .brand-logo {
+  background: var(--primary); color: #fff;
+  font-size: 12px; font-weight: 800;
+  padding: 3px 8px; border-radius: 5px; letter-spacing: .5px;
+}
+.nav-brand .brand-title { color: #fff; }
+.nav-brand .brand-sub { opacity: .55; font-size: 11.5px; font-weight: 400; margin-left: 2px; }
 .nav-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 
 /* ── Buttons ── */
-.btn { display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border-radius:7px;font-family:inherit;font-size:13.5px;font-weight:500;cursor:pointer;border:none;transition:all .15s;white-space:nowrap; }
+.btn { display:inline-flex;align-items:center;gap:5px;padding:7px 16px;border-radius:7px;font-family:inherit;font-size:13.5px;font-weight:600;cursor:pointer;border:none;transition:all .15s;white-space:nowrap; }
 .btn:disabled { opacity:.4;cursor:not-allowed; }
 .btn:not(:disabled):active { transform:scale(.97); }
-.btn-white   { background:#fff;color:var(--blue); } .btn-white:hover { background:#e8f0fe; }
-.btn-outline { background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,.65); } .btn-outline:hover { background:rgba(255,255,255,.12); }
-.btn-success { background:var(--green);color:#fff; } .btn-success:hover { background:#0a6840; }
-.btn-primary { background:var(--blue);color:#fff; } .btn-primary:hover { background:var(--blue-dk); }
-.btn-del     { background:transparent;color:var(--red);border:1.5px solid var(--red);padding:3px 8px;font-size:12px;border-radius:5px;cursor:pointer;font-family:inherit; }
+.btn-white   { background:#fff; color:var(--navy); } .btn-white:hover { background:#f0f3ff; }
+.btn-outline { background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,.5); } .btn-outline:hover { background:rgba(255,255,255,.12); }
+.btn-primary { background:var(--primary);color:#fff; } .btn-primary:hover { background:var(--primary-dk); }
+.btn-navy    { background:var(--navy);color:#fff; } .btn-navy:hover { background:var(--navy-dk); }
+.btn-success { background:var(--green);color:#fff; } .btn-success:hover { background:var(--green-dk); }
+.btn-del      { background:transparent;color:var(--red);border:1.5px solid var(--red);padding:3px 8px;font-size:12px;border-radius:5px;cursor:pointer;font-family:inherit; }
 .btn-del:hover { background:#fce8e6; }
+.btn-folder   { background:#FFF4ED;color:var(--primary);border:1.5px solid var(--primary-md);animation:fadeIn .4s ease; }
+.btn-folder:hover { background:var(--primary-md); }
+@keyframes fadeIn { from{opacity:0;transform:scale(.9)} to{opacity:1;transform:scale(1)} }
 
 /* ── Layout ── */
-.container { max-width: 1020px; margin: 0 auto; padding: 22px 16px 100px; }
+.container { max-width: 1040px; margin: 0 auto; padding: 24px 16px 100px; }
 
 /* ── Card ── */
-.card { background:var(--card);border-radius:var(--r);box-shadow:0 1px 3px rgba(0,0,0,.1),0 0 0 1px rgba(0,0,0,.04);margin-bottom:20px;overflow:hidden; }
-.card-hd { padding:12px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:#fafbfd; }
-.card-title { font-size:14.5px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:8px; }
-.card-body { padding:20px; }
+.card {
+  background: var(--card);
+  border-radius: var(--r);
+  box-shadow: 0 1px 4px rgba(0,0,0,.08), 0 0 0 1px rgba(0,0,0,.05);
+  margin-bottom: 20px; overflow: hidden;
+}
+.card-hd {
+  padding: 13px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  background: #fff;
+  border-left: 4px solid var(--primary);
+}
+.card-title { font-size: 14.5px; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 8px; }
+.card-body { padding: 20px; }
 
 /* ── Badges ── */
 .badge { display:inline-block;padding:2px 9px;border-radius:10px;font-size:11px;font-weight:600;letter-spacing:.4px; }
-.b-blue   { background:#dbeafe;color:#1e40af; }
-.b-green  { background:#dcfce7;color:#166534; }
-.b-orange { background:#ffedd5;color:#9a3412; }
-.b-purple { background:#ede9fe;color:#6d28d9; }
+.b-orange { background:var(--primary-lt);color:#92400E; }
+.b-green  { background:#D1FAE5;color:#065F46; }
+.b-blue   { background:var(--navy-lt);color:var(--navy); }
+.b-purple { background:#EDE9FE;color:#5B21B6; }
 
 /* ── Form ── */
 .form-grid { display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px; }
 .fg { display:flex;flex-direction:column;gap:5px; }
-.lbl { font-size:11.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.4px; }
+.lbl { font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px; }
 .fc { padding:8px 11px;border:1.5px solid var(--border);border-radius:7px;font-family:inherit;font-size:14.5px;color:var(--text);background:#fff;transition:border-color .18s; }
-.fc:focus { outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(17,85,204,.1); }
+.fc:focus { outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(244,123,32,.12); }
 textarea.fc { resize:none;overflow:hidden;min-height:36px;line-height:1.5; }
 select.fc  { cursor:pointer; }
 
 /* ── Table ── */
 .tbl-wrap { overflow-x:auto; }
 .dtbl { width:100%;border-collapse:collapse;font-size:14px; }
-.dtbl th { background:#eef2ff;color:#1e3a8a;font-weight:700;font-size:12px;padding:9px 11px;text-align:left;border-bottom:2px solid #c7d7fa;white-space:nowrap; }
-.dtbl td { padding:7px 9px;border-bottom:1px solid #f0f2f5;vertical-align:top; }
+.dtbl th {
+  background: var(--navy-lt);
+  color: var(--navy-dk);
+  font-weight: 700; font-size: 12px;
+  padding: 10px 11px; text-align: left;
+  border-bottom: 2px solid #BFDBFE;
+  white-space: nowrap;
+}
+.dtbl td { padding:8px 9px;border-bottom:1px solid #F3F4F6;vertical-align:top; }
 .dtbl tr:last-child td { border-bottom:none; }
-.dtbl tr:hover td { background:#fafbff; }
+.dtbl tr:hover td { background:#FFFBF7; }
 .col-no  { width:38px;text-align:center;color:var(--muted);font-weight:700; }
 .col-ck  { width:72px;text-align:center; }
 .col-act { width:34px;text-align:center; }
 .ck-wrap { display:flex;align-items:center;justify-content:center; }
-input[type=checkbox] { width:17px;height:17px;accent-color:var(--blue);cursor:pointer; }
+input[type=checkbox] { width:17px;height:17px;accent-color:var(--primary);cursor:pointer; }
 
 /* ── Add row btn ── */
-.add-row { display:flex;align-items:center;justify-content:center;gap:6px;width:100%;padding:9px;margin-top:10px;border:2px dashed #c8d4f0;border-radius:7px;background:none;font-family:inherit;font-size:13.5px;color:#7090c8;cursor:pointer;transition:all .18s; }
-.add-row:hover { border-color:var(--blue);color:var(--blue);background:#f0f4ff; }
+.add-row {
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  width:100%;padding:9px;margin-top:10px;
+  border:2px dashed var(--primary-md);
+  border-radius:7px;background:none;font-family:inherit;
+  font-size:13.5px;color:var(--primary);cursor:pointer;transition:all .18s;
+}
+.add-row:hover { border-color:var(--primary);background:var(--primary-lt); }
 
-/* ── Drive panel ── */
-.drive-box { background:linear-gradient(135deg,#e8f0fe,#f0e8fe);border:1px solid #c5d3f5;border-radius:9px;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px; }
+/* ── Drive panel (hidden) ── */
+.drive-box { background:linear-gradient(135deg,var(--primary-lt),#fdf2e9);border:1px solid var(--primary-md);border-radius:9px;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px; }
 .drive-left { display:flex;align-items:center;gap:14px; }
 .drive-icon { font-size:30px; }
-.drive-info h4 { font-size:14px;font-weight:700;color:#1a56db; }
-.drive-info p  { font-size:12px;color:#4c5c8a;margin-top:2px; }
+.drive-info h4 { font-size:14px;font-weight:700;color:var(--primary-dk); }
+.drive-info p  { font-size:12px;color:#92400E;margin-top:2px; }
 .pill { display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:12px;font-size:12px;font-weight:600; }
-.pill-ok  { background:#e6f4ea;color:var(--green); }
-.pill-off { background:#fce8e6;color:var(--red); }
-.guide { background:#fffde7;border:1px solid #f9ab00;border-radius:8px;padding:14px 16px;font-size:13px;margin-top:16px; }
-.guide h4 { color:#b45309;margin-bottom:8px;font-size:13px; }
+.pill-ok  { background:#D1FAE5;color:var(--green); }
+.pill-off { background:#FEE2E2;color:var(--red); }
+.guide { background:#FFFBF7;border:1px solid var(--primary-md);border-radius:8px;padding:14px 16px;font-size:13px;margin-top:16px; }
+.guide h4 { color:#92400E;margin-bottom:8px;font-size:13px; }
 .guide ol { padding-left:18px; }
-.guide li { margin-bottom:5px;color:#78350f;line-height:1.5; }
+.guide li { margin-bottom:5px;color:#7C3A0E;line-height:1.5; }
 .guide code { background:rgba(0,0,0,.07);padding:1px 5px;border-radius:3px;font-size:12px; }
-.guide a { color:var(--blue); }
+.guide a { color:var(--primary); }
 .cid-row { display:flex;gap:10px;align-items:center;margin-top:14px; }
 .cid-row .fc { flex:1;font-size:13px; }
 
-/* ── Overlay / Toast ── */
-.overlay { position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:9000; }
+/* ── Overlay / Spinner / Toast ── */
+.overlay { position:fixed;inset:0;background:rgba(26,39,68,.55);display:none;align-items:center;justify-content:center;z-index:9000; }
 .overlay.show { display:flex; }
-.overlay-box { background:#fff;border-radius:14px;padding:32px 40px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:14px;min-width:200px; }
-.spinner { width:38px;height:38px;border:3.5px solid #e0e0e0;border-top-color:var(--blue);border-radius:50%;animation:spin .65s linear infinite; }
+.overlay-box { background:#fff;border-radius:14px;padding:32px 40px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:14px;min-width:200px;border-top:4px solid var(--primary); }
+.spinner { width:38px;height:38px;border:3.5px solid #E5E7EB;border-top-color:var(--primary);border-radius:50%;animation:spin .65s linear infinite; }
 @keyframes spin { to { transform:rotate(360deg); } }
 .toast-wrap { position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px; }
 .toast { padding:11px 16px;border-radius:9px;font-size:13.5px;font-weight:500;box-shadow:0 4px 14px rgba(0,0,0,.15);animation:slideUp .3s ease;display:flex;align-items:center;gap:8px;min-width:230px;max-width:380px; }
-.t-ok  { background:#e6f4ea;color:var(--green);border:1px solid #a7f3d0; }
-.t-err { background:#fce8e6;color:var(--red);border:1px solid #fca5a5; }
-.t-inf { background:#e8f0fe;color:var(--blue);border:1px solid #bfdbfe; }
+.t-ok  { background:#D1FAE5;color:var(--green);border:1px solid #6EE7B7; }
+.t-err { background:#FEE2E2;color:var(--red);border:1px solid #FCA5A5; }
+.t-inf { background:var(--primary-lt);color:var(--primary-dk);border:1px solid var(--primary-md); }
 @keyframes slideUp { from { transform:translateY(20px);opacity:0; } to { transform:none;opacity:1; } }
 
 /* ════════════════════════════════════════════
-   PRINT  –  หน้าตาที่ออกมาจาก PDF
+   PRINT — A4 Landscape
 ════════════════════════════════════════════ */
 .print-only { display:none; }
 
 @media print {
-  /* ── Hide screen-only elements ── */
   .navbar, .no-print, .add-row, .col-act, .guide, .drive-box,
   .toast-wrap, .overlay, #driveCard, .cid-row,
   .card-hd .btn { display:none !important; }
@@ -142,66 +181,61 @@ input[type=checkbox] { width:17px;height:17px;accent-color:var(--blue);cursor:po
   body { background:#fff;font-size:11pt;font-family:'Sarabun',sans-serif; }
   .container { max-width:100%;padding:0; }
   .card { box-shadow:none;border:none;margin-bottom:16pt;page-break-inside:avoid; }
-  .card-hd { padding:6pt 10pt; }
+  .card-hd { padding:6pt 10pt;border-left:4pt solid #F47B20 !important; }
 
-  /* ── Print header (hidden on screen) ── */
   .print-only { display:block !important; }
   #ph { margin-bottom:14pt; }
-  #ph-bar { height:5pt;background:#e46117;border-radius:0; }
+  #ph-bar { height:5pt;background:#F47B20;border-radius:0; }
   #ph-body {
     display:flex;align-items:stretch;justify-content:space-between;
-    padding:10pt 14pt 8pt;border-bottom:1.5pt solid #e46117;
+    padding:10pt 14pt 8pt;border-bottom:1.5pt solid #F47B20;
+    background:#1A56DB !important; -webkit-print-color-adjust:exact;
   }
-  #ph-left h1 { font-size:22pt;font-weight:700;color:#1155cc;line-height:1; }
-  #ph-left p  { font-size:10pt;color:#9ca3af;margin-top:3pt; }
+  #ph-left h1 { font-size:20pt;font-weight:700;color:#fff;line-height:1; }
+  #ph-left p  { font-size:10pt;color:rgba(255,255,255,.6);margin-top:3pt; }
   #ph-right  { text-align:right;display:flex;flex-direction:column;justify-content:space-between; }
-  #ph-right .brand { font-size:16pt;font-weight:700;color:#e46117; }
-  #ph-right .doc-id { font-size:9pt;font-weight:700;color:#e46117;margin-top:2pt; }
-  #ph-right .doc-date { font-size:8pt;color:#6b7280;margin-top:1pt; }
+  #ph-right .brand { font-size:16pt;font-weight:800;color:#F47B20; }
+  #ph-right .doc-id { font-size:9pt;font-weight:700;color:#F47B20;margin-top:2pt; }
+  #ph-right .doc-date { font-size:8pt;color:rgba(255,255,255,.55);margin-top:1pt; }
   #ph-meta {
     display:flex;gap:20pt;padding:8pt 14pt;
-    background:#eff6ff;border-bottom:1pt solid #bfdbfe;
+    background:#EEF2FF !important;border-bottom:1pt solid #BFDBFE;
+    -webkit-print-color-adjust:exact;
   }
   #ph-meta .m-item { display:flex;flex-direction:column;gap:1pt; }
-  #ph-meta .m-lbl  { font-size:8pt;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.5pt; }
-  #ph-meta .m-val  { font-size:11pt;font-weight:600;color:#1e3a8a; }
+  #ph-meta .m-lbl  { font-size:8pt;font-weight:700;color:#1240B0;text-transform:uppercase;letter-spacing:.5pt; }
+  #ph-meta .m-val  { font-size:11pt;font-weight:600;color:#1A56DB; }
 
-  /* ── Section card headers ── */
   .card-hd {
-    background:#1155cc !important; -webkit-print-color-adjust:exact;
+    background:#1A56DB !important; -webkit-print-color-adjust:exact;
     padding:7pt 12pt !important; border-bottom:none !important;
   }
   .card-title { color:#fff !important; font-size:11pt !important; }
   .badge { display:none; }
   .card-body { padding:0 !important; }
 
-  /* ── Tables ── */
   .dtbl th {
-    background:#dbeafe !important;
+    background:#EEF2FF !important;
     -webkit-print-color-adjust:exact;
     font-size:9pt !important; padding:5pt 8pt !important;
-    color:#1e3a8a !important;
+    color:#1E3A8A !important;
   }
-  .dtbl td { font-size:9.5pt !important; padding:5pt 8pt !important; border-bottom:0.5pt solid #e8f0fe !important; }
-  .dtbl tr:nth-child(even) td { background:#f8faff !important; -webkit-print-color-adjust:exact; }
+  .dtbl td { font-size:9.5pt !important; padding:5pt 8pt !important; border-bottom:0.5pt solid #F3F4F6 !important; }
+  .dtbl tr:nth-child(even) td { background:#FFFBF7 !important; -webkit-print-color-adjust:exact; }
 
-  /* ── Checkboxes → symbol ── */
   input[type=checkbox] { display:none !important; }
   .ck-print { display:flex !important; }
 
-  /* ── Form inputs → plain text ── */
   .fc { border:none !important; padding:0 !important; background:transparent !important; font-size:inherit !important; }
   select.fc { -webkit-appearance:none; border:none !important; background:transparent !important; }
 
-  /* ── Meta form fields ── */
-  #fDomain, #fCompany, #fDate { font-weight:700;color:#1e3a8a; }
+  #fDomain, #fCompany, #fDate { font-weight:700;color:#1A56DB; }
 
-  /* ── Status badge colors ── */
   .st-badge { display:inline-block;padding:1pt 6pt;border-radius:4pt;font-size:8.5pt;font-weight:700; }
-  .st-not   { background:#fef9c3 !important;color:#854d0e !important; -webkit-print-color-adjust:exact; }
-  .st-prog  { background:#dbeafe !important;color:#1e3a8a !important; -webkit-print-color-adjust:exact; }
-  .st-done  { background:#dcfce7 !important;color:#166534 !important; -webkit-print-color-adjust:exact; }
-  .st-hold  { background:#fee2e2 !important;color:#991b1b !important; -webkit-print-color-adjust:exact; }
+  .st-not   { background:#FEF9C3 !important;color:#854D0E !important; -webkit-print-color-adjust:exact; }
+  .st-prog  { background:#DBEAFE !important;color:#1E3A8A !important; -webkit-print-color-adjust:exact; }
+  .st-done  { background:#D1FAE5 !important;color:#065F46 !important; -webkit-print-color-adjust:exact; }
+  .st-hold  { background:#FEE2E2 !important;color:#991B1B !important; -webkit-print-color-adjust:exact; }
 
   @page { margin:12mm 10mm; size:A4 landscape; }
 }
@@ -211,25 +245,29 @@ input[type=checkbox] { width:17px;height:17px;accent-color:var(--blue);cursor:po
 
 <!-- ── Navbar ── -->
 <nav class="navbar">
-  <div class="nav-brand">📋 Summary Report Form <span>HumanSoft</span></div>
+  <div class="nav-brand">
+    <span class="brand-logo">HS</span>
+    <span class="brand-title">Summary Report Form</span>
+    <span class="brand-sub">HumanSoft</span>
+  </div>
   <div class="nav-actions">
     <button class="btn btn-outline no-print" onclick="exportPDF()">🖨 PDF</button>
     <button class="btn btn-white no-print"   onclick="exportXLSX()">📥 XLSX</button>
-    <button class="btn btn-success no-print" id="btnDrive" onclick="saveToDrive()">☁️ บันทึกลง Drive</button>
+    <button class="btn btn-folder no-print"  id="btnFolder" style="display:none" onclick="openDriveFolder()">📂 เปิดโฟลเดอร์</button>
+    <button class="btn btn-primary no-print" id="btnDrive" onclick="saveToDrive()">☁️ บันทึกลง Drive</button>
   </div>
 </nav>
 
 <!-- ── Overlay ── -->
 <div class="overlay" id="overlay">
-  <div class="overlay-box"><div class="spinner"></div>
+  <div class="overlay-box">
+    <div class="spinner"></div>
     <p id="ovMsg" style="font-size:14px;color:#444">กำลังดำเนินการ…</p>
   </div>
 </div>
 <div class="toast-wrap" id="toastWrap"></div>
 
-<!-- ══════════════════════════════════════════
-  PRINT HEADER  (hidden on screen, shows when printing)
-══════════════════════════════════════════ -->
+<!-- PRINT HEADER -->
 <div id="ph" class="print-only">
   <div id="ph-bar"></div>
   <div id="ph-body">
@@ -268,14 +306,14 @@ input[type=checkbox] { width:17px;height:17px;accent-color:var(--blue);cursor:po
     </div>
     <div class="card-body">
       <div class="form-grid">
-        <div class="fg"><label class="lbl">Domain <span style="color:red">*</span></label>
-          <input id="fDomain" type="text" class="fc" placeholder="เช่น hachiban" value="saijai" oninput="syncPrint()">
+        <div class="fg"><label class="lbl">Domain <span style="color:var(--red)">*</span></label>
+          <input id="fDomain" type="text" class="fc" placeholder="เช่น hachiban" oninput="syncPrint()">
         </div>
         <div class="fg"><label class="lbl">บริษัท (Company)</label>
-          <input id="fCompany" type="text" class="fc" placeholder="ชื่อบริษัท" value="บริษัท ไทยฮะจิบัง จำกัด" oninput="syncPrint()">
+          <input id="fCompany" type="text" class="fc" placeholder="ชื่อบริษัท" oninput="syncPrint()">
         </div>
         <div class="fg"><label class="lbl">วันที่อัปเดต</label>
-          <input id="fDate" type="date" class="fc" value="2026-02-16" oninput="syncPrint()">
+          <input id="fDate" type="date" class="fc" oninput="syncPrint()">
         </div>
       </div>
     </div>
@@ -284,7 +322,7 @@ input[type=checkbox] { width:17px;height:17px;accent-color:var(--blue);cursor:po
   <!-- ── 2. Pain Points ── -->
   <div class="card">
     <div class="card-hd">
-      <div class="card-title">🎯 สรุป Pain Point หลัก <span class="badge b-blue no-print">ส่วนที่ 1</span></div>
+      <div class="card-title">🎯 สรุป Pain Point หลัก <span class="badge b-orange no-print">ส่วนที่ 1</span></div>
     </div>
     <div class="card-body" style="padding-bottom:14px">
       <div class="tbl-wrap">
@@ -328,7 +366,7 @@ input[type=checkbox] { width:17px;height:17px;accent-color:var(--blue);cursor:po
   <!-- ── 4. Timeline ── -->
   <div class="card">
     <div class="card-hd">
-      <div class="card-title">📅 Timeline <span class="badge b-orange no-print">ส่วนที่ 3</span></div>
+      <div class="card-title">📅 Timeline <span class="badge b-blue no-print">ส่วนที่ 3</span></div>
     </div>
     <div class="card-body" style="padding-bottom:14px">
       <div class="tbl-wrap">
@@ -348,7 +386,7 @@ input[type=checkbox] { width:17px;height:17px;accent-color:var(--blue);cursor:po
     </div>
   </div>
 
-  <!-- ── 5. Google Drive Settings ── -->
+  <!-- ── 5. Drive Card (hidden) ── -->
   <div class="card no-print" id="driveCard" style="display:none">
     <div class="card-hd">
       <div class="card-title">☁️ ตั้งค่า Google Drive <span class="badge b-purple">ทำครั้งเดียว</span></div>
@@ -359,27 +397,13 @@ input[type=checkbox] { width:17px;height:17px;accent-color:var(--blue);cursor:po
           <div class="drive-icon">🗂️</div>
           <div class="drive-info">
             <h4>บันทึกอัตโนมัติลง Google Drive</h4>
-            <p>สร้าง subfolder ตามชื่อ Domain ใน <a href="https://drive.google.com/drive/folders/1O4fHpZsDVuwOog_B-1re3qqyRFISa_fE" target="_blank" style="color:#1a56db">Shared Folder</a> → บันทึก XLSX + PDF</p>
+            <p>สร้าง subfolder ตามชื่อ Domain ใน <a href="https://drive.google.com/drive/folders/1O4fHpZsDVuwOog_B-1re3qqyRFISa_fE" target="_blank">Shared Folder</a> → บันทึก XLSX + PDF</p>
           </div>
         </div>
         <div id="drivePill" class="pill pill-off">● ยังไม่ได้เชื่อมต่อ</div>
       </div>
-      <div class="guide">
-        <h4>⚙️ วิธีตั้งค่า Google Drive API (ทำครั้งเดียว)</h4>
-        <ol>
-          <li>ไปที่ <a href="https://console.cloud.google.com" target="_blank">Google Cloud Console</a> → สร้าง Project ใหม่</li>
-          <li>ค้นหา <strong>Google Drive API</strong> → กด Enable</li>
-          <li>ไปที่ <strong>APIs &amp; Services → Credentials → Create Credentials → OAuth 2.0 Client ID</strong></li>
-          <li>Application type: <strong>Web application</strong></li>
-          <li>Authorized JavaScript origins: เพิ่ม URL ของ GitHub Pages เช่น <code>https://username.github.io</code></li>
-          <li>Copy <strong>Client ID</strong> มาวางด้านล่าง แล้วกด "เชื่อมต่อ"</li>
-        </ol>
-        <p style="margin-top:10px;color:#78350f;font-size:12px;">
-          💡 เมื่อ deploy บน GitHub Pages แล้ว ให้เพิ่ม URL จริงใน Authorized JavaScript origins ด้วย
-        </p>
-      </div>
       <div class="cid-row">
-        <input id="clientId" type="text" class="fc" placeholder="วาง Google OAuth Client ID เช่น 123456-abc.apps.googleusercontent.com">
+        <input id="clientId" type="text" class="fc" placeholder="วาง Google OAuth Client ID">
         <button class="btn btn-primary" onclick="connectDrive()">เชื่อมต่อ</button>
         <button class="btn btn-del" id="btnDisc" onclick="disconnectDrive()" style="display:none">ออก</button>
       </div>
@@ -394,39 +418,9 @@ input[type=checkbox] { width:17px;height:17px;accent-color:var(--blue);cursor:po
 /* ══════════════════════════════════════════
    DEFAULT DATA
 ══════════════════════════════════════════ */
-const DEF_PP = [
-  {req:'ต้องการโปรแกรมแบบ OnCloud',sup:true,not:false,sol:''},
-  {req:'ต้องการให้มีฟีเจอร์ใหม่ๆ อัพเดตขึ้นมาเรื่อยๆ',sup:true,not:false,sol:''},
-  {req:'สนใจฟังชั่น HRD เช่น Training / Recruitment',sup:true,not:false,sol:''},
-  {req:'ลงเวลา 4 ขาต่อวัน คือ เข้างาน–เริ่มพัก–เลิกพัก–เลิกงาน / ทำโอที',sup:true,not:false,sol:''},
-  {req:'ลงเวลาผ่านเครื่องสแกนนิ้ว มีทั้งหมด 180 เครื่อง',sup:true,not:false,
-   sol:'แนะนำส่งข้อมูลเครื่องมาตรวจสอบก่อนว่าสามารถอัพเกรด ADMS ได้หรือไม่\nหรือใช้ App HumanSoft ในการลงเวลา'},
-  {req:'การลางาน เดิมใช้ paper และ Excel คู่กัน',sup:true,not:false,sol:'แนะนำมายื่นเอกสารต่างๆ ผ่าน App HumanSoft'},
-  {req:'วันหยุดนักขัตฤกษ์ (ชดเชย) ถ้าพนักงานไม่หยุดให้คืนเป็นเงิน',sup:true,not:false,
-   sol:'แนะนำ 2 แนวทาง\n1. HR ตรวจสอบจำนวนวันลาชดเชยคงเหลือ และคำนวณเป็นยอดเงิน กรอกเป็นรายรับให้พนักงาน\n2. ExtraCode มีค่าใช้จ่ายเพิ่มเติม'},
-  {req:'รอบการลา เดือน 1–12',sup:true,not:false,sol:''},
-  {req:'บัญชีนำจ่ายใช้ของธนาคารกสิกรไทย',sup:true,not:false,sol:'หาก Layout ไม่ตรงสามารถส่ง format ให้ทีมเขียนเพิ่มได้ ไม่มีค่าใช้จ่าย'},
-];
-
-const DEF_SO = [
-  {item:'ข้อเสนอพิเศษ',det:'สำหรับการสมัครใช้งานแพ็กเกจ (สัญญา 1 ปี)\n10 ฟรี 2 เมื่อชำระภายในเดือน'},
-  {item:'การบริการ',det:'• ไม่มีค่า MA\n• ขึ้นระบบให้ฟรี ไม่มีค่าใช้จ่ายเพิ่ม\n• ไม่มีค่าเช่า Cloud\n• Support หลังการขาย ทุกวันไม่มีวันหยุด 08.30–17.30 น.\n• รองรับ Multi Company (ไม่มีค่าใช้จ่ายเพิ่มเติม)\n• User HR ไม่จำกัด\n• Training ฟรี 3 ครั้ง แบบ Online'},
-];
-
-const DEF_TL = [
-  {res:'Humansoft / Client',task:'Presentation and Negotiate Price',det:'',st:'Not started'},
-  {res:'Client',task:'Payment',det:'',st:'Not started'},
-  {res:'Client',task:'การเตรียมข้อมูลสำหรับการขึ้นระบบ',det:'ข้อมูลพนักงาน / เงื่อนไขการคำนวณ / รายรับรายจ่าย',st:'Not started'},
-  {res:'Client',task:'ส่งข้อมูลพนักงาน และข้อมูลการตั้งค่า',det:'',st:'Not started'},
-  {res:'Humansoft',task:'ดำเนินการนำเข้าข้อมูล (ขึ้นระบบ)',det:'',st:'Not started'},
-  {res:'Client',task:'ตรวจสอบความถูกต้องของข้อมูล',det:'',st:'Not started'},
-  {res:'Humansoft',task:'นัดการสอนการใช้งาน Application / Website',det:'สำหรับ HR และผู้เกี่ยวข้อง',st:'Not started'},
-  {res:'Client',task:'Internal Training (ถ้ามี)',det:'',st:'Not started'},
-  {res:'Client',task:'เริ่มการใช้งานจริง (Go Live)',det:'ลงเวลา / ยื่นเอกสาร / ตรวจสอบเวลาทำงาน',st:'Not started'},
-  {res:'Client',task:'เตรียมข้อมูลเงินเดือนย้อนหลัง',det:'รายงานสรุปการคำนวณเงินเดือน (Excel)',st:'Not started'},
-  {res:'Humansoft',task:'ดำเนินการนำเข้าข้อมูลย้อนหลัง',det:'',st:'Not started'},
-  {res:'Client',task:'ตรวจสอบความถูกต้องของข้อมูลย้อนหลัง',det:'',st:'Not started'},
-];
+const DEF_PP = [];
+const DEF_SO = [];
+const DEF_TL = [];
 
 /* ══════════════════════════════════════════
    INIT
@@ -451,20 +445,19 @@ function syncPrint() {
 function addPP(d={}) {
   const tr = document.createElement('tr');
   tr.innerHTML = `
-    <td class="col-no rn" style="font-weight:700;color:#6b7280"></td>
+    <td class="col-no rn" style="font-weight:700;color:#9CA3AF"></td>
     <td><textarea class="fc" placeholder="ระบุความต้องการ / ปัญหา">${esc(d.req||'')}</textarea></td>
     <td class="col-ck">
       <div class="ck-wrap"><input type="checkbox" ${d.sup?'checked':''}></div>
-      <div class="ck-print" style="display:none;justify-content:center;font-size:15px;font-weight:700;color:#166534">${d.sup?'✓':''}</div>
+      <div class="ck-print" style="display:none;justify-content:center;font-size:15px;font-weight:700;color:#065F46">${d.sup?'✓':''}</div>
     </td>
     <td class="col-ck">
       <div class="ck-wrap"><input type="checkbox" ${d.not?'checked':''}></div>
-      <div class="ck-print" style="display:none;justify-content:center;font-size:15px;font-weight:700;color:#c62828">${d.not?'✗':''}</div>
+      <div class="ck-print" style="display:none;justify-content:center;font-size:15px;font-weight:700;color:#DC2626">${d.not?'✗':''}</div>
     </td>
     <td><textarea class="fc" placeholder="Solutions / แนวทาง">${esc(d.sol||'')}</textarea></td>
     <td class="col-act no-print"><button class="btn-del" onclick="delRow(this)">✕</button></td>`;
   document.getElementById('ppBody').appendChild(tr);
-  // update print symbols when checkbox changes
   tr.querySelectorAll('input[type=checkbox]').forEach((cb, i) => {
     cb.addEventListener('change', () => {
       const sym = cb.closest('td').querySelector('.ck-print');
@@ -477,7 +470,7 @@ function addPP(d={}) {
 function addSO(d={}) {
   const tr = document.createElement('tr');
   tr.innerHTML = `
-    <td class="col-no rn" style="font-weight:700;color:#6b7280"></td>
+    <td class="col-no rn" style="font-weight:700;color:#9CA3AF"></td>
     <td><input type="text" class="fc" placeholder="ชื่อรายการ" value="${esc(d.item||'')}"></td>
     <td><textarea class="fc" placeholder="รายละเอียด">${esc(d.det||'')}</textarea></td>
     <td class="col-act no-print"><button class="btn-del" onclick="delRow(this)">✕</button></td>`;
@@ -488,17 +481,17 @@ function addSO(d={}) {
 const RESP  = ['Humansoft','Client','Humansoft / Client'];
 const STATS = ['Not started','In progress','Done','On hold'];
 const ST_CLS = {'Not started':'st-not','In progress':'st-prog','Done':'st-done','On hold':'st-hold'};
-const RS_CLR = {'Humansoft':'#dbeafe;color:#1e40af','Client':'#dcfce7;color:#166534','Humansoft / Client':'#ede9fe;color:#5b21b6'};
+const RS_CLR = {'Humansoft':'dbeafe;color:#1e40af','Client':'dcfce7;color:#065f46','Humansoft / Client':'ede9fe;color:#5b21b6'};
 
 function mkOpts(arr,val) { return arr.map(o=>`<option${o===val?' selected':''}>${o}</option>`).join(''); }
 
 function addTL(d={}) {
   const st = d.st||'Not started';
   const rs = d.res||'Humansoft';
-  const rColor = RS_CLR[rs]||'#f3f4f6;color:#374151';
+  const rColor = RS_CLR[rs]||'f3f4f6;color:#374151';
   const tr = document.createElement('tr');
   tr.innerHTML = `
-    <td class="col-no rn" style="font-weight:700;color:#6b7280"></td>
+    <td class="col-no rn" style="font-weight:700;color:#9CA3AF"></td>
     <td>
       <select class="fc" style="font-size:13px;background:#${rColor}" onchange="updateRsColor(this)">
         ${mkOpts(RESP,rs)}
@@ -517,7 +510,7 @@ function addTL(d={}) {
 }
 
 function updateRsColor(sel) {
-  const c = RS_CLR[sel.value]||'#f3f4f6;color:#374151';
+  const c = RS_CLR[sel.value]||'f3f4f6;color:#374151';
   sel.style.cssText = `font-size:13px;background:#${c}`;
 }
 function updateStColor(sel) {
@@ -540,13 +533,12 @@ function ar(ctx) {
   });
 }
 
-// Add inline color classes for status selects
 const stCSS = document.createElement('style');
 stCSS.textContent = `
-  .st-not { background:#fef9c3 !important; color:#854d0e !important; font-weight:600; }
-  .st-prog { background:#dbeafe !important; color:#1e3a8a !important; font-weight:600; }
-  .st-done { background:#dcfce7 !important; color:#166534 !important; font-weight:600; }
-  .st-hold { background:#fee2e2 !important; color:#991b1b !important; font-weight:600; }
+  .st-not  { background:#FEF9C3 !important; color:#854D0E !important; font-weight:600; }
+  .st-prog { background:#DBEAFE !important; color:#1E3A8A !important; font-weight:600; }
+  .st-done { background:#D1FAE5 !important; color:#065F46 !important; font-weight:600; }
+  .st-hold { background:#FEE2E2 !important; color:#991B1B !important; font-weight:600; }
 `;
 document.head.appendChild(stCSS);
 
@@ -585,46 +577,51 @@ function fmtDate(s) {
 }
 
 /* ══════════════════════════════════════════
-   STYLED XLSX EXPORT  (xlsx-js-style)
+   STYLED XLSX EXPORT  — HumanSoft CI
 ══════════════════════════════════════════ */
 function buildXLSX(data) {
   const ws = {}, merges = [], rowHts = [];
-
-  // ── Helpers ──
   const enc = (r,c) => XLSX.utils.encode_cell({r:r-1,c:c-1});
 
   function sc(row, col, val, s) {
     const t = typeof val==='boolean'?'b':typeof val==='number'?'n':'s';
     ws[enc(row,col)] = { v: val, t, s: s||{} };
   }
-  function mg(r1,c1,r2,c2) {
-    merges.push({s:{r:r1-1,c:c1-1},e:{r:r2-1,c:c2-1}});
-  }
+  function mg(r1,c1,r2,c2) { merges.push({s:{r:r1-1,c:c1-1},e:{r:r2-1,c:c2-1}}); }
   function rh(r,h) { rowHts[r-1] = {hpt:h,hpx:h}; }
 
-  // ── Color palette ──
+  // ── HumanSoft CI Palette ──
   const C = {
-    blue:'1155CC', orange:'E46117', white:'FFFFFF',
-    headBg:'1155CC', tblHdBg:'DBEAFE', tblHdTxt:'1E3A8A',
-    rowAlt:'F0F5FF', okBg:'DCFCE7', okTxt:'166534',
-    noBg:'FEE2E2', noTxt:'991B1B', border:'BFDBFE',
-    metaBg:'EFF6FF', gray:'6B7280', bodyTxt:'374151',
-    orangeTint:'FFF7ED',
+    orange:   'F47B20',
+    orangeDk: 'C85E0F',
+    orangeLt: 'FFF4ED',
+    orangeMd: 'FDE8D0',
+    navy:     '1A2744',
+    white:    'FFFFFF',
+    headBg:   '1A2744',
+    tblHdBg:  'FFF4ED',
+    tblHdTxt: '7C3A0E',
+    rowAlt:   'FFFBF7',
+    okBg:     'D1FAE5', okTxt: '065F46',
+    noBg:     'FEE2E2', noTxt: '991B1B',
+    border:   'FDE8D0',
+    metaBg:   'FFF4ED',
+    gray:     '9CA3AF',
+    bodyTxt:  '374151',
   };
 
-  // ── Common styles ──
-  const bold = (sz,color,name='Calibri') => ({bold:true,sz,color:{rgb:color},name});
-  const reg  = (sz,color,name='Calibri') => ({sz,color:{rgb:color},name});
-  const solid = (color) => ({patternType:'solid',fgColor:{rgb:color}});
-  const bdr = () => ({
+  const bold   = (sz,color,name='Calibri') => ({bold:true,sz,color:{rgb:color},name});
+  const reg    = (sz,color,name='Calibri') => ({sz,color:{rgb:color},name});
+  const solid  = (color) => ({patternType:'solid',fgColor:{rgb:color}});
+  const bdr    = () => ({
     top:{style:'thin',color:{rgb:C.border}},
     bottom:{style:'thin',color:{rgb:C.border}},
     left:{style:'thin',color:{rgb:C.border}},
     right:{style:'thin',color:{rgb:C.border}},
   });
   const bdrMed = () => ({
-    top:{style:'medium',color:{rgb:C.blue}},
-    bottom:{style:'medium',color:{rgb:C.blue}},
+    top:{style:'medium',color:{rgb:C.orange}},
+    bottom:{style:'medium',color:{rgb:C.orange}},
     left:{style:'thin',color:{rgb:C.border}},
     right:{style:'thin',color:{rgb:C.border}},
   });
@@ -632,35 +629,35 @@ function buildXLSX(data) {
 
   let r = 1;
 
-  // ─ Row 1: orange bar ─
+  // ─ Row 1: orange top bar ─
   rh(1,5);
   for(let c=1;c<=7;c++) sc(r,c,'',{fill:solid(C.orange)});
 
-  // ─ Row 2: Title + HumanSoft ─
+  // ─ Row 2: Title + HumanSoft brand ─
   rh(2,34);
-  mg(2,1,2,4); sc(2,1,'Summary Report',{font:bold(20,C.blue),fill:solid(C.white),alignment:al('left','center')});
-  mg(2,5,2,7); sc(2,5,'HumanSoft',{font:bold(15,C.orange),fill:solid(C.orangeTint),alignment:al('right','center')});
+  mg(2,1,2,4); sc(2,1,'Summary Report',{font:bold(20,C.navy),fill:solid(C.white),alignment:al('left','center')});
+  mg(2,5,2,7); sc(2,5,'HumanSoft',{font:bold(15,C.orange),fill:solid(C.orangeLt),alignment:al('right','center')});
 
-  // ─ Row 3: subtitle + FM code ─
+  // ─ Row 3: subtitle ─
   rh(3,18);
   mg(3,1,3,4); sc(3,1,'Proposal Summary Document',{font:{sz:11,color:{rgb:'9CA3AF'},italic:true,name:'Calibri'},fill:solid(C.white),alignment:al('left','center')});
-  mg(3,5,3,7); sc(3,5,'FM-SE-03',{font:bold(10,C.orange),fill:solid(C.orangeTint),alignment:al('right','center')});
+  mg(3,5,3,7); sc(3,5,'FM-SE-03',{font:bold(10,C.orange),fill:solid(C.orangeLt),alignment:al('right','center')});
 
   // ─ Row 4: doc date ─
   rh(4,16);
   for(let c=1;c<=4;c++) sc(r+2,c,'',{fill:solid(C.white)});
   mg(4,5,4,7); sc(4,5,'วันที่เริ่มใช้/ แก้ไข : 02 กุมภาพันธ์ 2569/ 00',
-    {font:reg(9,C.gray),fill:solid(C.orangeTint),alignment:al('right','center')});
+    {font:reg(9,C.gray),fill:solid(C.orangeLt),alignment:al('right','center')});
 
   // ─ Row 5: spacer ─
   rh(5,8); for(let c=1;c<=7;c++) sc(5,c,'',{fill:solid(C.white)});
 
   // ─ Rows 6-8: Meta ─
   rh(6,21); rh(7,21); rh(8,21);
-  const metaBdr = {bottom:{style:'hair',color:{rgb:'BFDBFE'}}};
+  const metaBdr = {bottom:{style:'hair',color:{rgb:C.border}}};
   [[6,'Domain',data.domain],[7,'บริษัท (Company)',data.company],[8,'วันที่อัปเดต',fmtDate(data.date)]].forEach(([row,lbl,val]) => {
     mg(row,1,row,2); sc(row,1,lbl,{font:reg(10,C.gray),fill:solid(C.metaBg),alignment:al('left','center'),border:metaBdr});
-    mg(row,3,row,7); sc(row,3,val,{font:bold(10,C.blue),fill:solid(C.metaBg),alignment:al('left','center'),border:metaBdr});
+    mg(row,3,row,7); sc(row,3,val,{font:bold(10,C.navy),fill:solid(C.metaBg),alignment:al('left','center'),border:metaBdr});
   });
 
   // ─ Row 9: spacer ─
@@ -668,7 +665,6 @@ function buildXLSX(data) {
 
   r = 10;
 
-  // ── SECTION HELPER ──
   function sectionHd(label) {
     rh(r,26);
     mg(r,1,r,7);
@@ -680,8 +676,7 @@ function buildXLSX(data) {
     r++;
   }
 
-  // ── TABLE HEADER HELPER ──
-  function tblHd(cols) {  // cols: [{label,span}]
+  function tblHd(cols) {
     rh(r,28);
     let c=1;
     cols.forEach(({label,span=1}) => {
@@ -749,10 +744,10 @@ function buildXLSX(data) {
   sectionHd('📅  Timeline');
   tblHd([{label:'No.'},{label:'ผู้รับผิดชอบ'},{label:'Task / กระบวนการ',span:2},{label:'รายละเอียด',span:2},{label:'Status'}]);
 
-  const ST = {'Not started':'FEF9C3','In progress':'DBEAFE','Done':'DCFCE7','On hold':'FEE2E2'};
-  const ST_TXT = {'Not started':'854D0E','In progress':'1E3A8A','Done':'166534','On hold':'991B1B'};
-  const RS = {'Humansoft':'DBEAFE','Client':'DCFCE7','Humansoft / Client':'EDE9FE'};
-  const RS_TXT = {'Humansoft':'1E40AF','Client':'166534','Humansoft / Client':'5B21B6'};
+  const ST  = {'Not started':'FEF9C3','In progress':'DBEAFE','Done':'D1FAE5','On hold':'FEE2E2'};
+  const ST_TXT = {'Not started':'854D0E','In progress':'1E3A8A','Done':'065F46','On hold':'991B1B'};
+  const RS  = {'Humansoft':'DBEAFE','Client':'D1FAE5','Humansoft / Client':'EDE9FE'};
+  const RS_TXT = {'Humansoft':'1E40AF','Client':'065F46','Humansoft / Client':'5B21B6'};
 
   data.tl.forEach((tl,i) => {
     const fill = i%2===1 ? C.rowAlt : C.white;
@@ -769,10 +764,9 @@ function buildXLSX(data) {
     r++;
   });
 
-  // Bottom bar
+  // Orange bottom bar
   rh(r,4); for(let c=1;c<=7;c++) sc(r,c,'',{fill:solid(C.orange)});
 
-  // ── Finalize ──
   ws['!ref'] = XLSX.utils.encode_range({s:{r:0,c:0},e:{r:r,c:6}});
   ws['!merges'] = merges;
   ws['!rows'] = rowHts;
@@ -810,7 +804,11 @@ function exportPDF() {
    GOOGLE DRIVE  (auto-auth, no UI)
 ══════════════════════════════════════════ */
 const CLIENT_ID = '916300766857-05ptshdmtdo2nkrb5dbjd8jp0ossdui6.apps.googleusercontent.com';
-let _token = null, _tc = null;
+let _token = null, _tc = null, _lastFolderUrl = null;
+
+function openDriveFolder() {
+  if (_lastFolderUrl) window.open(_lastFolderUrl, '_blank');
+}
 
 function _initTC() {
   if (_tc) return;
@@ -818,7 +816,7 @@ function _initTC() {
   _tc = google.accounts.oauth2.initTokenClient({
     client_id: CLIENT_ID,
     scope: 'https://www.googleapis.com/auth/drive',
-    callback: () => {},       // จะถูก override ตอน requestAccessToken
+    callback: () => {},
     error_callback: () => {},
   });
 }
@@ -845,6 +843,7 @@ async function saveToDrive() {
     await _getToken();
     showOvl('กำลังสร้าง / หาโฟลเดอร์…');
     const fId = await findOrMakeFolder(data.domain);
+    _lastFolderUrl = `https://drive.google.com/drive/folders/${fId}`;
     showOvl('กำลังสร้างไฟล์ XLSX…');
     const wb = buildXLSX(data);
     const arr = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
@@ -857,6 +856,10 @@ async function saveToDrive() {
     showOvl('กำลังอัพโหลด PDF…');
     await uploadFile(pdfBlob, `${data.domain}_summary_report.pdf`, 'application/pdf', fId);
     hideOvl();
+    // แสดงปุ่มเปิดโฟลเดอร์
+    const btn = document.getElementById('btnFolder');
+    btn.style.display = '';
+    btn.title = _lastFolderUrl;
     toast(`✅ บันทึกลง Drive สำเร็จ! โฟลเดอร์: "Shared/${data.domain}"`, 'ok');
   } catch (e) { hideOvl(); toast('เกิดข้อผิดพลาด: ' + e.message, 'err'); console.error(e); }
 }

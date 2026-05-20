@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>Summary Report – HumanSoft (PDF Preview)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anuphan:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --blue:     #1A56DB;
+  --blue-dk:  #1240B0;
+  --blue-lt:  #EEF2FF;
+  --blue-md:  #BFDBFE;
+  --orange:   #F47B20;
+  --orange-dk:#C85E0F;
+  --orange-lt:#FFF4ED;
+  --orange-md:#FDE8D0;
+  --green-bg: #D1FAE5;
+  --green-txt:#065F46;
+  --red-bg:   #FEE2E2;
+  --red-txt:  #991B1B;
+  --row-alt:  #F8FAFF;
+  --gray:     #9CA3AF;
+  --body:     #374151;
+  --border:   #DBEAFE;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Anuphan', sans-serif;
+  font-size: 12px; color: #1A1F2E;
+  background: #E5E7EB;
+}
+
+/* Print button */
+.print-btn {
+  position: fixed; top: 16px; right: 16px;
+  background: var(--blue); color: white;
+  border: none; padding: 10px 20px;
+  border-radius: 8px; font-family: 'Anuphan', sans-serif;
+  font-size: 14px; font-weight: 600; cursor: pointer;
+  box-shadow: 0 2px 8px rgba(26,86,219,.35); z-index: 999;
+}
+.print-btn:hover { background: var(--blue-dk); }
+
+/* Paper */
+.page {
+  width: 210mm; min-height: 297mm;
+  background: white; margin: 20px auto;
+  padding: 0 0 12mm;
+  box-shadow: 0 4px 24px rgba(0,0,0,.2);
+}
+
+/* Top bar: blue */
+.top-bar-blue   { height: 6px; background: var(--blue); }
+.top-bar-orange { height: 3px; background: var(--orange); }
+
+/* Header */
+.header {
+  display: flex; justify-content: space-between; align-items: flex-end;
+  padding: 10px 10mm 9px;
+  border-bottom: 2px solid var(--orange);
+  background: white;
+}
+.header-left h1 { font-size: 21px; font-weight: 700; color: var(--blue); line-height: 1.1; }
+.header-left p  { font-size: 10px; color: var(--gray); margin-top: 2px; font-style: italic; }
+.header-right   { text-align: right; }
+.header-right .brand   { font-size: 16px; font-weight: 800; color: var(--orange); display: block; }
+.header-right .doc-id  { font-size: 9px; font-weight: 700; color: var(--orange); display: block; margin-top: 2px; }
+.header-right .doc-dt  { font-size: 8px; color: var(--gray); display: block; margin-top: 1px; }
+
+/* Meta strip: blue tint */
+.meta-strip {
+  display: flex; gap: 28px;
+  background: var(--blue-lt);
+  padding: 7px 10mm;
+  border-bottom: 1px solid var(--blue-md);
+}
+.meta-item { display: flex; flex-direction: column; gap: 1px; }
+.meta-lbl  { font-size: 7.5px; font-weight: 700; color: var(--blue-dk); text-transform: uppercase; letter-spacing: .5px; }
+.meta-val  { font-size: 11px; font-weight: 600; color: var(--blue); }
+
+/* Content padding */
+.content { padding: 0 10mm; }
+
+/* Section header: blue bg + orange left accent */
+.section-hd {
+  background: var(--blue);
+  color: white;
+  font-size: 11px; font-weight: 700;
+  padding: 6px 10px 6px 12px;
+  margin: 10px -10mm 0;
+  padding-left: 10mm; padding-right: 10mm;
+  border-left: 4px solid var(--orange);
+  display: flex; align-items: center; gap: 6px;
+}
+
+/* Table */
+.tbl { width: 100%; border-collapse: collapse; font-size: 9.5px; }
+.tbl th {
+  background: var(--blue-lt);
+  color: #1E3A8A;
+  font-weight: 700; font-size: 8.5px;
+  padding: 5px 6px; text-align: left;
+  border: 0.5px solid var(--blue-md);
+}
+.tbl th.c { text-align: center; }
+.tbl td {
+  padding: 5px 6px;
+  border: 0.5px solid #EEF2FF;
+  vertical-align: top; line-height: 1.45;
+}
+.tbl tr:nth-child(even) td { background: var(--row-alt); }
+.tbl td.no { text-align: center; color: var(--gray); font-weight: 600; width: 24px; }
+.tbl td.c  { text-align: center; }
+.ok       { color: var(--green-txt); font-weight: 700; font-size: 12px; }
+.no-mark  { color: var(--red-txt);   font-weight: 700; font-size: 12px; }
+.sol      { font-size: 8.5px; color: #4B5563; font-style: italic; white-space: pre-wrap; }
+
+/* Status badges */
+.badge { border-radius: 4px; padding: 1px 6px; font-size: 8px; font-weight: 700; white-space: nowrap; display: inline-block; }
+.s-ns   { background: #FEF9C3; color: #854D0E; }
+.s-prog { background: var(--blue-lt); color: var(--blue-dk); }
+.s-done { background: var(--green-bg); color: var(--green-txt); }
+.s-hold { background: var(--red-bg);   color: var(--red-txt); }
+/* Responsible badges */
+.r-hs   { background: var(--blue-lt);  color: var(--blue-dk); }
+.r-cl   { background: var(--green-bg); color: var(--green-txt); }
+.r-both { background: var(--orange-lt); color: var(--orange-dk); }
+
+/* Bottom bar */
+.bottom-bar { display: flex; height: 5px; margin-top: 12mm; }
+.bb-blue   { flex: 2; background: var(--blue); }
+.bb-orange { flex: 1; background: var(--orange); }
+
+/* PRINT */
+@media print {
+  body { background: white; }
+  .print-btn { display: none !important; }
+  .page { margin: 0; padding: 0 0 12mm; box-shadow: none; width: 100%; min-height: unset; }
+  @page { size: A4 portrait; margin: 0; }
+}
+</style>
+</head>
+<body>
+
+<button class="print-btn" onclick="window.print()">🖨 บันทึกเป็น PDF</button>
+
+<div class="page">
+  <div class="top-bar-blue"></div>
+  <div class="top-bar-orange"></div>
+
+  <div class="header">
+    <div class="header-left">
+      <h1>Summary Report</h1>
+      <p>Proposal Summary Document</p>
+    </div>
+    <div class="header-right">
+      <span class="brand">HumanSoft</span>
+      <span class="doc-id">FM-SE-03</span>
+      <span class="doc-dt">วันที่เริ่มใช้/ แก้ไข : 02 กุมภาพันธ์ 2569/ 00</span>
+    </div>
+  </div>
+
+  <div class="meta-strip">
+    <div class="meta-item"><span class="meta-lbl">Domain</span><span class="meta-val">demo_company</span></div>
+    <div class="meta-item"><span class="meta-lbl">บริษัท (Company)</span><span class="meta-val">บริษัท ตัวอย่าง จำกัด</span></div>
+    <div class="meta-item"><span class="meta-lbl">วันที่อัปเดต</span><span class="meta-val">20/5/2026</span></div>
+  </div>
+
+  <div class="content">
+
+    <!-- Pain Points -->
+    <div class="section-hd">🎯 สรุป Pain Point หลัก</div>
+    <table class="tbl">
+      <thead>
+        <tr>
+          <th style="width:24px" class="c">No.</th>
+          <th style="width:36%">Requirement / ความต้องการ</th>
+          <th style="width:7%" class="c">รองรับ ✓</th>
+          <th style="width:8%" class="c">ยังไม่รองรับ</th>
+          <th>Solutions / แนวทาง</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="no">1</td><td>ต้องการโปรแกรมแบบ OnCloud</td>
+          <td class="c ok">✓</td><td></td><td class="sol">รองรับเต็มรูปแบบ</td>
+        </tr>
+        <tr>
+          <td class="no">2</td><td>ลงเวลาผ่านเครื่องสแกนนิ้วและแอพมือถือ</td>
+          <td class="c ok">✓</td><td></td><td class="sol">แนะนำส่งข้อมูลเครื่องมาตรวจสอบก่อน หรือใช้ App HumanSoft</td>
+        </tr>
+        <tr>
+          <td class="no">3</td><td>ระบบ Multi Company</td>
+          <td class="c ok">✓</td><td></td><td class="sol">ไม่มีค่าใช้จ่ายเพิ่มเติม</td>
+        </tr>
+        <tr>
+          <td class="no">4</td><td>ฟีเจอร์ HRD เช่น Training / Recruitment</td>
+          <td class="c ok">✓</td><td></td><td class="sol"></td>
+        </tr>
+        <tr>
+          <td class="no">5</td><td>บัญชีนำจ่ายธนาคารกสิกรไทย</td>
+          <td class="c ok">✓</td><td></td><td class="sol">หาก Layout ไม่ตรง ส่ง format ให้ทีมเขียนเพิ่มได้ ไม่มีค่าใช้จ่าย</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Special Offers -->
+    <div class="section-hd">🎁 Special Offers</div>
+    <table class="tbl">
+      <thead>
+        <tr>
+          <th style="width:24px" class="c">No.</th>
+          <th style="width:22%">รายการ</th>
+          <th>รายละเอียด</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="no">1</td>
+          <td><strong>ข้อเสนอพิเศษ</strong></td>
+          <td>สำหรับการสมัครใช้งานแพ็กเกจ (สัญญา 1 ปี) — 10 ฟรี 2 เมื่อชำระภายในเดือน</td>
+        </tr>
+        <tr>
+          <td class="no">2</td>
+          <td><strong>การบริการ</strong></td>
+          <td>• ไม่มีค่า MA &nbsp;• ขึ้นระบบให้ฟรี ไม่มีค่าใช้จ่ายเพิ่ม &nbsp;• ไม่มีค่าเช่า Cloud<br>
+              • Support ทุกวัน ไม่มีวันหยุด 08.30–17.30 น. &nbsp;• รองรับ Multi Company &nbsp;• Training ฟรี 3 ครั้ง</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Timeline — Task = same width as ผู้รับผิดชอบ -->
+    <div class="section-hd">📅 Timeline</div>
+    <table class="tbl">
+      <thead>
+        <tr>
+          <th style="width:24px" class="c">No.</th>
+          <th style="width:18%">ผู้รับผิดชอบ</th>
+          <th style="width:18%">Task / กระบวนการ</th>
+          <th style="width:36%">รายละเอียด</th>
+          <th style="width:12%">Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="no">1</td><td><span class="badge r-both">HS / Client</span></td>
+          <td>Presentation and Negotiate Price</td><td></td>
+          <td><span class="badge s-ns">Not started</span></td>
+        </tr>
+        <tr>
+          <td class="no">2</td><td><span class="badge r-cl">Client</span></td>
+          <td>Payment</td><td></td>
+          <td><span class="badge s-ns">Not started</span></td>
+        </tr>
+        <tr>
+          <td class="no">3</td><td><span class="badge r-cl">Client</span></td>
+          <td>การเตรียมข้อมูลสำหรับการขึ้นระบบ</td>
+          <td>ข้อมูลพนักงาน / เงื่อนไขการคำนวณ</td>
+          <td><span class="badge s-ns">Not started</span></td>
+        </tr>
+        <tr>
+          <td class="no">4</td><td><span class="badge r-hs">Humansoft</span></td>
+          <td>ดำเนินการนำเข้าข้อมูล (ขึ้นระบบ)</td><td></td>
+          <td><span class="badge s-ns">Not started</span></td>
+        </tr>
+        <tr>
+          <td class="no">5</td><td><span class="badge r-cl">Client</span></td>
+          <td>ตรวจสอบความถูกต้องของข้อมูล</td><td></td>
+          <td><span class="badge s-ns">Not started</span></td>
+        </tr>
+        <tr>
+          <td class="no">6</td><td><span class="badge r-hs">Humansoft</span></td>
+          <td>นัดการสอนการใช้งาน App / Website</td>
+          <td>สำหรับ HR และผู้เกี่ยวข้อง</td>
+          <td><span class="badge s-ns">Not started</span></td>
+        </tr>
+        <tr>
+          <td class="no">7</td><td><span class="badge r-cl">Client</span></td>
+          <td>เริ่มการใช้งานจริง (Go Live)</td>
+          <td>ลงเวลา / ยื่นเอกสาร / ตรวจสอบเวลาทำงาน</td>
+          <td><span class="badge s-ns">Not started</span></td>
+        </tr>
+        <tr>
+          <td class="no">8</td><td><span class="badge r-cl">Client</span></td>
+          <td>เตรียมข้อมูลเงินเดือนย้อนหลัง</td>
+          <td>รายงานสรุปการคำนวณเงินเดือน (Excel)</td>
+          <td><span class="badge s-ns">Not started</span></td>
+        </tr>
+      </tbody>
+    </table>
+
+  </div><!-- /content -->
+
+  <!-- Bottom bar: blue + orange stripe -->
+  <div class="bottom-bar"><div class="bb-blue"></div><div class="bb-orange"></div></div>
+
+</div><!-- /page -->
+</body>
+</html>
