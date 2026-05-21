@@ -336,6 +336,8 @@ input.date-sel{font-size:11px;padding:3px 5px;border:1.5px solid var(--border);b
     <span class="brand-sub">HumanSoft</span>
   </div>
   <div class="nav-actions">
+    <button class="btn btn-outline no-print" onclick="document.getElementById('xlsxImportInput').click()">📂 เปิดไฟล์เดิม</button>
+    <input type="file" id="xlsxImportInput" accept=".xlsx" style="display:none" onchange="onXlsxImport(this)">
     <button class="btn btn-outline no-print" onclick="exportPDF()">🖨 PDF</button>
     <button class="btn btn-white no-print"   onclick="exportXLSX()">📥 XLSX</button>
     <button class="btn btn-folder no-print"  id="btnFolder" style="display:none" onclick="openDriveFolder()">📂 เปิดโฟลเดอร์</button>
@@ -549,8 +551,6 @@ input.date-sel{font-size:11px;padding:3px 5px;border:1.5px solid var(--border);b
       <div class="price-sep"></div>
       <div class="lbl" style="margin-bottom:8px">📋 แสดงในไฟล์ Output</div>
       <div class="offers-grid" style="margin-bottom:12px">
-        <label class="offer-item"><input type="checkbox" id="fSc1"><span>💳 จ่ายเต็ม (Scenario 1)</span></label>
-        <label class="offer-item"><input type="checkbox" id="fSc2"><span>📆 แบ่งจ่าย 2 งวด (Scenario 2)</span></label>
         <label class="offer-item" style="border-color:#7C3AED;background:#F5F3FF" id="fCompareWrap">
           <input type="checkbox" id="fCompare" onchange="toggleComparePanel()">
           <span style="color:#5B21B6">🔀 เปรียบเทียบ 2 Scenario</span>
@@ -866,8 +866,6 @@ function collect() {
   const period  = document.getElementById('fPeriod')?.value || 'y1';
   const freeMos = parseInt(document.getElementById('fPromo')?.value || '2');
   const discPct = parseFloat(document.getElementById('fDiscount')?.value) || 0;
-  const sc1 = document.getElementById('fSc1')?.checked || false;
-  const sc2 = document.getElementById('fSc2')?.checked || false;
   const compare = document.getElementById('fCompare')?.checked || false;
   // Scenario B (compare mode)
   let price2 = null;
@@ -914,9 +912,9 @@ function collect() {
       serviceMonths, avgMonthly: serviceMonths > 0 ? finalTotal / serviceMonths : monthlyRate,
       inst: finalTotal / 2,
       periodLabel: PERIOD_LABEL[period] || period,
-      sc1, sc2, compare, offers,
-      summaryOnly: !sc1 && !sc2,
-      compareMode: compare && sc1 && sc2
+      compare, offers,
+      summaryOnly: !compare,
+      compareMode: compare
     };
   }
   const feats = [...document.querySelectorAll('#featBody .feat-item')]
@@ -2384,6 +2382,136 @@ function initFeatures() {
       (grid||body).appendChild(lbl);
     }
   });
+}
+
+/* ══════════════════════════════════════════
+   IMPORT XLSX — โหลดข้อมูลลูกค้าเดิม
+══════════════════════════════════════════ */
+function onXlsxImport(input) {
+  const file = input.files[0];
+  if (!file) return;
+  input.value = '';
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = new Uint8Array(e.target.result);
+      const wb = XLSX.read(data, { type: 'array' });
+      const ws = wb.Sheets['Summary'];
+      if (!ws) { toast('ไม่พบ sheet "Summary" ในไฟล์นี้', 'err'); return; }
+
+      const range = XLSX.utils.decode_range(ws['!ref']);
+      const maxRow = range.e.r + 1;
+
+      // Helper: ดึงค่า cell (1-indexed)
+      function gc(row, col) {
+        const addr = XLSX.utils.encode_cell({ r: row - 1, c: col - 1 });
+        const cell = ws[addr];
+        return cell ? String(cell.v === null || cell.v === undefined ? '' : cell.v) : '';
+      }
+
+      // 1. Meta: rows 6-11 — col A = label, col C = value
+      let domain = '', company = '', dateVal = '', team = '';
+      for (let row = 6; row <= 11; row++) {
+        const lbl = gc(row, 1);
+        const val = gc(row, 3);
+        if (lbl.includes('Domain')) domain = val;
+        else if (lbl.includes('บริษัท')) company = val;
+        else if (lbl.includes('วันที่อัปเดต')) dateVal = val;
+        else if (lbl.includes('ทีมที่ดูแล')) team = val;
+      }
+
+      // 2. หา section header rows (col A)
+      let ppHdr = -1, soHdr = -1, tlHdr = -1;
+      for (let row = 1; row <= maxRow; row++) {
+        const v = gc(row, 1);
+        if (v.includes('Pain Point')) ppHdr = row;
+        else if (v.includes('Special Offer')) soHdr = row;
+        else if (v.includes('Timeline')) tlHdr = row;
+      }
+
+      // 3. Parse Pain Points
+      // โครงสร้าง: col1=No, col2=Requirement(merged 2-4), col5=✓, col6=✗, col7=Solutions
+      const ppRows = [];
+      if (ppHdr > 0 && soHdr > 0) {
+        for (let row = ppHdr + 2; row <= soHdr - 2; row++) {
+          const no = gc(row, 1).trim();
+          if (!no || isNaN(Number(no))) continue;
+          ppRows.push({
+            req: gc(row, 2),
+            sup: gc(row, 5) === '✓',
+            not: gc(row, 6) === '✗',
+            sol: gc(row, 7)
+          });
+        }
+      }
+
+      // 4. Parse Special Offers
+      // โครงสร้าง: col1=No, col2=รายการ(merged 2-3), col4=รายละเอียด(merged 4-7)
+      const soRows = [];
+      if (soHdr > 0 && tlHdr > 0) {
+        for (let row = soHdr + 2; row <= tlHdr - 2; row++) {
+          const no = gc(row, 1).trim();
+          if (!no || isNaN(Number(no))) continue;
+          soRows.push({ item: gc(row, 2), det: gc(row, 4) });
+        }
+      }
+
+      // 5. Parse Timeline
+      // โครงสร้าง: col1=No, col2=ผู้รับผิดชอบ, col3=Task(merged 3-4), col5=รายละเอียด(merged 5-6), col7=Status
+      const tlRows = [];
+      if (tlHdr > 0) {
+        for (let row = tlHdr + 2; row <= maxRow; row++) {
+          const no = gc(row, 1).trim();
+          if (!no || isNaN(Number(no))) continue;
+          tlRows.push({
+            res: gc(row, 2),
+            task: gc(row, 3),
+            det: gc(row, 5),
+            st: gc(row, 7)
+          });
+        }
+      }
+
+      // 6. เติมข้อมูลในฟอร์ม
+      document.getElementById('ppBody').innerHTML = '';
+      document.getElementById('soBody').innerHTML = '';
+      document.getElementById('tlBody').innerHTML = '';
+
+      document.getElementById('fDomain').value = domain;
+      document.getElementById('fCompany').value = company;
+
+      // แปลง date: "D/M/YYYY" → "YYYY-MM-DD"
+      if (dateVal) {
+        const parts = dateVal.split('/');
+        if (parts.length === 3) {
+          const d = parts[0].padStart(2, '0');
+          const m = parts[1].padStart(2, '0');
+          const y = parts[2];
+          document.getElementById('fDate').value = `${y}-${m}-${d}`;
+        }
+      }
+
+      // เซ็ตทีม
+      const teamSel = document.getElementById('fTeam');
+      if (teamSel && team) {
+        for (const opt of teamSel.options) {
+          if (opt.value === team) { teamSel.value = team; break; }
+        }
+      }
+
+      ppRows.forEach(pp => addPP(pp));
+      soRows.forEach(so => addSO(so));
+      tlRows.forEach(tl => addTL(tl));
+
+      syncPrint(); renum(); ar(); renderGantt();
+      toast(`✅ โหลด "${domain}" สำเร็จ — ${ppRows.length} Pain Points · ${soRows.length} Offers · ${tlRows.length} Timeline`, 'ok');
+
+    } catch (err) {
+      toast('เกิดข้อผิดพลาด: ' + err.message, 'err');
+      console.error(err);
+    }
+  };
+  reader.readAsArrayBuffer(file);
 }
 
 /* ── UI helpers ── */
