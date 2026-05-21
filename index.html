@@ -1133,6 +1133,7 @@ function buildXLSX(data) {
   // ── Price sheet (only if scenarios selected) ──
   if (data.price) {
     const p = data.price;
+    const p2 = data.price2 || null;
     const wp = {}; const wpm=[]; const wpr=[]; const wpc=[];
     const PKG_CLR={Basic:'2E7D32',Standard:'E65100',Advanced:'1565C0',Professional:'1A56DB'};
     const pkgClr = PKG_CLR[p.pkg]||C.navy;
