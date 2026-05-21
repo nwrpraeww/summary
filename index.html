@@ -2256,25 +2256,53 @@ function calcPrice2() {
   const rIdx = _selRangeIdx2;
   const priceRow = rIdx >= 0 ? PRICE_TABLE[rIdx] : null;
   if (!priceRow) { result.innerHTML = ''; return; }
-  const period  = document.getElementById('fPeriod2')?.value || 'y1';
-  const freeMos = parseInt(document.getElementById('fPromo2')?.value || '2');
-  const discPct = parseFloat(document.getElementById('fDiscount2')?.value) || 0;
-  const annualPromo = priceRow[_selPkg2] || 0;
-  const monthlyRate = annualPromo / 10;
-  const mult = PERIOD_MONTHS[period] || 10;
-  const totalBefore = monthlyRate * mult;
+  const period     = document.getElementById('fPeriod2')?.value || 'y1';
+  const freeMos    = parseInt(document.getElementById('fPromo2')?.value || '2');
+  const discPct    = parseFloat(document.getElementById('fDiscount2')?.value) || 0;
+  const annualPromo  = priceRow[_selPkg2] || 0;
+  const monthlyRate  = annualPromo / 10;
+  const mult         = PERIOD_MONTHS[period] || 10;
+  const totalBefore  = monthlyRate * mult;
   const freeTotalMos = (mult / 10) * freeMos;
-  const promoSaving = monthlyRate * freeTotalMos;
-  const normalTotal = totalBefore + promoSaving;
-  const discAmt = totalBefore * (discPct / 100);
-  const finalTotal = totalBefore - discAmt;
+  const promoSaving  = monthlyRate * freeTotalMos;
+  const normalTotal  = totalBefore + promoSaving;
+  const discAmt      = totalBefore * (discPct / 100);
+  const finalTotal   = totalBefore - discAmt;
+  const totalSaving  = normalTotal - finalTotal;
+  const savePct      = normalTotal > 0 ? ((totalSaving / normalTotal) * 100).toFixed(0) : 0;
+  const serviceMonths = mult + freeTotalMos;
+  const periodTxt    = PERIOD_LABEL[period] || period;
   const thb2 = n => Math.round(n).toLocaleString('th-TH');
-  result.innerHTML = `<div class="prc-card" style="border-color:#7C3AED">
+  const PU = '#7C3AED';
+  const promoLine = `<div class="prc-row save"><span class="prc-lbl">🎁 จ่าย 10 เดือน ฟรี ${freeMos} เดือน</span><span class="prc-val">ฟรี ${freeTotalMos} เดือน (ประหยัด ${thb2(promoSaving)} บาท)</span></div>`;
+  const discLine  = discPct > 0
+    ? `<div class="prc-row save" style="background:#F5F3FF"><span class="prc-lbl">🏷️ ส่วนลดพิเศษ ${discPct}%</span><span class="prc-val">ลด ${thb2(discAmt)} บาท</span></div>`
+    : '';
+  const perMonthLine = period !== 'monthly'
+    ? `<div class="prc-row"><span class="prc-lbl">ราคาเดือนละ</span><span class="prc-val">${thb2(monthlyRate)} บาท</span></div>`
+    : '';
+  const serviceNote = period !== 'monthly'
+    ? `<div style="font-size:11px;color:var(--muted);padding:6px 12px">📅 ระยะเวลาใช้งาน ${serviceMonths} เดือน | จ่ายจริง ${mult} เดือน</div>`
+    : '';
+  result.innerHTML = `
+  <div class="prc-card" style="border-color:${PU}">
+    <div class="prc-hd" style="background:${PU};color:#fff">
+      <span>📦 ${_selPkg2} — ${priceRow.range} คน — ${periodTxt}</span>
+      <span style="font-size:11px;opacity:.7">ไม่รวม VAT</span>
+    </div>
     <div class="prc-row strike"><span class="prc-lbl">ราคาปกติ (ไม่มีโปร)</span><span class="prc-val">${thb2(normalTotal)} บาท</span></div>
-    <div class="prc-row promo"><span class="prc-lbl">จ่าย 10 ฟรี ${freeMos}</span><span class="prc-val">ได้ฟรี ${thb2(promoSaving)} บาท</span></div>
-    ${discPct ? `<div class="prc-row disc"><span class="prc-lbl">ส่วนลด ${discPct}%</span><span class="prc-val">ลด ${thb2(discAmt)} บาท</span></div>` : ''}
-    <div class="prc-row net" style="border-top:2px solid #7C3AED"><span class="prc-lbl" style="color:#5B21B6">💎 ยอดสุทธิ B</span><span class="prc-val" style="color:#5B21B6;font-size:17px">${thb2(finalTotal)} บาท</span></div>
-    <div class="prc-row"><span class="prc-lbl">เดือนละ</span><span class="prc-val">${thb2(monthlyRate)} บาท/เดือน</span></div>
+    ${promoLine}
+    ${discLine}
+    <div class="prc-row big" style="background:${PU}18">
+      <span class="prc-lbl">💎 ราคาสุทธิ ${periodTxt}</span>
+      <span class="prc-val" style="color:${PU};font-size:16px">${thb2(finalTotal)} บาท</span>
+    </div>
+    <div class="prc-row" style="background:#f9fafb;border-top:1px solid var(--border)">
+      <span class="prc-lbl" style="color:var(--muted)">รวมประหยัดทั้งหมด</span>
+      <span class="prc-val" style="color:#065F46;font-weight:700">฿${thb2(totalSaving)} (${savePct}%)</span>
+    </div>
+    ${perMonthLine}
+    ${serviceNote}
   </div>`;
 }
 
