@@ -123,7 +123,8 @@ select.fc  { cursor:pointer; }
 .dtbl tr:hover td { background:#FFFBF7; }
 .col-no  { width:38px;text-align:center;color:var(--muted);font-weight:700; }
 .col-ck  { width:72px;text-align:center; }
-.col-act { width:34px;text-align:center; }
+.col-act { width:34px;text-align:center;position:sticky;right:0;background:#fff;z-index:2; }
+.dtbl tr:hover .col-act { background:#FFFBF7; }
 .ck-wrap { display:flex;align-items:center;justify-content:center; }
 input[type=checkbox] { width:17px;height:17px;accent-color:var(--primary);cursor:pointer; }
 
