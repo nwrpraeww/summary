@@ -1868,20 +1868,21 @@ async function saveToDrive() {
   try {
     await _getToken();
     showOvl('กำลังสร้าง / หาโฟลเดอร์…');
-    const fId = await findOrMakeFolder(data.domain);
+    const baseName = (data.team ? data.team+' - ' : '')+data.domain.split('.')[0];
+    const fId = await findOrMakeFolder(baseName);
     _lastFolderUrl = `https://drive.google.com/drive/folders/${fId}`;
     showOvl('กำลังสร้างไฟล์ XLSX…');
     const wb = buildXLSX(data);
     const arr = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
     const xlsxBlob = new Blob([arr], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
     showOvl('กำลังอัพโหลด XLSX…');
-    const xlsxFname = (data.team ? data.team+' - ' : '')+data.domain.split('.')[0]+'.xlsx';
+    const xlsxFname = baseName+'.xlsx';
     await uploadFile(xlsxBlob, xlsxFname,
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', fId);
     showOvl('กำลังสร้าง PDF…');
     const pdfBlob = await makePDFBlob();
     showOvl('กำลังอัพโหลด PDF…');
-    const pdfFname = (data.team ? data.team+' - ' : '')+data.domain.split('.')[0]+'.pdf';
+    const pdfFname = baseName+'.pdf';
     await uploadFile(pdfBlob, pdfFname, 'application/pdf', fId);
     hideOvl();
     // แสดงปุ่มเปิดโฟลเดอร์
