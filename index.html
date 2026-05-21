@@ -557,7 +557,7 @@ input.date-sel{font-size:11px;padding:3px 5px;border:1.5px solid var(--border);b
       </div>
       <!-- ── Scenario B panel ── -->
       <div id="comparePanelB" style="display:none;border:2px solid #7C3AED;border-radius:10px;padding:16px;margin-bottom:12px;background:#FAFAFF">
-        <div style="font-size:13px;font-weight:700;color:#5B21B6;margin-bottom:12px">🔀 ตัวเลือก B — ราคาที่จะเปรียบเทียบ</div>
+        <div style="font-size:13px;font-weight:700;color:#5B21B6;margin-bottom:12px">🔀 Option 2 — ราคาที่จะเปรียบเทียบ</div>
         <div class="lbl" style="margin-bottom:6px">เลือกแพ็กเกจ B</div>
         <div class="pkg-sel" style="margin-bottom:12px">
           <button class="pkg-btn pkg-basic"  data-pkg2="Basic"         onclick="selectPkg2(this)">Basic</button>
@@ -1153,15 +1153,11 @@ function buildXLSX(data) {
     const PKG_CLR2={Basic:'#2E7D32',Standard:'#E65100',Advanced:'#1565C0',Professional:'#1A56DB'};
     const clr2 = PKG_CLR2[p2.pkg]||'#1A56DB';
     out += '<div style="border:1.5px solid #7C3AED;border-radius:6px;overflow:hidden;margin-top:5px">';
-    // header gradient
-    out += '<div style="display:grid;grid-template-columns:1fr 1fr">';
-    out += '<div style="background:'+clr+';color:white;font-size:9px;font-weight:700;padding:5px 10px">🅐 ตัวเลือก A — '+p.pkg+'</div>';
-    out += '<div style="background:'+clr2+';color:white;font-size:9px;font-weight:700;padding:5px 10px">🅑 ตัวเลือก B — '+p2.pkg+'</div></div>';
     out += '<table style="width:100%;border-collapse:collapse;font-size:8.5px">';
     out += '<thead><tr>';
     out += '<th style="background:#F3F4F6;color:#374151;padding:3px 8px;border:.5px solid #E5E7EB;width:30%">รายการ</th>';
-    out += '<th style="background:#EEF2FF;color:#1E3A8A;padding:3px 6px;border:.5px solid #BFDBFE;width:35%;text-align:center">🅐 ตัวเลือก A</th>';
-    out += '<th style="background:#F5F3FF;color:#5B21B6;padding:3px 6px;border:.5px solid #DDD6FE;width:35%;text-align:center">🅑 ตัวเลือก B</th>';
+    out += '<th style="background:#EEF2FF;color:#1E3A8A;padding:3px 6px;border:.5px solid #BFDBFE;width:35%;text-align:center">Option 1</th>';
+    out += '<th style="background:#F5F3FF;color:#5B21B6;padding:3px 6px;border:.5px solid #DDD6FE;width:35%;text-align:center">Option 2</th>';
     out += '</tr></thead><tbody>';
     // แพ็กเกจ
     out += '<tr><td style="padding:3px 8px;border:.5px solid #E5E7EB;color:#374151;font-size:8px">แพ็กเกจ</td>';
@@ -1248,13 +1244,13 @@ function buildXLSX(data) {
       const pkgClr2 = PKG_CLR2[p2.pkg]||C.navy;
       // Title bar
       rhp(r,22); mgp(r,1,r,8);
-      scp(r,1,'  🔀 เปรียบเทียบ ตัวเลือก A vs ตัวเลือก B',
+      scp(r,1,'  🔀 เปรียบเทียบ Option 1 vs Option 2',
         {fill:solid('5B21B6'),font:reg(11,C.white,true),alignment:al('left','center')}); r++;
       // Sub-header: A label | B label
       rhp(r,20);
       mgp(r,1,r,2); scp(r,1,'รายการ',{fill:solid('F3F4F6'),font:reg(9,'374151',true),alignment:al('center','center'),border:bdr()});
-      mgp(r,3,r,5); scp(r,3,'🅐 ตัวเลือก A — '+p.pkg,{fill:solid(pkgClr),font:reg(9,C.white,true),alignment:al('center','center'),border:bdr()});
-      mgp(r,6,r,8); scp(r,6,'🅑 ตัวเลือก B — '+p2.pkg,{fill:solid(pkgClr2),font:reg(9,C.white,true),alignment:al('center','center'),border:bdr()});
+      mgp(r,3,r,5); scp(r,3,'Option 1 — '+p.pkg,{fill:solid(pkgClr),font:reg(9,C.white,true),alignment:al('center','center'),border:bdr()});
+      mgp(r,6,r,8); scp(r,6,'Option 2 — '+p2.pkg,{fill:solid(pkgClr2),font:reg(9,C.white,true),alignment:al('center','center'),border:bdr()});
       r++;
       // Data rows: [label, valA, valB, isHighlight]
       const cmpRowsAB = [
@@ -1514,21 +1510,17 @@ function buildPricePDF(p, p2) {
     ? '<div style="background:#FFF4ED;padding:5px 8px;border-top:1px solid #FDE8D0;font-size:8px;color:#C85E0F"><strong>🎁 Ontop:</strong> '+p.offers.join(' &nbsp;|&nbsp; ')+'</div>'
     : '';
   let out = '<div class="section-hd">💰 ราคา &amp; แพ็กเกจ</div>';
-  out += '<div style="font-size:8.5px;color:#9CA3AF;padding:4px 0 2px">แพ็กเกจ: <strong style="color:'+clr+'">'+p.pkg+'</strong> &nbsp;|&nbsp; '+p.range+' คน &nbsp;|&nbsp; '+p.periodLabel+'</div>';
+  out += '<div style="font-size:8.5px;color:#374151;font-weight:600;padding:4px 0 2px">แพ็กเกจแนะนำสำหรับพนักงาน <strong style="color:'+clr+'">'+p.range+'</strong> คน</div>';
   if (p.compareMode && p2) {
     // Side-by-side: ตัวเลือก A vs ตัวเลือก B
     const PKG_CLR2={Basic:'#2E7D32',Standard:'#E65100',Advanced:'#1565C0',Professional:'#1A56DB'};
     const clr2 = PKG_CLR2[p2.pkg]||'#1A56DB';
     out += '<div style="border:1.5px solid #7C3AED;border-radius:6px;overflow:hidden;margin-top:5px">';
-    // header gradient
-    out += '<div style="display:grid;grid-template-columns:1fr 1fr">';
-    out += '<div style="background:'+clr+';color:white;font-size:9px;font-weight:700;padding:5px 10px">🅐 ตัวเลือก A — '+p.pkg+'</div>';
-    out += '<div style="background:'+clr2+';color:white;font-size:9px;font-weight:700;padding:5px 10px">🅑 ตัวเลือก B — '+p2.pkg+'</div></div>';
     out += '<table style="width:100%;border-collapse:collapse;font-size:8.5px">';
     out += '<thead><tr>';
     out += '<th style="background:#F3F4F6;color:#374151;padding:3px 8px;border:.5px solid #E5E7EB;width:30%">รายการ</th>';
-    out += '<th style="background:#EEF2FF;color:#1E3A8A;padding:3px 6px;border:.5px solid #BFDBFE;width:35%;text-align:center">🅐 ตัวเลือก A</th>';
-    out += '<th style="background:#F5F3FF;color:#5B21B6;padding:3px 6px;border:.5px solid #DDD6FE;width:35%;text-align:center">🅑 ตัวเลือก B</th>';
+    out += '<th style="background:#EEF2FF;color:#1E3A8A;padding:3px 6px;border:.5px solid #BFDBFE;width:35%;text-align:center">Option 1</th>';
+    out += '<th style="background:#F5F3FF;color:#5B21B6;padding:3px 6px;border:.5px solid #DDD6FE;width:35%;text-align:center">Option 2</th>';
     out += '</tr></thead><tbody>';
     // แพ็กเกจ
     out += '<tr><td style="padding:3px 8px;border:.5px solid #E5E7EB;color:#374151;font-size:8px">แพ็กเกจ</td>';
@@ -2291,45 +2283,45 @@ function calcPrice2() {
    FEATURES
 ══════════════════════════════════════════ */
 const FEAT_LIST = [
-  {cat:'1. Channel'},
+  {cat:'Channel'},
   {label:'Web Browser', on:false},{label:'Mobile Application / Line OA', on:false},
-  {cat:'2. โครงสร้างทั่วไป'},
+  {cat:'โครงสร้างทั่วไป'},
   {label:'รองรับหลายนิติบุคคล', on:false},{label:'รองรับหลายสาขา', on:false},
   {label:'รองรับ 3 ภาษา (ไทย/อังกฤษ/พม่า)', on:false},
-  {cat:'3. โครงสร้างองค์กร'},
+  {cat:'โครงสร้างองค์กร'},
   {label:'โครงสร้างองค์กร / โครงสร้างตำแหน่ง', on:false},
   {label:'เก็บประวัติข้อมูลพนักงาน', on:false},
   {label:'รองรับการเก็บไฟล์ไม่จำกัดพื้นที่', on:false},
-  {cat:'4. จัดการสิทธิ์การเข้าถึงข้อมูล'},
+  {cat:'จัดการสิทธิ์การเข้าถึงข้อมูล'},
   {label:'กำหนดสิทธิ์ผู้ดูแลระบบ (ไม่จำกัด User)', on:false},
   {label:'กำหนดสิทธิ์มองเห็น/แก้ไขของแต่ละ User', on:false},
   {label:'จัดกลุ่มผู้ใช้ได้', on:false},
-  {cat:'5. ระบบความปลอดภัย'},
+  {cat:'ระบบความปลอดภัย'},
   {label:'Strong Password', on:false},{label:'PDPA Conceal', on:false},
-  {cat:'6. จัดการกะ'},
+  {cat:'จัดการกะ'},
   {label:'กะได้หลายรูปแบบ (Default / หลายกะ / Excel Import)', on:false},
   {label:'วางแผนกะรายเดือน / รายสัปดาห์', on:false},
   {label:'สิทธิ์จัดกะแบบยืดหยุ่น (HR / หัวหน้า / พนักงาน)', on:false},
-  {cat:'7. ลงเวลาการทำงาน'},
+  {cat:'ลงเวลาการทำงาน'},
   {label:'Face Scan (Face Recognition)', on:false},{label:'GPS', on:false},
   {label:'เครื่องสแกนนิ้ว', on:false},{label:'ADMS (Real-Time sync)', on:false},
   {label:'Beacon / Time App / Member Scan', on:false},
-  {cat:'8. เอกสารและการอนุมัติ'},
+  {cat:'เอกสารและการอนุมัติ'},
   {label:'เอกสารพื้นฐาน (ลา / OT / สลับกะ / ขอเพิ่มเวลา)', on:false},
   {label:'เบิกเงินล่วงหน้า', on:false},{label:'หนังสือรับรองเงินเดือน', on:false},
   {label:'อนุมัติผ่าน Website', on:false},{label:'อนุมัติผ่าน App', on:false},
   {label:'สายการอนุมัติ 3-5 ขั้น', on:false},
-  {cat:'9. การคำนวณเงินเดือน'},
+  {cat:'การคำนวณเงินเดือน'},
   {label:'รายรับ/รายจ่าย (อัตโนมัติ / Manual)', on:false},
   {label:'งวดเงินเดือน สูงสุด 4 งวด', on:false},{label:'สลิปเงินเดือน', on:false},
   {label:'Text File นำส่งธนาคาร', on:false},
   {label:'ภาษี / ประกันสังคม / กองทุน', on:false},{label:'เบี้ยเลี้ยง / เบี้ยขยัน', on:false},
-  {cat:'10. รายงาน'},
+  {cat:'รายงาน'},
   {label:'รายงานมากกว่า 50 แบบ (.pdf / .xlsx / .txt / .dat)', on:false},
-  {cat:'11. การเรียนรู้และพัฒนาองค์กร (HRD)'},
+  {cat:'การเรียนรู้และพัฒนาองค์กร (HRD)'},
   {label:'E-Library / E-Learning', on:false},{label:'ประเมินพนักงาน (ไม่จำกัดรอบ)', on:false},
   {label:'KPI Profile', on:false},{label:'บันทึกการฝึกอบรม', on:false},
-  {cat:'12. ระบบรับสมัครพนักงาน'},
+  {cat:'ระบบรับสมัครพนักงาน'},
   {label:'ใบสมัครงานออนไลน์', on:false},{label:'ระบบติดตามผู้สมัคร', on:false},
   {label:'เอกสารสัญญาจ้าง (ทดลองงาน/บรรจุ)', on:false},
 ];
