@@ -399,6 +399,26 @@ input.date-sel{font-size:11px;padding:3px 5px;border:1.5px solid var(--border);b
         <div class="fg"><label class="lbl">วันที่อัปเดต</label>
           <input id="fDate" type="date" class="fc" oninput="syncPrint()">
         </div>
+        <div class="fg"><label class="lbl">👥 ทีมที่ดูแล</label>
+          <select id="fTeam" class="fc">
+            <option value="">— เลือกทีม —</option>
+            <optgroup label="S">
+              <option value="(S) บี">(S) บี</option>
+              <option value="(S) แต้ว">(S) แต้ว</option>
+              <option value="(S) พลอย">(S) พลอย</option>
+              <option value="(S) กิต">(S) กิต</option>
+              <option value="(S) อ้อมแอ้ม">(S) อ้อมแอ้ม</option>
+            </optgroup>
+            <optgroup label="M">
+              <option value="(M) กานต์,วิลล์">(M) กานต์,วิลล์</option>
+              <option value="(M) ออม,กวาง">(M) ออม,กวาง</option>
+            </optgroup>
+            <optgroup label="L">
+              <option value="(L) นัท,ปอปลา">(L) นัท,ปอปลา</option>
+              <option value="(L) อาร์ม,บุษ">(L) อาร์ม,บุษ</option>
+            </optgroup>
+          </select>
+        </div>
       </div>
     </div>
   </div>
@@ -530,16 +550,53 @@ input.date-sel{font-size:11px;padding:3px 5px;border:1.5px solid var(--border);b
       <div class="offers-grid" style="margin-bottom:12px">
         <label class="offer-item"><input type="checkbox" id="fSc1"><span>💳 จ่ายเต็ม (Scenario 1)</span></label>
         <label class="offer-item"><input type="checkbox" id="fSc2"><span>📆 แบ่งจ่าย 2 งวด (Scenario 2)</span></label>
+        <label class="offer-item" style="border-color:#7C3AED;background:#F5F3FF" id="fCompareWrap">
+          <input type="checkbox" id="fCompare" onchange="toggleComparePanel()">
+          <span style="color:#5B21B6">🔀 เปรียบเทียบ 2 Scenario</span>
+        </label>
       </div>
-      <!-- Ontop offers -->
-      <div class="price-sep"></div>
-      <div class="lbl" style="margin-bottom:8px">🎁 Ontop Offers</div>
-      <div class="offers-grid">
-        <label class="offer-item"><input type="checkbox" id="fOffer1" checked><span>Free Implement (ขึ้นระบบฟรี)</span></label>
-        <label class="offer-item"><input type="checkbox" id="fOffer2" checked><span>Free Training Online 3 Times</span></label>
-        <label class="offer-item"><input type="checkbox" id="fOffer3" checked><span>Support ทุกวัน 08.30–17.30 น.</span></label>
-        <label class="offer-item"><input type="checkbox" id="fOffer4" checked><span>ไม่มีค่า MA / ค่าเช่า Cloud</span></label>
-        <label class="offer-item"><input type="checkbox" id="fOffer5" checked><span>ทดลองใช้งานฟรี 3 เดือน</span></label>
+      <!-- ── Scenario B panel ── -->
+      <div id="comparePanelB" style="display:none;border:2px solid #7C3AED;border-radius:10px;padding:16px;margin-bottom:12px;background:#FAFAFF">
+        <div style="font-size:13px;font-weight:700;color:#5B21B6;margin-bottom:12px">🔀 ตัวเลือก B — ราคาที่จะเปรียบเทียบ</div>
+        <div class="lbl" style="margin-bottom:6px">เลือกแพ็กเกจ B</div>
+        <div class="pkg-sel" style="margin-bottom:12px">
+          <button class="pkg-btn pkg-basic"  data-pkg2="Basic"         onclick="selectPkg2(this)">Basic</button>
+          <button class="pkg-btn pkg-std"    data-pkg2="Standard"      onclick="selectPkg2(this)">Standard</button>
+          <button class="pkg-btn pkg-adv"    data-pkg2="Advanced"      onclick="selectPkg2(this)">Advanced</button>
+          <button class="pkg-btn pkg-pro active" data-pkg2="Professional" onclick="selectPkg2(this)">Professional</button>
+        </div>
+        <div class="price-inputs">
+          <div class="fg">
+            <label class="lbl">จำนวนพนักงาน B</label>
+            <input id="fUsers2" type="number" class="fc" placeholder="เช่น 50" oninput="autoSelectRange2()">
+            <span id="rangeHint2" style="font-size:11px;color:var(--muted);margin-top:3px;display:block"></span>
+          </div>
+          <div class="fg">
+            <label class="lbl">ประเภทการชำระ B</label>
+            <select id="fPeriod2" class="fc" onchange="calcPrice2()">
+              <option value="monthly">รายเดือน</option>
+              <option value="q3">ราย 3 เดือน</option>
+              <option value="q6">ราย 6 เดือน</option>
+              <option value="y1" selected>ราย 1 ปี</option>
+              <option value="y2">ราย 2 ปี</option>
+              <option value="y3">ราย 3 ปี</option>
+              <option value="y5">ราย 5 ปี</option>
+            </select>
+          </div>
+          <div class="fg">
+            <label class="lbl">โปรโมชั่น B</label>
+            <select id="fPromo2" class="fc" onchange="calcPrice2()">
+              <option value="2">จ่าย 10 ฟรี 2 (ปกติ)</option>
+              <option value="3">จ่าย 10 ฟรี 3</option>
+              <option value="4">จ่าย 10 ฟรี 4</option>
+            </select>
+          </div>
+          <div class="fg">
+            <label class="lbl">ส่วนลดพิเศษ B (%)</label>
+            <input id="fDiscount2" type="number" class="fc" placeholder="0" min="0" max="100" value="" oninput="calcPrice2()">
+          </div>
+        </div>
+        <div id="priceResult2" style="margin-top:8px"></div>
       </div>
       <!-- Full price table (collapsible) -->
       <details class="pref no-print" style="margin-top:18px">
@@ -770,7 +827,7 @@ stCSS.textContent = `
 `;
 document.head.appendChild(stCSS);
 
-function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function esc(s) { return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
 /* ══════════════════════════════════════════
    COLLECT DATA
@@ -779,6 +836,7 @@ function collect() {
   const domain  = document.getElementById('fDomain').value.trim();
   const company = document.getElementById('fCompany').value.trim();
   const date    = document.getElementById('fDate').value;
+  const team    = document.getElementById('fTeam')?.value || '';
   const pp = [...document.querySelectorAll('#ppBody tr')].map(tr => {
     const t = tr.querySelectorAll('td');
     return { no:+t[0].textContent, req:t[1].querySelector('textarea').value,
@@ -806,11 +864,32 @@ function collect() {
   const discPct = parseFloat(document.getElementById('fDiscount')?.value) || 0;
   const sc1 = document.getElementById('fSc1')?.checked || false;
   const sc2 = document.getElementById('fSc2')?.checked || false;
+  const compare = document.getElementById('fCompare')?.checked || false;
+  // Scenario B (compare mode)
+  let price2 = null;
+  if (compare && _selRangeIdx2 >= 0) {
+    const pr2 = PRICE_TABLE[_selRangeIdx2];
+    const period2  = document.getElementById('fPeriod2')?.value || 'y1';
+    const freeMos2 = parseInt(document.getElementById('fPromo2')?.value || '2');
+    const discPct2 = parseFloat(document.getElementById('fDiscount2')?.value) || 0;
+    const ap2 = pr2[_selPkg2] || 0;
+    const mr2 = ap2 / 10;
+    const mult2 = PERIOD_MONTHS[period2] || 10;
+    const tb2 = mr2 * mult2;
+    const ps2 = mr2 * (mult2 / 10) * freeMos2;
+    const nt2 = tb2 + ps2;
+    const da2 = tb2 * (discPct2 / 100);
+    const ft2 = tb2 - da2;
+    price2 = { pkg: _selPkg2, range: pr2.range, period: period2, freeMos: freeMos2, discPct: discPct2,
+               monthlyRate: mr2, mult: mult2, totalBefore: tb2, promoSaving: ps2,
+               normalTotal: nt2, discAmt: da2, finalTotal: ft2,
+               periodLabel: PERIOD_LABEL[period2] || period2 };
+  }
   const offers = ['fOffer1','fOffer2','fOffer3','fOffer4','fOffer5']
     .filter(id => document.getElementById(id)?.checked)
     .map(id => document.getElementById(id).nextElementSibling?.textContent || '');
   let priceData = null;
-  if (priceRow && (sc1 || sc2)) {
+  if (priceRow) {
     const annualPromo = priceRow[_selPkg] || 0;
     const monthlyRate = annualPromo / 10;
     const mult = PERIOD_MONTHS[period] || 10;
@@ -826,13 +905,15 @@ function collect() {
       promoSaving, normalTotal, discAmt, finalTotal,
       inst: finalTotal / 2,
       periodLabel: PERIOD_LABEL[period] || period,
-      sc1, sc2, offers
+      sc1, sc2, compare, offers,
+      summaryOnly: !sc1 && !sc2,
+      compareMode: compare && sc1 && sc2
     };
   }
   const feats = [...document.querySelectorAll('#featBody .feat-item')]
     .filter(l => l.querySelector('input')?.checked)
     .map(l => ({ label: l.dataset.label, cat: l.dataset.cat }));
-  return { domain, company, date, pp, so, tl, price: priceData, feats };
+  return { domain, company, date, team, pp, so, tl, price: priceData, price2, feats };
 }
 
 function fmtDate(s) {
@@ -920,7 +1001,9 @@ function buildXLSX(data) {
   // ─ Rows 6-8: Meta ─
   rh(6,21); rh(7,21); rh(8,21);
   const metaBdr = {bottom:{style:'hair',color:{rgb:C.border}}};
-  [[6,'Domain',data.domain],[7,'บริษัท (Company)',data.company],[8,'วันที่อัปเดต',fmtDate(data.date)]].forEach(([row,lbl,val]) => {
+  const metaItems = [[6,'Domain',data.domain],[7,'บริษัท (Company)',data.company],[8,'วันที่อัปเดต',fmtDate(data.date)]];
+  if (data.team) metaItems.push([9,'ทีมที่ดูแล',data.team]);
+  metaItems.forEach(([row,lbl,val]) => {
     mg(row,1,row,2); sc(row,1,lbl,{font:reg(10,C.gray),fill:solid(C.metaBg),alignment:al('left','center'),border:metaBdr});
     mg(row,3,row,7); sc(row,3,val,{font:bold(10,C.navy),fill:solid(C.metaBg),alignment:al('left','center'),border:metaBdr});
   });
@@ -1065,6 +1148,151 @@ function buildXLSX(data) {
     scp(r,1,' '+p.range+' คน  |  '+p.periodLabel+'  |  จ่าย 10 ฟรี '+p.freeMos+(p.discPct?' + ส่วนลด '+p.discPct+'%':''),
       {fill:solid(C.tblHdBg),font:reg(9,C.tblHdTxt,false),alignment:al('left','center')}); r++;
     rhp(r,6); r++;
+    if (p.compareMode && p2) {
+    // Side-by-side: ตัวเลือก A vs ตัวเลือก B
+    const PKG_CLR2={Basic:'#2E7D32',Standard:'#E65100',Advanced:'#1565C0',Professional:'#1A56DB'};
+    const clr2 = PKG_CLR2[p2.pkg]||'#1A56DB';
+    out += '<div style="border:1.5px solid #7C3AED;border-radius:6px;overflow:hidden;margin-top:5px">';
+    // header gradient
+    out += '<div style="display:grid;grid-template-columns:1fr 1fr">';
+    out += '<div style="background:'+clr+';color:white;font-size:9px;font-weight:700;padding:5px 10px">🅐 ตัวเลือก A — '+p.pkg+'</div>';
+    out += '<div style="background:'+clr2+';color:white;font-size:9px;font-weight:700;padding:5px 10px">🅑 ตัวเลือก B — '+p2.pkg+'</div></div>';
+    out += '<table style="width:100%;border-collapse:collapse;font-size:8.5px">';
+    out += '<thead><tr>';
+    out += '<th style="background:#F3F4F6;color:#374151;padding:3px 8px;border:.5px solid #E5E7EB;width:30%">รายการ</th>';
+    out += '<th style="background:#EEF2FF;color:#1E3A8A;padding:3px 6px;border:.5px solid #BFDBFE;width:35%;text-align:center">🅐 ตัวเลือก A</th>';
+    out += '<th style="background:#F5F3FF;color:#5B21B6;padding:3px 6px;border:.5px solid #DDD6FE;width:35%;text-align:center">🅑 ตัวเลือก B</th>';
+    out += '</tr></thead><tbody>';
+    // แพ็กเกจ
+    out += '<tr><td style="padding:3px 8px;border:.5px solid #E5E7EB;color:#374151;font-size:8px">แพ็กเกจ</td>';
+    out += '<td style="text-align:center;padding:3px;border:.5px solid #EEF2FF;font-weight:700;color:'+clr+'">'+p.pkg+'</td>';
+    out += '<td style="text-align:center;padding:3px;border:.5px solid #EEF2FF;font-weight:700;color:'+clr2+'">'+p2.pkg+'</td></tr>';
+    // จำนวนพนักงาน
+    out += '<tr style="background:#F9FAFB"><td style="padding:3px 8px;border:.5px solid #E5E7EB;color:#374151;font-size:8px">จำนวนพนักงาน</td>';
+    out += '<td style="text-align:center;padding:3px;border:.5px solid #EEF2FF">'+p.range+' คน</td>';
+    out += '<td style="text-align:center;padding:3px;border:.5px solid #EEF2FF">'+p2.range+' คน</td></tr>';
+    // ประเภทการชำระ
+    out += '<tr><td style="padding:3px 8px;border:.5px solid #E5E7EB;color:#374151;font-size:8px">ระยะเวลา</td>';
+    out += '<td style="text-align:center;padding:3px;border:.5px solid #EEF2FF">'+p.periodLabel+'</td>';
+    out += '<td style="text-align:center;padding:3px;border:.5px solid #EEF2FF">'+p2.periodLabel+'</td></tr>';
+    // โปร
+    out += '<tr style="background:#F9FAFB"><td style="padding:3px 8px;border:.5px solid #E5E7EB;color:#374151;font-size:8px">โปรโมชั่น</td>';
+    out += '<td style="text-align:center;padding:3px;border:.5px solid #EEF2FF">จ่าย 10 ฟรี '+p.freeMos+' เดือน</td>';
+    out += '<td style="text-align:center;padding:3px;border:.5px solid #EEF2FF">จ่าย 10 ฟรี '+p2.freeMos+' เดือน</td></tr>';
+    // ราคาปกติ
+    out += '<tr><td style="padding:3px 8px;border:.5px solid #E5E7EB;color:#9CA3AF;font-size:8px">ราคาปกติ (ไม่มีโปร)</td>';
+    out += '<td style="text-align:center;padding:3px;border:.5px solid #EEF2FF;color:#9CA3AF;text-decoration:line-through">'+thb(p.normalTotal)+' บาท</td>';
+    out += '<td style="text-align:center;padding:3px;border:.5px solid #EEF2FF;color:#9CA3AF;text-decoration:line-through">'+thb(p2.normalTotal)+' บาท</td></tr>';
+    // ส่วนลด
+    if (p.discPct || p2.discPct) {
+      out += '<tr style="background:#F9FAFB"><td style="padding:3px 8px;border:.5px solid #E5E7EB;color:#C85E0F;font-size:8px">ส่วนลดพิเศษ</td>';
+      out += '<td style="text-align:center;padding:3px;border:.5px solid #EEF2FF;color:#C85E0F">'+(p.discPct ? p.discPct+'% (−'+thb(p.discAmt)+')' : '—')+'</td>';
+      out += '<td style="text-align:center;padding:3px;border:.5px solid #EEF2FF;color:#C85E0F">'+(p2.discPct ? p2.discPct+'% (−'+thb(p2.discAmt)+')' : '—')+'</td></tr>';
+    }
+    // ยอดสุทธิ
+    out += '<tr style="background:#F0FDF4"><td style="padding:4px 8px;border:.5px solid #E5E7EB;font-weight:700;color:#374151">💎 ยอดสุทธิ</td>';
+    out += '<td style="text-align:center;padding:4px;border:.5px solid #EEF2FF;font-weight:700;font-size:11px;color:#065F46">'+thb(p.finalTotal)+' บาท</td>';
+    out += '<td style="text-align:center;padding:4px;border:.5px solid #EEF2FF;font-weight:700;font-size:11px;color:#065F46">'+thb(p2.finalTotal)+' บาท</td></tr>';
+    // เดือนละ
+    out += '<tr><td style="padding:3px 8px;border:.5px solid #E5E7EB;color:#374151;font-size:8px">อัตราเดือนละ</td>';
+    out += '<td style="text-align:center;padding:3px;border:.5px solid #EEF2FF;color:#1240B0;font-weight:700">'+thb(p.monthlyRate)+' บาท</td>';
+    out += '<td style="text-align:center;padding:3px;border:.5px solid #EEF2FF;color:#1240B0;font-weight:700">'+thb(p2.monthlyRate)+' บาท</td></tr>';
+    // ประหยัด
+    const saveA = p.normalTotal - p.finalTotal;
+    const saveB = p2.normalTotal - p2.finalTotal;
+    out += '<tr style="background:#F0FDF4"><td style="padding:3px 8px;border:.5px solid #E5E7EB;color:#065F46;font-size:8px">💚 ประหยัดรวม</td>';
+    out += '<td style="text-align:center;padding:3px;border:.5px solid #EEF2FF;color:#065F46;font-weight:700">'+thb(saveA)+' บาท ('+Math.round(saveA/p.normalTotal*100)+'%)</td>';
+    out += '<td style="text-align:center;padding:3px;border:.5px solid #EEF2FF;color:#065F46;font-weight:700">'+thb(saveB)+' บาท ('+Math.round(saveB/p2.normalTotal*100)+'%)</td></tr>';
+    out += '</tbody></table>';
+    if (p.offers.length) out += '<div style="background:#FFF4ED;padding:5px 8px;border-top:1px solid #FDE8D0;font-size:8px;color:#C85E0F"><strong>🎁 Ontop:</strong> '+p.offers.join(' &nbsp;|&nbsp; ')+'</div>';
+    out += '</div>';
+    return out;
+  }
+  if (p.summaryOnly) {
+      // Summary-only: condensed price table (no scenario breakdown)
+      rhp(r,22); mgp(r,1,r,8);
+      scp(r,1,'  📊 สรุปราคา (ไม่ได้เลือก Scenario)',
+        {fill:solid(C.tblHdBg),font:reg(11,C.tblHdTxt,true),alignment:al('left','center')}); r++;
+      // header row
+      rhp(r,28);
+      ['','รายการ','ราคา','หมายเหตุ'].forEach((h,i)=>scp(r,i+1,h,thHd(C.tblHdBg,C.tblHdTxt))); r++;
+      // rows
+      const sumRows=[
+        ['ราคาปกติ (ไม่มีโปร / '+p.periodLabel+')', p.normalTotal, {font:{...reg(9,C.gray),strike:true}}],
+        ['จ่าย 10 ฟรี '+p.freeMos+' เดือน', p.totalBefore, {}],
+      ];
+      if (p.discPct) sumRows.push(['ส่วนลดพิเศษ '+p.discPct+'%', -p.discAmt, {}]);
+      sumRows.push(['💎 ยอดสุทธิ', p.finalTotal, {font:reg(11,C.okTxt,true)}]);
+      sumRows.push(['อัตราเดือนละ', p.monthlyRate, {}]);
+      sumRows.forEach((sr,i)=>{
+        const bg = i%2===0?C.white:C.rowAlt;
+        rhp(r,24);
+        scp(r,1,String(i+1),{fill:solid(bg),font:reg(9,C.gray),alignment:al('center','center'),border:bdr()});
+        mgp(r,2,r,3); scp(r,2,sr[0],{fill:solid(bg),font:reg(10,C.bodyTxt,false),alignment:al('left','center'),border:bdr()});
+        const isTotal = sr[0].includes('ยอดสุทธิ');
+        scp(r,4,Math.abs(sr[1]),{fill:solid(isTotal?C.okBg:bg),font:{...(sr[2].font||reg(10,C.bodyTxt,false)),sz:isTotal?12:10},alignment:al('right','center'),border:bdr(),numFmt:'#,##0'}); r++;
+      });
+      // saving note
+      rhp(r,20); mgp(r,1,r,4);
+      scp(r,1,'💚 ประหยัดจากราคาปกติ = '+thb(p.normalTotal-p.finalTotal)+' บาท ('+Math.round((p.normalTotal-p.finalTotal)/p.normalTotal*100)+'%)',
+        {fill:solid(C.okBg),font:reg(9,C.okTxt,true),alignment:al('left','center')}); r++;
+      if (p.offers.length) {
+        rhp(r,20); mgp(r,1,r,4);
+        scp(r,1,'🎁 Ontop: '+p.offers.join('  |  '),
+          {fill:solid(C.orangeLt),font:reg(9,'C85E0F',false),alignment:al('left','center',true)}); r++;
+      }
+    }
+    if (p.compareMode && data.price2) {
+      const p2 = data.price2;
+      const PKG_CLR2={Basic:'2E7D32',Standard:'E65100',Advanced:'1565C0',Professional:'1A56DB'};
+      const pkgClr2 = PKG_CLR2[p2.pkg]||C.navy;
+      // Title bar
+      rhp(r,22); mgp(r,1,r,8);
+      scp(r,1,'  🔀 เปรียบเทียบ ตัวเลือก A vs ตัวเลือก B',
+        {fill:solid('5B21B6'),font:reg(11,C.white,true),alignment:al('left','center')}); r++;
+      // Sub-header: A label | B label
+      rhp(r,20);
+      mgp(r,1,r,2); scp(r,1,'รายการ',{fill:solid('F3F4F6'),font:reg(9,'374151',true),alignment:al('center','center'),border:bdr()});
+      mgp(r,3,r,5); scp(r,3,'🅐 ตัวเลือก A — '+p.pkg,{fill:solid(pkgClr),font:reg(9,C.white,true),alignment:al('center','center'),border:bdr()});
+      mgp(r,6,r,8); scp(r,6,'🅑 ตัวเลือก B — '+p2.pkg,{fill:solid(pkgClr2),font:reg(9,C.white,true),alignment:al('center','center'),border:bdr()});
+      r++;
+      // Data rows: [label, valA, valB, isHighlight]
+      const cmpRowsAB = [
+        ['แพ็กเกจ', p.pkg, p2.pkg, false],
+        ['จำนวนพนักงาน', p.range+' คน', p2.range+' คน', false],
+        ['ระยะเวลา', p.periodLabel, p2.periodLabel, false],
+        ['โปรโมชั่น', 'ฟรี '+p.freeMos+' เดือน', 'ฟรี '+p2.freeMos+' เดือน', false],
+        ['ราคาปกติ (ไม่มีโปร)', p.normalTotal, p2.normalTotal, false],
+        ['💎 ยอดสุทธิ', p.finalTotal, p2.finalTotal, true],
+        ['อัตราเดือนละ', p.monthlyRate, p2.monthlyRate, false],
+        ['💚 ประหยัด', p.normalTotal-p.finalTotal, p2.normalTotal-p2.finalTotal, false],
+      ];
+      if (p.discPct || p2.discPct) {
+        cmpRowsAB.splice(5, 0, ['ส่วนลดพิเศษ', p.discPct ? p.discPct+'% (−'+thb(p.discAmt)+')' : '—', p2.discPct ? p2.discPct+'% (−'+thb(p2.discAmt)+')' : '—', false]);
+      }
+      cmpRowsAB.forEach((cr,i)=>{
+        const bg = i%2===0 ? C.white : C.rowAlt;
+        const hi = cr[3];
+        const ht = hi ? 30 : 24;
+        rhp(r, ht);
+        mgp(r,1,r,2); scp(r,1,cr[0],{fill:solid(bg),font:reg(hi?10:9,C.bodyTxt,hi),alignment:al('left','center'),border:bdr()});
+        // col A (3-5)
+        const vA=cr[1];
+        const sA={fill:solid(hi?C.okBg:C.tblHdBg),font:reg(hi?12:10,hi?C.okTxt:C.tblHdTxt,hi),alignment:al('center','center'),border:bdr()};
+        if(typeof vA==='number'){sA.numFmt='#,##0';}
+        mgp(r,3,r,5); wp[XLSX.utils.encode_cell({r:r-1,c:2})]={v:typeof vA==='number'?Math.abs(vA):vA,t:typeof vA==='number'?'n':'s',s:sA};
+        // col B (6-8)
+        const vB=cr[2];
+        const sB={fill:solid(hi?C.okBg:'F5F3FF'),font:reg(hi?12:10,hi?C.okTxt:'5B21B6',hi),alignment:al('center','center'),border:bdr()};
+        if(typeof vB==='number'){sB.numFmt='#,##0';}
+        mgp(r,6,r,8); wp[XLSX.utils.encode_cell({r:r-1,c:5})]={v:typeof vB==='number'?Math.abs(vB):vB,t:typeof vB==='number'?'n':'s',s:sB};
+        r++;
+      });
+      if (p.offers.length) {
+        rhp(r,20); mgp(r,1,r,8);
+        scp(r,1,'🎁 Ontop: '+p.offers.join('  |  '),{fill:solid(C.orangeLt),font:reg(9,'C85E0F',false),alignment:al('left','center',true)}); r++;
+      }
+    }
     if (p.sc1) {
       // Scenario 1 header
       rhp(r,22); mgp(r,1,r,8);
@@ -1072,9 +1300,7 @@ function buildXLSX(data) {
         {fill:solid(pkgClr),font:reg(11,C.white,true),alignment:al('left','center')}); r++;
       // Table header
       rhp(r,36);
-      const s1Hdrs=['','แพ็กเกจ / ช่วงพนักงาน','ราคาปกติ
-(ไม่มีโปร)','จ่าย 10 ฟรี '+p.freeMos+'
-(ประหยัด)','ส่วนลด '+p.discPct+'%','💎 ยอดสุทธิ','เดือนละ'];
+      const s1Hdrs=['','แพ็กเกจ / ช่วงพนักงาน','ราคาปกติ\n(ไม่มีโปร)','จ่าย 10 ฟรี '+p.freeMos+'\n(ประหยัด)','ส่วนลด '+p.discPct+'%','💎 ยอดสุทธิ','เดือนละ'];
       if (!p.discPct) s1Hdrs.splice(4,1);
       s1Hdrs.forEach((h,i)=>scp(r,i+1,h,thHd(C.tblHdBg,C.tblHdTxt))); r++;
       // Data row
@@ -1105,10 +1331,7 @@ function buildXLSX(data) {
       scp(r,1,'  Scenario 2  :  แบ่งจ่าย 2 งวด  (จ่าย 10 ฟรี '+p.freeMos+')',
         {fill:solid(C.orange),font:reg(11,C.white,true),alignment:al('left','center')}); r++;
       rhp(r,36);
-      ['','แพ็กเกจ / ช่วงพนักงาน','ราคาปกติ
-(ไม่มีโปร)','💎 ยอดสุทธิ','งวดที่ 1
-(เซ็นสัญญา)','งวดที่ 2
-(ก่อน Go Live)']
+      ['','แพ็กเกจ / ช่วงพนักงาน','ราคาปกติ\n(ไม่มีโปร)','💎 ยอดสุทธิ','งวดที่ 1\n(เซ็นสัญญา)','งวดที่ 2\n(ก่อน Go Live)']
         .forEach((h,i)=>scp(r,i+1,h,thHd(C.orangeLt,'C85E0F'))); r++;
       rhp(r,28);
       scp(r,1,'',{fill:solid(C.white),border:bdr()});
@@ -1165,7 +1388,7 @@ function buildXLSX(data) {
     Object.entries(bycat).forEach(([cat,items])=>{
       // category header
       rhf(r,22); mgf(r,1,r,4);
-      scf(r,1,'  '+cat,{fill:solid(C.navy),font:reg(9,C.white,true),alignment:al('left','center'),border:{left:Side(C.orange,'medium')}}); r++;
+      scf(r,1,'  '+cat,{fill:solid(C.navy),font:reg(9,C.white,true),alignment:al('left','center'),border:{left:{style:'medium',color:{rgb:C.orange}}}}); r++;
       items.forEach(lbl=>{
         rowNum++; const bg=rowNum%2===0?C.rowAlt:C.white;
         rhf(r,24);
@@ -1190,8 +1413,9 @@ function exportXLSX() {
   if (!data.domain) { toast('กรุณาระบุ Domain ก่อน','err'); return; }
   try {
     const wb = buildXLSX(data);
-    XLSX.writeFile(wb, `${data.domain}_summary_report.xlsx`);
-    toast(`✅ บันทึก XLSX: ${data.domain}_summary_report.xlsx`,'ok');
+    const xlsxName = (data.team ? data.team+' - ' : '')+data.domain+'_summary_report.xlsx';
+    XLSX.writeFile(wb, xlsxName);
+    toast('✅ บันทึก XLSX: '+xlsxName,'ok');
   } catch(e) {
     toast('XLSX error: '+e.message,'err'); console.error(e);
   }
@@ -1202,7 +1426,85 @@ function exportXLSX() {
 ══════════════════════════════════════════ */
 function thb(n){ return Math.round(n).toLocaleString('th-TH'); }
 
-function buildPricePDF(p) {
+/* ── Gantt chart for PDF ── */
+function buildGanttPDF(tl) {
+  if (!tl || !tl.length) return '';
+
+  // Convert date strings → Date objects
+  const taskData = tl.map(t => ({
+    no: t.no, res: t.res, task: t.task,
+    ds: t.ds ? new Date(t.ds) : null,
+    de: t.de ? new Date(t.de) : null
+  }));
+
+  const allDates = taskData.flatMap(t => [t.ds, t.de]).filter(Boolean);
+  if (!allDates.length) return '';
+
+  const minDate = startOfWeek(new Date(Math.min(...allDates)));
+  const maxDate = startOfWeek(new Date(Math.max(...allDates)));
+
+  // Build week slots
+  const weeks = [];
+  let cur = new Date(minDate);
+  while (cur <= addDays(maxDate, 6)) {
+    weeks.push(new Date(cur));
+    cur = addDays(cur, 7);
+  }
+
+  // Group weeks by month for header
+  const monthGroups = [];
+  weeks.forEach(wk => {
+    const mk = fmtMonth(wk);
+    if (!monthGroups.length || monthGroups[monthGroups.length-1].label !== mk) {
+      monthGroups.push({ label: mk, count: 1 });
+    } else {
+      monthGroups[monthGroups.length-1].count++;
+    }
+  });
+
+  const ro = r => (r||'').toLowerCase();
+  const barCls = r => (ro(r).includes('humansoft') && ro(r).includes('client')) ? 'bar-both'
+                    : ro(r).includes('humansoft') ? 'bar-hs' : 'bar-cl';
+
+  let h = '<div class="section-block" style="margin-top:12px">\n'+
+    '<div class="sec-title" style="margin-bottom:6px">📊 Gantt Chart</div>\n'+
+    '<div style="overflow-x:auto">\n'+
+    '<table class="gtbl"><thead><tr>\n'+
+    '<th rowspan="2">No.</th>\n'+
+    '<th rowspan="2">ผู้รับผิดชอบ</th>\n'+
+    '<th rowspan="2" style="min-width:100px">Task</th>\n'+
+    monthGroups.map(g => '<th class="mth-hd" colspan="'+g.count+'">'+esc(g.label)+'</th>').join('')+
+    '\n</tr><tr>\n'+
+    weeks.map((wk,wi) => '<th style="min-width:26px;font-size:7px">W'+(wi+1)+'</th>').join('')+
+    '\n</tr></thead><tbody>\n';
+
+  taskData.forEach(t => {
+    const isGoLive = t.task && (t.task.toLowerCase().includes('go live') || t.task.includes('🚀'));
+    const bc = barCls(t.res);
+    h += '<tr'+(isGoLive ? ' class="go-live-row"' : '')+'>\n'+
+      '<td class="g-no">'+esc(t.no)+'</td>\n'+
+      '<td class="g-own">'+esc(t.res)+'</td>\n'+
+      '<td class="g-task">'+esc(t.task)+'</td>\n';
+    weeks.forEach((wkStart, wi) => {
+      const wkEnd = addDays(wkStart, 6);
+      const inRange = t.ds && t.de && t.ds <= wkEnd && t.de >= wkStart;
+      if (inRange) {
+        const isFirst = wi === 0 || !(t.ds <= addDays(wkStart,-1) && t.de >= wkStart);
+        const isLast  = wi === weeks.length-1 || !(t.ds <= addDays(wkStart,6) && t.de >= addDays(wkStart,7));
+        const mk = (isFirst && isLast) ? (isGoLive?'🚀':'◆') : isFirst ? '▶' : isLast ? '◀' : '';
+        h += '<td class="g-bar '+bc+'">'+mk+'</td>\n';
+      } else {
+        h += '<td class="g-bar"></td>\n';
+      }
+    });
+    h += '</tr>\n';
+  });
+
+  h += '</tbody></table>\n</div>\n</div>\n';
+  return h;
+}
+
+function buildPricePDF(p, p2) {
   const PKG_CLR={Basic:'#2E7D32',Standard:'#E65100',Advanced:'#1565C0',Professional:'#1A56DB'};
   const clr = PKG_CLR[p.pkg]||'#1A56DB';
   const discLine = p.discPct > 0
@@ -1213,6 +1515,81 @@ function buildPricePDF(p) {
     : '';
   let out = '<div class="section-hd">💰 ราคา &amp; แพ็กเกจ</div>';
   out += '<div style="font-size:8.5px;color:#9CA3AF;padding:4px 0 2px">แพ็กเกจ: <strong style="color:'+clr+'">'+p.pkg+'</strong> &nbsp;|&nbsp; '+p.range+' คน &nbsp;|&nbsp; '+p.periodLabel+'</div>';
+  if (p.compareMode && p2) {
+    // Side-by-side: ตัวเลือก A vs ตัวเลือก B
+    const PKG_CLR2={Basic:'#2E7D32',Standard:'#E65100',Advanced:'#1565C0',Professional:'#1A56DB'};
+    const clr2 = PKG_CLR2[p2.pkg]||'#1A56DB';
+    out += '<div style="border:1.5px solid #7C3AED;border-radius:6px;overflow:hidden;margin-top:5px">';
+    // header gradient
+    out += '<div style="display:grid;grid-template-columns:1fr 1fr">';
+    out += '<div style="background:'+clr+';color:white;font-size:9px;font-weight:700;padding:5px 10px">🅐 ตัวเลือก A — '+p.pkg+'</div>';
+    out += '<div style="background:'+clr2+';color:white;font-size:9px;font-weight:700;padding:5px 10px">🅑 ตัวเลือก B — '+p2.pkg+'</div></div>';
+    out += '<table style="width:100%;border-collapse:collapse;font-size:8.5px">';
+    out += '<thead><tr>';
+    out += '<th style="background:#F3F4F6;color:#374151;padding:3px 8px;border:.5px solid #E5E7EB;width:30%">รายการ</th>';
+    out += '<th style="background:#EEF2FF;color:#1E3A8A;padding:3px 6px;border:.5px solid #BFDBFE;width:35%;text-align:center">🅐 ตัวเลือก A</th>';
+    out += '<th style="background:#F5F3FF;color:#5B21B6;padding:3px 6px;border:.5px solid #DDD6FE;width:35%;text-align:center">🅑 ตัวเลือก B</th>';
+    out += '</tr></thead><tbody>';
+    // แพ็กเกจ
+    out += '<tr><td style="padding:3px 8px;border:.5px solid #E5E7EB;color:#374151;font-size:8px">แพ็กเกจ</td>';
+    out += '<td style="text-align:center;padding:3px;border:.5px solid #EEF2FF;font-weight:700;color:'+clr+'">'+p.pkg+'</td>';
+    out += '<td style="text-align:center;padding:3px;border:.5px solid #EEF2FF;font-weight:700;color:'+clr2+'">'+p2.pkg+'</td></tr>';
+    // จำนวนพนักงาน
+    out += '<tr style="background:#F9FAFB"><td style="padding:3px 8px;border:.5px solid #E5E7EB;color:#374151;font-size:8px">จำนวนพนักงาน</td>';
+    out += '<td style="text-align:center;padding:3px;border:.5px solid #EEF2FF">'+p.range+' คน</td>';
+    out += '<td style="text-align:center;padding:3px;border:.5px solid #EEF2FF">'+p2.range+' คน</td></tr>';
+    // ประเภทการชำระ
+    out += '<tr><td style="padding:3px 8px;border:.5px solid #E5E7EB;color:#374151;font-size:8px">ระยะเวลา</td>';
+    out += '<td style="text-align:center;padding:3px;border:.5px solid #EEF2FF">'+p.periodLabel+'</td>';
+    out += '<td style="text-align:center;padding:3px;border:.5px solid #EEF2FF">'+p2.periodLabel+'</td></tr>';
+    // โปร
+    out += '<tr style="background:#F9FAFB"><td style="padding:3px 8px;border:.5px solid #E5E7EB;color:#374151;font-size:8px">โปรโมชั่น</td>';
+    out += '<td style="text-align:center;padding:3px;border:.5px solid #EEF2FF">จ่าย 10 ฟรี '+p.freeMos+' เดือน</td>';
+    out += '<td style="text-align:center;padding:3px;border:.5px solid #EEF2FF">จ่าย 10 ฟรี '+p2.freeMos+' เดือน</td></tr>';
+    // ราคาปกติ
+    out += '<tr><td style="padding:3px 8px;border:.5px solid #E5E7EB;color:#9CA3AF;font-size:8px">ราคาปกติ (ไม่มีโปร)</td>';
+    out += '<td style="text-align:center;padding:3px;border:.5px solid #EEF2FF;color:#9CA3AF;text-decoration:line-through">'+thb(p.normalTotal)+' บาท</td>';
+    out += '<td style="text-align:center;padding:3px;border:.5px solid #EEF2FF;color:#9CA3AF;text-decoration:line-through">'+thb(p2.normalTotal)+' บาท</td></tr>';
+    // ส่วนลด
+    if (p.discPct || p2.discPct) {
+      out += '<tr style="background:#F9FAFB"><td style="padding:3px 8px;border:.5px solid #E5E7EB;color:#C85E0F;font-size:8px">ส่วนลดพิเศษ</td>';
+      out += '<td style="text-align:center;padding:3px;border:.5px solid #EEF2FF;color:#C85E0F">'+(p.discPct ? p.discPct+'% (−'+thb(p.discAmt)+')' : '—')+'</td>';
+      out += '<td style="text-align:center;padding:3px;border:.5px solid #EEF2FF;color:#C85E0F">'+(p2.discPct ? p2.discPct+'% (−'+thb(p2.discAmt)+')' : '—')+'</td></tr>';
+    }
+    // ยอดสุทธิ
+    out += '<tr style="background:#F0FDF4"><td style="padding:4px 8px;border:.5px solid #E5E7EB;font-weight:700;color:#374151">💎 ยอดสุทธิ</td>';
+    out += '<td style="text-align:center;padding:4px;border:.5px solid #EEF2FF;font-weight:700;font-size:11px;color:#065F46">'+thb(p.finalTotal)+' บาท</td>';
+    out += '<td style="text-align:center;padding:4px;border:.5px solid #EEF2FF;font-weight:700;font-size:11px;color:#065F46">'+thb(p2.finalTotal)+' บาท</td></tr>';
+    // เดือนละ
+    out += '<tr><td style="padding:3px 8px;border:.5px solid #E5E7EB;color:#374151;font-size:8px">อัตราเดือนละ</td>';
+    out += '<td style="text-align:center;padding:3px;border:.5px solid #EEF2FF;color:#1240B0;font-weight:700">'+thb(p.monthlyRate)+' บาท</td>';
+    out += '<td style="text-align:center;padding:3px;border:.5px solid #EEF2FF;color:#1240B0;font-weight:700">'+thb(p2.monthlyRate)+' บาท</td></tr>';
+    // ประหยัด
+    const saveA = p.normalTotal - p.finalTotal;
+    const saveB = p2.normalTotal - p2.finalTotal;
+    out += '<tr style="background:#F0FDF4"><td style="padding:3px 8px;border:.5px solid #E5E7EB;color:#065F46;font-size:8px">💚 ประหยัดรวม</td>';
+    out += '<td style="text-align:center;padding:3px;border:.5px solid #EEF2FF;color:#065F46;font-weight:700">'+thb(saveA)+' บาท ('+Math.round(saveA/p.normalTotal*100)+'%)</td>';
+    out += '<td style="text-align:center;padding:3px;border:.5px solid #EEF2FF;color:#065F46;font-weight:700">'+thb(saveB)+' บาท ('+Math.round(saveB/p2.normalTotal*100)+'%)</td></tr>';
+    out += '</tbody></table>';
+    if (p.offers.length) out += '<div style="background:#FFF4ED;padding:5px 8px;border-top:1px solid #FDE8D0;font-size:8px;color:#C85E0F"><strong>🎁 Ontop:</strong> '+p.offers.join(' &nbsp;|&nbsp; ')+'</div>';
+    out += '</div>';
+    return out;
+  }
+  if (p.summaryOnly) {
+    // No scenario selected — show condensed price summary only
+    out += '<div style="border:1px solid #BFDBFE;border-radius:5px;overflow:hidden;margin-top:5px;padding:8px 12px;background:#EEF2FF">';
+    out += '<div style="font-size:9px;color:#1E3A8A;font-weight:700;margin-bottom:4px">📊 สรุปราคา (เลือก Scenario เพื่อดูรายละเอียด)</div>';
+    out += '<table style="width:100%;border-collapse:collapse;font-size:8.5px">';
+    out += '<tr><td style="padding:3px 6px;color:#6B7280">ราคาประจำปี (10 เดือน)</td><td style="padding:3px 6px;text-align:right;font-weight:700;color:#9CA3AF;text-decoration:line-through">'+thb(p.normalTotal)+' บาท</td></tr>';
+    out += '<tr><td style="padding:3px 6px;color:#1A56DB">จ่าย 10 เดือน ฟรี '+p.freeMos+' เดือน</td><td style="padding:3px 6px;text-align:right;font-weight:700;color:#065F46">'+thb(p.totalBefore)+' บาท</td></tr>';
+    if (p.discPct) out += '<tr><td style="padding:3px 6px;color:#C85E0F">ส่วนลดพิเศษ '+p.discPct+'%</td><td style="padding:3px 6px;text-align:right;font-weight:700;color:#C85E0F">−'+thb(p.discAmt)+' บาท</td></tr>';
+    out += '<tr style="border-top:1px solid #BFDBFE"><td style="padding:4px 6px;font-weight:700;color:#1A56DB">💎 ยอดสุทธิ</td><td style="padding:4px 6px;text-align:right;font-weight:700;font-size:11px;color:#065F46">'+thb(p.finalTotal)+' บาท</td></tr>';
+    out += '<tr><td style="padding:3px 6px;color:#6B7280">อัตราเดือนละ</td><td style="padding:3px 6px;text-align:right;color:#1A56DB">'+thb(p.monthlyRate)+' บาท/เดือน</td></tr>';
+    out += '</table>';
+    if (p.offers.length) out += '<div style="margin-top:4px;font-size:8px;color:#C85E0F"><strong>🎁 Ontop:</strong> '+p.offers.join(' | ')+'</div>';
+    out += '</div>';
+    return out;
+  }
   if (p.sc1) {
     out += '<div style="border:1px solid #BFDBFE;border-radius:5px;overflow:hidden;margin-top:5px">';
     out += '<div style="background:'+clr+';color:white;font-size:9px;font-weight:700;padding:4px 8px">Scenario 1 — ชำระครั้งเดียว &nbsp; จ่าย 10 ฟรี '+p.freeMos+(p.discPct?(' + ส่วนลด '+p.discPct+'%'):'')+'</div>';
@@ -1247,8 +1624,7 @@ function buildPricePDF(p) {
     out += '</tr><tr><td colspan="4" style="background:#D1FAE5;color:#065F46;font-size:8px;padding:3px 6px;font-weight:700">💚 ประหยัดจากราคาปกติ = '+thb(p.normalTotal-p.totalBefore)+' บาท ('+Math.round((p.normalTotal-p.totalBefore)/p.normalTotal*100)+'%)</td></tr>';
     out += '</tbody></table>'+offersLine+'</div>';
   }
-  return out+'
-';
+  return out;
 }
 
 function buildFeatsPDF(feats) {
@@ -1271,8 +1647,7 @@ function buildFeatsPDF(feats) {
     '<div style="display:grid;grid-template-columns:1fr 1fr;gap:0 10px;margin-top:4px">'+
     '<table style="width:100%;border-collapse:collapse"><tbody>'+left+'</tbody></table>'+
     '<table style="width:100%;border-collapse:collapse"><tbody>'+right+'</tbody></table>'+
-    '</div>
-';
+    '</div>';
 }
 
 function buildPrintHTML(data, autoPrint) {
@@ -1287,6 +1662,10 @@ function buildPrintHTML(data, autoPrint) {
     should:'<span class="pri-badge pri-medium">🟡 Should Have</span>',
     nice:  '<span class="pri-badge pri-low">🟢 Nice to Have</span>',
   };
+  const teamLine = data.team
+    ? '<div style="font-size:8px;color:#6B7280;margin-bottom:8px">👥 ทีมที่ดูแล: <strong style="color:#1A56DB">'+data.team+'</strong></div>'
+    : '';
+
   const ppRows = data.pp.map(function(p){
     return '<tr><td class="no">'+p.no+'</td><td>'+nl(p.req)+'</td>'+
       '<td class="c">'+(p.sup?'<span class="ok">✓</span>':'')+'</td>'+
@@ -1369,6 +1748,18 @@ function buildPrintHTML(data, autoPrint) {
     '.bottom-bar{display:flex;height:5px;margin-top:12mm;}\n'+
     '.bb-blue{flex:2;background:var(--blue);}\n'+
     '.bb-orange{flex:1;background:var(--orange);}\n'+
+    '.gtbl{width:100%;border-collapse:collapse;font-size:8px;margin-top:6px;}\n'+
+    '.gtbl th,.gtbl td{border:0.5px solid #DBEAFE;padding:2px 3px;}\n'+
+    '.gtbl th{background:var(--blue-lt);color:var(--blue-dk);font-weight:700;text-align:center;}\n'+
+    '.gtbl td.g-no{width:22px;text-align:center;color:var(--gray);}\n'+
+    '.gtbl td.g-own{width:70px;text-align:center;font-size:7.5px;font-weight:600;}\n'+
+    '.gtbl td.g-task{min-width:100px;font-size:8px;}\n'+
+    '.gtbl td.g-bar{text-align:center;min-width:28px;font-size:9px;}\n'+
+    '.bar-hs{background:var(--blue);color:white;}\n'+
+    '.bar-cl{background:#059669;color:white;}\n'+
+    '.bar-both{background:#7C3AED;color:white;}\n'+
+    '.go-live-row td{background:#FFF4ED!important;}\n'+
+    '.mth-hd{background:var(--blue)!important;color:white!important;font-weight:700;text-align:center;}\n'+
     '@media print{body{background:white;}.page{margin:0;box-shadow:none;width:100%;min-height:unset;}@page{size:A4 portrait;margin:0;}}\n'+
     '</style>\n</head>\n<body>\n'+ap+'\n'+
     '<div class="page">\n'+
@@ -1377,7 +1768,7 @@ function buildPrintHTML(data, autoPrint) {
     '  <div class="header">\n'+
     '    <div class="header-left"><h1>Summary Report</h1><p>Proposal Summary Document</p></div>\n'+
     '    <div class="header-right">\n'+
-    '      <span class="brand">HumanSoft</span>\n'+
+    '      <span class="brand"><span style="color:var(--blue)">Human</span><span style="color:var(--orange)">Soft</span></span>\n'+
     '      <span class="doc-id">FM-SE-03</span>\n'+
     '      <span class="doc-dt">วันที่เริ่มใช้/ แก้ไข : 02 กุมภาพันธ์ 2569/ 00</span>\n'+
     '    </div>\n  </div>\n'+
@@ -1385,6 +1776,7 @@ function buildPrintHTML(data, autoPrint) {
     '    <div class="meta-item"><span class="meta-lbl">Domain</span><span class="meta-val">'+e(data.domain||'—')+'</span></div>\n'+
     '    <div class="meta-item"><span class="meta-lbl">บริษัท (Company)</span><span class="meta-val">'+e(data.company||'—')+'</span></div>\n'+
     '    <div class="meta-item"><span class="meta-lbl">วันที่อัปเดต</span><span class="meta-val">'+fd(data.date)+'</span></div>\n'+
+    (data.team ? '    <div class="meta-item"><span class="meta-lbl">ทีมที่ดูแล</span><span class="meta-val">'+e(data.team)+'</span></div>\n' : '')+
     '  </div>\n'+
     '  <div class="content">\n'+
     '    <div class="section-hd">🎯 สรุป Pain Point หลัก</div>\n'+
@@ -1412,7 +1804,8 @@ function buildPrintHTML(data, autoPrint) {
     '      <th style="width:10%" class="c">วันที่เริ่ม</th>\n'+
     '      <th style="width:10%" class="c">วันที่สิ้นสุด</th>\n'+
     '    </tr></thead><tbody>'+tlRows+'</tbody></table>\n'+
-    (data.price ? buildPricePDF(data.price) : '')+
+    buildGanttPDF(data.tl)+
+    (data.price ? buildPricePDF(data.price, data.price2) : '')+
     (data.feats && data.feats.length ? buildFeatsPDF(data.feats) : '')+
     '  </div>\n'+
     '  <div class="bottom-bar"><div class="bb-blue"></div><div class="bb-orange"></div></div>\n'+
@@ -1483,12 +1876,14 @@ async function saveToDrive() {
     const arr = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
     const xlsxBlob = new Blob([arr], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
     showOvl('กำลังอัพโหลด XLSX…');
-    await uploadFile(xlsxBlob, `${data.domain}_summary_report.xlsx`,
+    const xlsxFname = (data.team ? data.team+' - ' : '')+data.domain+'_summary_report.xlsx';
+    await uploadFile(xlsxBlob, xlsxFname,
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', fId);
     showOvl('กำลังสร้าง PDF…');
     const pdfBlob = await makePDFBlob();
     showOvl('กำลังอัพโหลด PDF…');
-    await uploadFile(pdfBlob, `${data.domain}_summary_report.pdf`, 'application/pdf', fId);
+    const pdfFname = (data.team ? data.team+' - ' : '')+data.domain+'_summary_report.pdf';
+    await uploadFile(pdfBlob, pdfFname, 'application/pdf', fId);
     hideOvl();
     // แสดงปุ่มเปิดโฟลเดอร์
     const btn = document.getElementById('btnFolder');
@@ -1797,7 +2192,7 @@ function renderGantt() {
         <th rowspan="2" style="min-width:130px">Task</th>
         ${monthGroups.map(g => `<th class="m-may" colspan="${g.count}">${g.label}</th>`).join('')}
       </tr>
-      <tr>${weeks.map(wk => `<th style="min-width:38px;font-size:9px">${fmtShort(wk)}</th>`).join('')}</tr>
+      <tr>${weeks.map((wk,wi) => `<th style="min-width:38px;font-size:9px">W${wi+1}</th>`).join('')}</tr>
     </thead><tbody>`;
 
   taskData.forEach(t => {
@@ -1823,6 +2218,73 @@ function renderGantt() {
   });
   h += '</tbody></table></div></div>';
   wrap.innerHTML = h;
+}
+
+/* ══════════════════════════════════════════
+   PRICE — SCENARIO B  (compare mode)
+══════════════════════════════════════════ */
+let _selPkg2 = 'Professional';
+let _selRangeIdx2 = -1;
+
+function toggleComparePanel() {
+  const on = document.getElementById('fCompare').checked;
+  document.getElementById('comparePanelB').style.display = on ? '' : 'none';
+  if (on) calcPrice2();
+}
+
+function selectPkg2(btn) {
+  document.querySelectorAll('#comparePanelB .pkg-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  _selPkg2 = btn.dataset.pkg2;
+  calcPrice2();
+}
+
+function autoSelectRange2() {
+  const v = parseInt(document.getElementById('fUsers2').value) || 0;
+  _selRangeIdx2 = -1;
+  const hint = document.getElementById('rangeHint2');
+  for (let i = 0; i < PRICE_TABLE.length; i++) {
+    const [lo, hi] = PRICE_TABLE[i].range.split('-').map(Number);
+    if (v >= lo && (!hi || v <= hi)) { _selRangeIdx2 = i; break; }
+  }
+  if (_selRangeIdx2 >= 0) {
+    hint.textContent = '✅ Range: ' + PRICE_TABLE[_selRangeIdx2].range + ' คน';
+    hint.style.color = 'var(--green)';
+  } else if (v > 0) {
+    hint.textContent = '⚠️ ไม่พบ range — กรุณาตรวจสอบ';
+    hint.style.color = 'var(--red)';
+  } else {
+    hint.textContent = '';
+  }
+  calcPrice2();
+}
+
+function calcPrice2() {
+  const result = document.getElementById('priceResult2');
+  if (!result) return;
+  const rIdx = _selRangeIdx2;
+  const priceRow = rIdx >= 0 ? PRICE_TABLE[rIdx] : null;
+  if (!priceRow) { result.innerHTML = ''; return; }
+  const period  = document.getElementById('fPeriod2')?.value || 'y1';
+  const freeMos = parseInt(document.getElementById('fPromo2')?.value || '2');
+  const discPct = parseFloat(document.getElementById('fDiscount2')?.value) || 0;
+  const annualPromo = priceRow[_selPkg2] || 0;
+  const monthlyRate = annualPromo / 10;
+  const mult = PERIOD_MONTHS[period] || 10;
+  const totalBefore = monthlyRate * mult;
+  const freeTotalMos = (mult / 10) * freeMos;
+  const promoSaving = monthlyRate * freeTotalMos;
+  const normalTotal = totalBefore + promoSaving;
+  const discAmt = totalBefore * (discPct / 100);
+  const finalTotal = totalBefore - discAmt;
+  const thb2 = n => Math.round(n).toLocaleString('th-TH');
+  result.innerHTML = `<div class="prc-card" style="border-color:#7C3AED">
+    <div class="prc-row strike"><span class="prc-lbl">ราคาปกติ (ไม่มีโปร)</span><span class="prc-val">${thb2(normalTotal)} บาท</span></div>
+    <div class="prc-row promo"><span class="prc-lbl">จ่าย 10 ฟรี ${freeMos}</span><span class="prc-val">ได้ฟรี ${thb2(promoSaving)} บาท</span></div>
+    ${discPct ? `<div class="prc-row disc"><span class="prc-lbl">ส่วนลด ${discPct}%</span><span class="prc-val">ลด ${thb2(discAmt)} บาท</span></div>` : ''}
+    <div class="prc-row net" style="border-top:2px solid #7C3AED"><span class="prc-lbl" style="color:#5B21B6">💎 ยอดสุทธิ B</span><span class="prc-val" style="color:#5B21B6;font-size:17px">${thb2(finalTotal)} บาท</span></div>
+    <div class="prc-row"><span class="prc-lbl">เดือนละ</span><span class="prc-val">${thb2(monthlyRate)} บาท/เดือน</span></div>
+  </div>`;
 }
 
 /* ══════════════════════════════════════════
