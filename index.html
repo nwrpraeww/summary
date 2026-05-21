@@ -239,6 +239,90 @@ input[type=checkbox] { width:17px;height:17px;accent-color:var(--primary);cursor
 
   @page { margin:12mm 10mm; size:A4 landscape; }
 }
+
+/* ── Package buttons ── */
+.pkg-sel{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;}
+.pkg-btn{padding:8px 20px;border-radius:8px;border:2px solid transparent;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;transition:all .15s;}
+.pkg-btn.active{transform:scale(1.04);box-shadow:0 2px 12px rgba(0,0,0,.18);}
+.pkg-basic   {background:#E8F5E9;color:#2E7D32;border-color:#A5D6A7;} .pkg-basic.active   {background:#2E7D32;color:#fff;}
+.pkg-std     {background:#FFF3E0;color:#E65100;border-color:#FFCC80;} .pkg-std.active     {background:#E65100;color:#fff;}
+.pkg-adv     {background:#E3F2FD;color:#1565C0;border-color:#90CAF9;} .pkg-adv.active     {background:#1565C0;color:#fff;}
+.pkg-pro     {background:var(--navy-lt);color:var(--navy);border-color:var(--navy);}   .pkg-pro.active     {background:var(--navy);color:#fff;}
+
+/* ── Price inputs row ── */
+.price-inputs{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:14px;}
+.price-sep{height:1px;background:var(--border);margin:16px 0;}
+
+/* ── Price result card ── */
+.prc-card{border-radius:11px;border:2px solid var(--navy);overflow:hidden;margin:14px 0;}
+.prc-hd{padding:11px 18px;font-size:13px;font-weight:700;display:flex;justify-content:space-between;align-items:center;}
+.prc-row{display:flex;justify-content:space-between;align-items:center;padding:9px 18px;border-bottom:1px solid var(--border);font-size:13px;}
+.prc-row:last-child{border-bottom:none;}
+.prc-lbl{color:var(--muted);font-size:12px;}
+.prc-val{font-weight:700;}
+.prc-row.big{background:var(--navy-lt);}
+.prc-row.big .prc-val{font-size:15px;}
+.prc-row.save .prc-val{color:var(--green);}
+.prc-row.strike .prc-val{color:var(--muted);text-decoration:line-through;font-weight:400;}
+
+/* ── Price reference table ── */
+details.pref>summary{cursor:pointer;padding:8px 0;font-size:13px;color:var(--navy);font-weight:700;}
+.pref-tbl{width:100%;border-collapse:collapse;font-size:12px;margin-top:8px;}
+.pref-tbl th{padding:7px 10px;text-align:center;font-size:11px;font-weight:700;white-space:nowrap;}
+.pref-tbl td{padding:6px 10px;border-bottom:1px solid var(--border);text-align:right;white-space:nowrap;}
+.pref-tbl td:first-child{text-align:center;color:var(--muted);}
+/* Priority select web */
+select.pri-sel { font-size:12px; font-weight:700; padding:4px 6px; border-radius:6px; border:1px solid var(--border); cursor:pointer; }
+select.pri-sel.p-critical { background:#FEE2E2; color:#991B1B; }
+select.pri-sel.p-medium   { background:#FEF9C3; color:#854D0E; }
+select.pri-sel.p-low      { background:#D1FAE5; color:#065F46; }
+.pref-tbl tr.pref-active td{background:var(--navy-lt) !important;font-weight:700;color:var(--navy);}
+.th-basic{background:#2E7D32;color:#fff;} .th-std{background:#E65100;color:#fff;}
+.th-adv  {background:#1565C0;color:#fff;} .th-pro{background:var(--navy);color:#fff;}
+.th-rng  {background:var(--border);}
+
+/* ── Offers grid ── */
+.offers-grid{display:flex;flex-wrap:wrap;gap:10px;}
+.offer-item{display:flex;align-items:center;gap:7px;padding:6px 12px;border-radius:7px;border:1.5px solid var(--primary-md);background:var(--primary-lt);font-size:13px;cursor:pointer;transition:all .15s;}
+.offer-item:hover{background:var(--primary-md);}
+.offer-item input{width:16px;height:16px;accent-color:var(--primary);cursor:pointer;}
+
+/* ── Gantt ── */
+.gantt-section{margin-top:18px;}
+.gantt-section .g-title{font-size:13px;font-weight:700;color:var(--navy);margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+.gantt-legend{display:flex;gap:14px;margin-bottom:8px;flex-wrap:wrap;}
+.gl-item{display:flex;align-items:center;gap:5px;font-size:12px;}
+.gl-dot{width:12px;height:12px;border-radius:3px;}
+.gantt-wrap{overflow-x:auto;}
+.gtbl{border-collapse:collapse;width:100%;min-width:580px;font-size:12px;}
+.gtbl th{background:var(--navy-lt);color:var(--navy-dk);font-weight:700;font-size:11px;padding:6px 8px;text-align:center;border:1px solid var(--border);white-space:nowrap;}
+.gtbl th.m-may{background:var(--navy);color:#fff;}
+.gtbl th.m-jun{background:var(--primary);color:#fff;}
+.gtbl td{padding:5px 8px;border:1px solid #F3F4F6;vertical-align:middle;font-size:12px;}
+.gtbl td.g-no{text-align:center;color:var(--muted);font-weight:700;width:28px;}
+.gtbl td.g-own{min-width:90px;font-size:11px;}
+.gtbl td.g-task{min-width:130px;}
+.gtbl td.g-week{width:52px;text-align:center;}
+.g-hs  {background:#1A56DB;color:#fff;}
+.g-cl  {background:#059669;color:#fff;}
+.g-both{background:#F47B20;color:#fff;}
+.gtbl tr:nth-child(even) td:not(.g-hs):not(.g-cl):not(.g-both){background:#F8FAFF;}
+.go-live-row td{background:#FFF4ED !important;font-weight:700;}
+
+/* ── Features ── */
+.feat-group-hd{background:var(--navy);color:#fff;font-size:12px;font-weight:700;padding:6px 14px;border-radius:6px;margin:12px 0 5px;border-left:3px solid var(--primary);}
+.feat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:3px;}
+.feat-item{display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:6px;font-size:13px;cursor:pointer;transition:background .12s;border:1px solid transparent;}
+.feat-item:hover{background:var(--navy-lt);}
+.feat-item.is-on{background:#EEF2FF;border-color:#BFDBFE;}
+.feat-item.is-off{opacity:.6;}
+.feat-item input{width:16px;height:16px;accent-color:var(--navy);cursor:pointer;flex-shrink:0;}
+.feat-item .fi{line-height:1.4;}
+
+/* ── Week select in TL ── */
+.col-wk{width:108px;}
+input.date-sel{font-size:11px;padding:3px 5px;border:1.5px solid var(--border);border-radius:5px;font-family:inherit;width:106px;color:var(--body);background:#fff;}
+
 </style>
 </head>
 <body>
@@ -333,6 +417,7 @@ input[type=checkbox] { width:17px;height:17px;accent-color:var(--primary);cursor
             <th class="col-ck">รองรับ ✓</th>
             <th class="col-ck">ยังไม่รองรับ</th>
             <th style="min-width:240px">Solutions / แนวทาง</th>
+            <th style="width:110px;text-align:center">ระดับความสำคัญ</th>
             <th class="col-act no-print"></th>
           </tr></thead>
           <tbody id="ppBody"></tbody>
@@ -377,12 +462,107 @@ input[type=checkbox] { width:17px;height:17px;accent-color:var(--primary);cursor
             <th style="min-width:200px">Task / กระบวนการ</th>
             <th style="min-width:160px">รายละเอียด</th>
             <th style="min-width:100px">Status</th>
+            <th class="col-wk no-print">วันที่เริ่ม</th>
+            <th class="col-wk no-print">วันที่สิ้นสุด</th>
             <th class="col-act no-print"></th>
           </tr></thead>
           <tbody id="tlBody"></tbody>
         </table>
       </div>
       <button class="add-row no-print" onclick="addTL()">＋ เพิ่มรายการ</button>
+      <button class="add-row no-print" style="margin-top:6px;border-color:var(--navy);color:var(--navy)" onclick="renderGantt()">📊 แสดง Gantt Chart</button>
+      <div id="ganttWrap" class="no-print" style="margin-top:6px"></div>
+    </div>
+  </div>
+
+
+  <!-- ── 5. Price ── -->
+  <div class="card">
+    <div class="card-hd">
+      <div class="card-title">💰 ราคา & แพ็กเกจ <span class="badge b-blue no-print">ส่วนที่ 4</span></div>
+    </div>
+    <div class="card-body">
+      <!-- Package selector -->
+      <div class="lbl" style="margin-bottom:8px">เลือกแพ็กเกจ</div>
+      <div class="pkg-sel no-print">
+        <button class="pkg-btn pkg-basic" data-pkg="Basic"         onclick="selectPkg(this)">Basic</button>
+        <button class="pkg-btn pkg-std"   data-pkg="Standard"      onclick="selectPkg(this)">Standard</button>
+        <button class="pkg-btn pkg-adv"   data-pkg="Advanced"      onclick="selectPkg(this)">Advanced</button>
+        <button class="pkg-btn pkg-pro active" data-pkg="Professional" onclick="selectPkg(this)">Professional</button>
+      </div>
+      <!-- Selectors -->
+      <div class="price-inputs">
+        <div class="fg">
+          <label class="lbl">จำนวนพนักงาน <span style="color:var(--red)">*</span></label>
+          <input id="fUsers" type="number" class="fc" placeholder="เช่น 50" oninput="autoSelectRange()">
+          <span id="rangeHint" style="font-size:11px;color:var(--muted);margin-top:3px;display:block"></span>
+        </div>
+        <div class="fg">
+          <label class="lbl">ประเภทการชำระ</label>
+          <select id="fPeriod" class="fc" onchange="calcPrice()">
+            <option value="monthly">รายเดือน</option>
+            <option value="q3">ราย 3 เดือน</option>
+            <option value="q6">ราย 6 เดือน</option>
+            <option value="y1" selected>ราย 1 ปี</option>
+            <option value="y2">ราย 2 ปี</option>
+            <option value="y3">ราย 3 ปี</option>
+            <option value="y5">ราย 5 ปี</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label class="lbl">โปรโมชั่น</label>
+          <select id="fPromo" class="fc" onchange="calcPrice()">
+            <option value="2">จ่าย 10 ฟรี 2 (ปกติ)</option>
+            <option value="3">จ่าย 10 ฟรี 3</option>
+            <option value="4">จ่าย 10 ฟรี 4</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label class="lbl">ส่วนลดพิเศษ (%)</label>
+          <input id="fDiscount" type="number" class="fc" placeholder="0" min="0" max="100" value="" oninput="calcPrice()">
+        </div>
+      </div>
+      <!-- Result -->
+      <div id="priceResult"></div>
+      <!-- Ontop offers -->
+      <div class="price-sep"></div>
+      <div class="lbl" style="margin-bottom:8px">🎁 Ontop Offers</div>
+      <div class="offers-grid">
+        <label class="offer-item"><input type="checkbox" id="fOffer1" checked><span>Free Implement (ขึ้นระบบฟรี)</span></label>
+        <label class="offer-item"><input type="checkbox" id="fOffer2" checked><span>Free Training Online 3 Times</span></label>
+        <label class="offer-item"><input type="checkbox" id="fOffer3" checked><span>Support ทุกวัน 08.30–17.30 น.</span></label>
+        <label class="offer-item"><input type="checkbox" id="fOffer4" checked><span>ไม่มีค่า MA / ค่าเช่า Cloud</span></label>
+        <label class="offer-item"><input type="checkbox" id="fOffer5" checked><span>ทดลองใช้งานฟรี 3 เดือน</span></label>
+      </div>
+      <!-- Full price table (collapsible) -->
+      <details class="pref no-print" style="margin-top:18px">
+        <summary>📊 ดูตารางราคาทั้งหมด (ราคารายปี / ไม่รวม VAT)</summary>
+        <div style="overflow-x:auto;margin-top:8px">
+          <table class="pref-tbl">
+            <thead>
+              <tr>
+                <th class="th-rng">จำนวนพนักงาน</th>
+                <th class="th-basic">Basic</th>
+                <th class="th-std">Standard</th>
+                <th class="th-adv">Advanced</th>
+                <th class="th-pro">Professional</th>
+              </tr>
+            </thead>
+            <tbody id="priceRefBody"></tbody>
+          </table>
+          <p style="font-size:11px;color:var(--muted);margin-top:6px">* ราคาข้างต้นเป็นราคารายปี (ราคา 10 เดือน สำหรับ 12 เดือน) | ราคาเดือนละ = ราคาปี ÷ 10</p>
+        </div>
+      </details>
+    </div>
+  </div>
+
+  <!-- ── 6. Features ── -->
+  <div class="card">
+    <div class="card-hd">
+      <div class="card-title">✅ Features ที่ต้องการใช้งาน <span class="badge b-purple no-print">ส่วนที่ 5</span></div>
+    </div>
+    <div class="card-body">
+      <div id="featBody"></div>
     </div>
   </div>
 
@@ -426,10 +606,13 @@ const DEF_TL = [];
    INIT
 ══════════════════════════════════════════ */
 document.addEventListener('DOMContentLoaded', () => {
+  // Set today as default date
+  document.getElementById('fDate').value = new Date().toISOString().split('T')[0];
+  syncPrint();
   DEF_PP.forEach(d => addPP(d));
   DEF_SO.forEach(d => addSO(d));
   DEF_TL.forEach(d => addTL(d));
-  renum(); syncPrint();
+  renum(); syncPrint(); initPriceUI(); initFeatures();
 });
 
 function syncPrint() {
@@ -442,7 +625,29 @@ function syncPrint() {
 /* ══════════════════════════════════════════
    ROW BUILDERS
 ══════════════════════════════════════════ */
+const PRI_OPTS = [
+  {val:'must',   label:'🔴 Must Have',    cls:'p-critical'},
+  {val:'should', label:'🟡 Should Have',  cls:'p-medium'},
+  {val:'nice',   label:'🟢 Nice to Have', cls:'p-low'},
+];
+const PRI_BADGE = {
+  must:  '<span class="pri-badge pri-critical">🔴 Must Have</span>',
+  should:'<span class="pri-badge pri-medium">🟡 Should Have</span>',
+  nice:  '<span class="pri-badge pri-low">🟢 Nice to Have</span>',
+};
+
+function priOpts(sel) {
+  return PRI_OPTS.map(p => `<option value="${p.val}" ${sel===p.val?'selected':''}>${p.label}</option>`).join('');
+}
+function updatePriColor(sel) {
+  PRI_OPTS.forEach(p => sel.classList.remove(p.cls));
+  const found = PRI_OPTS.find(p => p.val === sel.value);
+  if (found) sel.classList.add(found.cls);
+}
+
 function addPP(d={}) {
+  const defPri = d.priority || 'should';
+  const priCls = (PRI_OPTS.find(p=>p.val===defPri)||{cls:'p-medium'}).cls;
   const tr = document.createElement('tr');
   tr.innerHTML = `
     <td class="col-no rn" style="font-weight:700;color:#9CA3AF"></td>
@@ -456,6 +661,10 @@ function addPP(d={}) {
       <div class="ck-print" style="display:none;justify-content:center;font-size:15px;font-weight:700;color:#DC2626">${d.not?'✗':''}</div>
     </td>
     <td><textarea class="fc" placeholder="Solutions / แนวทาง">${esc(d.sol||'')}</textarea></td>
+    <td style="text-align:center;vertical-align:middle">
+      <select class="pri-sel ${priCls}" onchange="updatePriColor(this)">${priOpts(defPri)}</select>
+      <div class="pri-print" style="display:none;margin-top:2px">${PRI_BADGE[defPri]||''}</div>
+    </td>
     <td class="col-act no-print"><button class="btn-del" onclick="delRow(this)">✕</button></td>`;
   document.getElementById('ppBody').appendChild(tr);
   tr.querySelectorAll('input[type=checkbox]').forEach((cb, i) => {
@@ -463,6 +672,12 @@ function addPP(d={}) {
       const sym = cb.closest('td').querySelector('.ck-print');
       if (sym) sym.textContent = cb.checked ? (i===0?'✓':'✗') : '';
     });
+  });
+  // sync pri-print on change
+  const priSel = tr.querySelector('.pri-sel');
+  const priPrint = tr.querySelector('.pri-print');
+  priSel.addEventListener('change', () => {
+    if (priPrint) priPrint.innerHTML = PRI_BADGE[priSel.value] || '';
   });
   ar(tr); renum();
 }
@@ -503,6 +718,12 @@ function addTL(d={}) {
       <select class="fc ${ST_CLS[st]}" style="font-size:12.5px" onchange="updateStColor(this)">
         ${mkOpts(STATS,st)}
       </select>
+    </td>
+    <td class="col-wk">
+      <input type="date" class="date-sel" value="${esc(d.ds||'')}" onchange="renderGantt()">
+    </td>
+    <td class="col-wk">
+      <input type="date" class="date-sel" value="${esc(d.de||'')}" onchange="renderGantt()">
     </td>
     <td class="col-act no-print"><button class="btn-del" onclick="delRow(this)">✕</button></td>`;
   document.getElementById('tlBody').appendChild(tr);
@@ -555,7 +776,8 @@ function collect() {
     const t = tr.querySelectorAll('td');
     return { no:+t[0].textContent, req:t[1].querySelector('textarea').value,
              sup:t[2].querySelector('input').checked, not:t[3].querySelector('input').checked,
-             sol:t[4].querySelector('textarea').value };
+             sol:t[4].querySelector('textarea').value,
+             priority:t[5]?.querySelector('select')?.value || 'should' };
   });
   const so = [...document.querySelectorAll('#soBody tr')].map(tr => {
     const t = tr.querySelectorAll('td');
@@ -565,7 +787,9 @@ function collect() {
     const t = tr.querySelectorAll('td');
     return { no:+t[0].textContent, res:t[1].querySelector('select').value,
              task:t[2].querySelector('textarea').value, det:t[3].querySelector('textarea').value,
-             st:t[4].querySelector('select').value };
+             st:t[4].querySelector('select').value,
+             ds:t[5]?.querySelector('input.date-sel')?.value||'',
+             de:t[6]?.querySelector('input.date-sel')?.value||'' };
   });
   return { domain, company, date, pp, so, tl };
 }
@@ -799,11 +1023,17 @@ function buildPrintHTML(data, autoPrint) {
   function nl(s){ return e(s).replace(/\n/g,'<br>'); }
   function fd(s){ if(!s)return '—'; const d=new Date(s); return d.getDate()+'/'+(d.getMonth()+1)+'/'+d.getFullYear(); }
 
+  const PRI_PDF = {
+    must:  '<span class="pri-badge pri-critical">🔴 Must Have</span>',
+    should:'<span class="pri-badge pri-medium">🟡 Should Have</span>',
+    nice:  '<span class="pri-badge pri-low">🟢 Nice to Have</span>',
+  };
   const ppRows = data.pp.map(function(p){
     return '<tr><td class="no">'+p.no+'</td><td>'+nl(p.req)+'</td>'+
       '<td class="c">'+(p.sup?'<span class="ok">✓</span>':'')+'</td>'+
       '<td class="c">'+(p.not?'<span class="no-mk">✗</span>':'')+'</td>'+
-      '<td class="sol">'+nl(p.sol)+'</td></tr>';
+      '<td class="sol">'+nl(p.sol)+'</td>'+
+      '<td class="c">'+(PRI_PDF[p.priority]||'')+'</td></tr>';
   }).join('');
 
   const soRows = data.so.map(function(s){
@@ -811,11 +1041,14 @@ function buildPrintHTML(data, autoPrint) {
       '<td>'+nl(s.det)+'</td></tr>';
   }).join('');
 
+  function fmtD(s){ if(!s)return '—'; const d=new Date(s); return d.getDate()+'/'+(d.getMonth()+1)+'/'+(d.getFullYear()+543); }
   const tlRows = data.tl.map(function(t){
     return '<tr><td class="no">'+t.no+'</td>'+
       '<td><span class="badge '+(respBadge[t.res]||'r-hs')+'">'+e(t.res)+'</span></td>'+
       '<td>'+nl(t.task)+'</td><td>'+nl(t.det)+'</td>'+
-      '<td><span class="badge '+(statBadge[t.st]||'s-ns')+'">'+e(t.st)+'</span></td></tr>';
+      '<td><span class="badge '+(statBadge[t.st]||'s-ns')+'">'+e(t.st)+'</span></td>'+
+      '<td style="white-space:nowrap;font-size:8.5px">'+fmtD(t.ds)+'</td>'+
+      '<td style="white-space:nowrap;font-size:8.5px">'+fmtD(t.de)+'</td></tr>';
   }).join('');
 
   const ap = autoPrint !== false
@@ -861,6 +1094,11 @@ function buildPrintHTML(data, autoPrint) {
     '.ok{color:var(--green-txt);font-weight:700;font-size:13px;}\n'+
     '.no-mk{color:var(--red-txt);font-weight:700;font-size:13px;}\n'+
     '.sol{font-size:8.5px;color:#4B5563;font-style:italic;}\n'+
+    '.pri-badge{border-radius:4px;padding:1px 6px;font-size:8px;font-weight:700;white-space:nowrap;display:inline-block;}\n'+
+    '.pri-critical{background:#FEE2E2;color:#991B1B;}\n'+
+    '.pri-high{background:#FFEDD5;color:#9A3412;}\n'+
+    '.pri-medium{background:#FEF9C3;color:#854D0E;}\n'+
+    '.pri-low{background:#D1FAE5;color:#065F46;}\n'+
     '.badge{border-radius:4px;padding:1px 6px;font-size:8px;font-weight:700;white-space:nowrap;display:inline-block;}\n'+
     '.s-ns{background:#FEF9C3;color:#854D0E;}\n'+
     '.s-prog{background:var(--blue-lt);color:var(--blue-dk);}\n'+
@@ -893,10 +1131,11 @@ function buildPrintHTML(data, autoPrint) {
     '    <div class="section-hd">🎯 สรุป Pain Point หลัก</div>\n'+
     '    <table class="tbl"><thead><tr>\n'+
     '      <th style="width:24px" class="c">No.</th>\n'+
-    '      <th style="width:36%">Requirement / ความต้องการ</th>\n'+
+    '      <th style="width:32%">Requirement / ความต้องการ</th>\n'+
     '      <th style="width:7%" class="c">รองรับ ✓</th>\n'+
-    '      <th style="width:8%" class="c">ยังไม่รองรับ</th>\n'+
+    '      <th style="width:7%" class="c">ยังไม่รองรับ</th>\n'+
     '      <th>Solutions / แนวทาง</th>\n'+
+    '      <th style="width:10%" class="c">ความสำคัญ</th>\n'+
     '    </tr></thead><tbody>'+ppRows+'</tbody></table>\n'+
     '    <div class="section-hd">🎁 Special Offers</div>\n'+
     '    <table class="tbl"><thead><tr>\n'+
@@ -907,10 +1146,12 @@ function buildPrintHTML(data, autoPrint) {
     '    <div class="section-hd">📅 Timeline</div>\n'+
     '    <table class="tbl"><thead><tr>\n'+
     '      <th style="width:24px" class="c">No.</th>\n'+
-    '      <th style="width:18%">ผู้รับผิดชอบ</th>\n'+
-    '      <th style="width:18%">Task / กระบวนการ</th>\n'+
-    '      <th style="width:36%">รายละเอียด</th>\n'+
-    '      <th style="width:12%">Status</th>\n'+
+    '      <th style="width:15%">ผู้รับผิดชอบ</th>\n'+
+    '      <th style="width:16%">Task / กระบวนการ</th>\n'+
+    '      <th style="width:28%">รายละเอียด</th>\n'+
+    '      <th style="width:11%">Status</th>\n'+
+    '      <th style="width:10%" class="c">วันที่เริ่ม</th>\n'+
+    '      <th style="width:10%" class="c">วันที่สิ้นสุด</th>\n'+
     '    </tr></thead><tbody>'+tlRows+'</tbody></table>\n'+
     '  </div>\n'+
     '  <div class="bottom-bar"><div class="bb-blue"></div><div class="bb-orange"></div></div>\n'+
@@ -1061,6 +1302,338 @@ async function makePDFBlob() {
     iframe.contentDocument.open();
     iframe.contentDocument.write(html);
     iframe.contentDocument.close();
+  });
+}
+
+
+/* ══════════════════════════════════════════
+   PRICE TABLE & CALCULATOR
+══════════════════════════════════════════ */
+const PRICE_TABLE = [
+  {range:'< 10',      min:0,    max:10,   Basic:5900,   Standard:11900,  Advanced:13900,  Professional:18900},
+  {range:'11 – 25',   min:11,   max:25,   Basic:7900,   Standard:19900,  Advanced:28900,  Professional:37900},
+  {range:'26 – 50',   min:26,   max:50,   Basic:12900,  Standard:28900,  Advanced:47900,  Professional:63900},
+  {range:'51 – 75',   min:51,   max:75,   Basic:18900,  Standard:33900,  Advanced:56900,  Professional:75900},
+  {range:'76 – 100',  min:76,   max:100,  Basic:22900,  Standard:44900,  Advanced:68900,  Professional:93900},
+  {range:'101 – 150', min:101,  max:150,  Basic:29900,  Standard:56900,  Advanced:83900,  Professional:109900},
+  {range:'151 – 200', min:151,  max:200,  Basic:34900,  Standard:67900,  Advanced:94900,  Professional:126900},
+  {range:'201 – 250', min:201,  max:250,  Basic:39900,  Standard:78900,  Advanced:108900, Professional:142900},
+  {range:'251 – 300', min:251,  max:300,  Basic:43900,  Standard:93900,  Advanced:127900, Professional:167900},
+  {range:'301 – 400', min:301,  max:400,  Basic:48900,  Standard:115900, Advanced:153900, Professional:199900},
+  {range:'401 – 500', min:401,  max:500,  Basic:49900,  Standard:131900, Advanced:171900, Professional:231900},
+  {range:'501 – 700', min:501,  max:700,  Basic:69900,  Standard:176900, Advanced:235900, Professional:319900},
+  {range:'701 – 850', min:701,  max:850,  Basic:84900,  Standard:204900, Advanced:275900, Professional:377900},
+  {range:'851 – 1000',min:851,  max:1000, Basic:99900,  Standard:228900, Advanced:312900, Professional:432900},
+  {range:'1001 – 1500',min:1001,max:1500, Basic:149900, Standard:324900, Advanced:449900, Professional:629900},
+  {range:'1501 – 2000',min:1501,max:2000, Basic:199900, Standard:432900, Advanced:599900, Professional:839900},
+  {range:'2001 – 2500',min:2001,max:2500, Basic:249900, Standard:540900, Advanced:749900, Professional:1049900},
+  {range:'2501 – 3000',min:2501,max:3000, Basic:299900, Standard:648900, Advanced:899900, Professional:1259900},
+  {range:'3001 – 3500',min:3001,max:3500, Basic:349900, Standard:756900, Advanced:1049900,Professional:1469900},
+  {range:'3501 – 4000',min:3501,max:4000, Basic:399900, Standard:864900, Advanced:1199900,Professional:1679900},
+];
+
+const PERIOD_LABEL = {
+  monthly:'รายเดือน', q3:'ราย 3 เดือน', q6:'ราย 6 เดือน',
+  y1:'ราย 1 ปี', y2:'ราย 2 ปี', y3:'ราย 3 ปี', y5:'ราย 5 ปี'
+};
+// months multiplier vs annual (annual = 10 payments)
+const PERIOD_MONTHS = {monthly:1, q3:3, q6:6, y1:10, y2:20, y3:30, y5:50};
+
+let _selPkg = 'Professional';
+
+function thb(n) {
+  if (!n && n !== 0) return '—';
+  return Number(n).toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+
+function initPriceUI() {
+  // Build reference table only
+  const tbody = document.getElementById('priceRefBody');
+  if (tbody) {
+    PRICE_TABLE.forEach((r,i) => {
+      const tr = document.createElement('tr');
+      tr.id = 'pref-'+i;
+      tr.innerHTML = `<td>${r.range}</td><td>${r.Basic.toLocaleString()}</td><td>${r.Standard.toLocaleString()}</td><td>${r.Advanced.toLocaleString()}</td><td>${r.Professional.toLocaleString()}</td>`;
+      tbody.appendChild(tr);
+    });
+  }
+  calcPrice();
+}
+
+function selectPkg(btn) {
+  document.querySelectorAll('.pkg-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  _selPkg = btn.dataset.pkg;
+  calcPrice();
+}
+
+let _selRangeIdx = -1;
+function autoSelectRange() {
+  const n = parseInt(document.getElementById('fUsers').value);
+  const hint = document.getElementById('rangeHint');
+  if (!n || n <= 0) { _selRangeIdx = -1; if (hint) hint.textContent = ''; calcPrice(); return; }
+  const idx = PRICE_TABLE.findIndex(r => n >= r.min && n <= r.max);
+  _selRangeIdx = idx;
+  if (hint) hint.textContent = idx >= 0 ? '📌 ช่วง: ' + PRICE_TABLE[idx].range + ' คน' : '⚠️ ไม่พบช่วงที่ตรงกัน';
+  calcPrice();
+}
+
+function calcPrice() {
+  const row    = _selRangeIdx >= 0 ? PRICE_TABLE[_selRangeIdx] : null;
+  const period = document.getElementById('fPeriod')?.value ?? 'y1';
+  const freeMos= parseInt(document.getElementById('fPromo')?.value ?? '2');  // 2, 3, or 4
+  const discPct= parseFloat(document.getElementById('fDiscount')?.value) || 0;
+  const d      = document.getElementById('priceResult');
+  if (!d) return;
+
+  if (!row) {
+    d.innerHTML = '<div style="text-align:center;color:var(--muted);padding:20px 0">กรุณากรอกจำนวนพนักงานเพื่อคำนวณราคา</div>';
+    document.querySelectorAll('.pref-tbl tr').forEach(tr => tr.classList.remove('pref-active'));
+    return;
+  }
+
+  const annualPromo  = row[_selPkg] || 0;          // 10-month payment price (= 1 yr service base)
+  const monthlyRate  = annualPromo / 10;            // rate per payment month
+  const mult         = PERIOD_MONTHS[period] || 10; // number of payment months
+  const totalBefore  = monthlyRate * mult;           // total before discount
+
+  // Promo saving: free months = freeMos per 10 paid months
+  const freeTotalMos = (mult / 10) * freeMos;       // total free months across period
+  const promoSaving  = monthlyRate * freeTotalMos;  // value of free months
+  const normalTotal  = totalBefore + promoSaving;   // what they'd pay without promo
+
+  // Discount
+  const discAmt      = totalBefore * (discPct / 100);
+  const finalTotal   = totalBefore - discAmt;
+
+  const totalSaving  = normalTotal - finalTotal;
+  const savePct      = normalTotal > 0 ? ((totalSaving / normalTotal) * 100).toFixed(0) : 0;
+  const periodTxt    = PERIOD_LABEL[period];
+  const promoLabel   = `จ่าย 10 เดือน ฟรี ${freeMos} เดือน`;
+  const serviceMonths = mult + freeTotalMos;
+
+  const PKG_CLR = {Basic:'#2E7D32',Standard:'#E65100',Advanced:'#1565C0',Professional:'#1A56DB'};
+  const pkgClr  = PKG_CLR[_selPkg] || '#1A56DB';
+
+  const perMonthLine = period !== 'monthly'
+    ? `<div class="prc-row"><span class="prc-lbl">ราคาเดือนละ</span><span class="prc-val">${thb(monthlyRate)} บาท</span></div>`
+    : '';
+  const promoLine = `<div class="prc-row save"><span class="prc-lbl">🎁 ${promoLabel}</span><span class="prc-val">ฟรี ${freeTotalMos} เดือน (ประหยัด ${thb(promoSaving)} บาท)</span></div>`;
+  const discLine  = discPct > 0
+    ? `<div class="prc-row save" style="background:#FFF4ED"><span class="prc-lbl">🏷️ ส่วนลดพิเศษ ${discPct}%</span><span class="prc-val">ลด ${thb(discAmt)} บาท</span></div>`
+    : '';
+  const serviceNote = period !== 'monthly'
+    ? `<div style="font-size:11px;color:var(--muted);padding:6px 12px">📅 ระยะเวลาใช้งาน ${serviceMonths} เดือน | จ่ายจริง ${mult} เดือน</div>`
+    : '';
+
+  d.innerHTML = `
+  <div class="prc-card" style="border-color:${pkgClr}">
+    <div class="prc-hd" style="background:${pkgClr};color:#fff">
+      <span>📦 ${_selPkg} — ${row.range} คน — ${periodTxt}</span>
+      <span style="font-size:11px;opacity:.7">ไม่รวม VAT</span>
+    </div>
+    <div class="prc-row strike"><span class="prc-lbl">ราคาปกติ (ไม่มีโปร)</span><span class="prc-val">${thb(normalTotal)} บาท</span></div>
+    ${promoLine}
+    ${discLine}
+    <div class="prc-row big" style="background:${pkgClr}10">
+      <span class="prc-lbl">💎 ราคาสุทธิ ${periodTxt}</span>
+      <span class="prc-val" style="color:${pkgClr};font-size:16px">${thb(finalTotal)} บาท</span>
+    </div>
+    <div class="prc-row" style="background:#f9fafb;border-top:1px solid var(--border)">
+      <span class="prc-lbl" style="color:var(--muted)">รวมประหยัดทั้งหมด</span>
+      <span class="prc-val" style="color:#065F46;font-weight:700">฿${thb(totalSaving)} (${savePct}%)</span>
+    </div>
+    ${perMonthLine}
+    ${serviceNote}
+  </div>`;
+
+  // Highlight table row
+  document.querySelectorAll('.pref-tbl tr').forEach(tr => tr.classList.remove('pref-active'));
+  const activeRef = document.getElementById('pref-'+_selRangeIdx);
+  if (activeRef) activeRef.classList.add('pref-active');
+}
+
+/* ══════════════════════════════════════════
+   GANTT CHART
+══════════════════════════════════════════ */
+// ── Gantt helpers ──
+function startOfWeek(d) {          // returns Monday of the week
+  const dt = new Date(d);
+  const day = dt.getDay();         // 0=Sun
+  const diff = (day === 0) ? -6 : 1 - day;
+  dt.setDate(dt.getDate() + diff);
+  dt.setHours(0,0,0,0);
+  return dt;
+}
+function addDays(d, n) { const r = new Date(d); r.setDate(r.getDate()+n); return r; }
+function fmtShort(d) {
+  return (d.getDate()) + '/' + (d.getMonth()+1);
+}
+function fmtMonth(d) {
+  const M = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  return M[d.getMonth()] + ' ' + (d.getFullYear()+543).toString().slice(-2);
+}
+
+function renderGantt() {
+  const rows = [...document.querySelectorAll('#tlBody tr')];
+  const wrap = document.getElementById('ganttWrap');
+  if (!wrap) return;
+  if (!rows.length) { wrap.innerHTML=''; return; }
+
+  // Collect all valid dates
+  const taskData = rows.map(tr => {
+    const tds  = tr.querySelectorAll('td');
+    const no   = tds[0]?.textContent.trim() || '';
+    const res  = tds[1]?.querySelector('select')?.value || '';
+    const task = tds[2]?.querySelector('textarea')?.value || '';
+    const ds   = tds[5]?.querySelector('input.date-sel')?.value || '';
+    const de   = tds[6]?.querySelector('input.date-sel')?.value || '';
+    return { no, res, task, ds: ds ? new Date(ds) : null, de: de ? new Date(de) : null };
+  });
+
+  const allDates = taskData.flatMap(t => [t.ds, t.de]).filter(Boolean);
+  if (!allDates.length) { wrap.innerHTML='<div style="padding:10px;color:var(--muted);font-size:12px">กรอกวันที่เริ่ม-สิ้นสุดในตาราง Timeline เพื่อแสดง Gantt Chart</div>'; return; }
+
+  const minDate = startOfWeek(new Date(Math.min(...allDates)));
+  const maxDate = startOfWeek(new Date(Math.max(...allDates)));
+
+  // Build week slots
+  const weeks = [];
+  let cur = new Date(minDate);
+  while (cur <= addDays(maxDate, 6)) {
+    weeks.push(new Date(cur));
+    cur = addDays(cur, 7);
+  }
+
+  // Group weeks by month for header
+  const monthGroups = [];
+  weeks.forEach((wk, i) => {
+    const mk = fmtMonth(wk);
+    if (!monthGroups.length || monthGroups[monthGroups.length-1].label !== mk) {
+      monthGroups.push({ label: mk, count: 1 });
+    } else {
+      monthGroups[monthGroups.length-1].count++;
+    }
+  });
+
+  const ro = r => r.toLowerCase();
+  const barCls = r => (ro(r).includes('humansoft') && ro(r).includes('client')) ? 'g-both'
+                    : ro(r).includes('humansoft') ? 'g-hs' : 'g-cl';
+
+  let h = `
+  <div class="gantt-section">
+    <div class="g-title">📊 Gantt Chart Preview</div>
+    <div class="gantt-legend">
+      <div class="gl-item"><div class="gl-dot" style="background:#1A56DB"></div>Humansoft</div>
+      <div class="gl-item"><div class="gl-dot" style="background:#059669"></div>Client</div>
+      <div class="gl-item"><div class="gl-dot" style="background:#F47B20"></div>Humansoft / Client</div>
+    </div>
+    <div class="gantt-wrap"><table class="gtbl">
+    <thead>
+      <tr>
+        <th rowspan="2">No.</th>
+        <th rowspan="2" style="min-width:90px">ผู้รับผิดชอบ</th>
+        <th rowspan="2" style="min-width:130px">Task</th>
+        ${monthGroups.map(g => `<th class="m-may" colspan="${g.count}">${g.label}</th>`).join('')}
+      </tr>
+      <tr>${weeks.map(wk => `<th style="min-width:38px;font-size:9px">${fmtShort(wk)}</th>`).join('')}</tr>
+    </thead><tbody>`;
+
+  taskData.forEach(t => {
+    const isGoLive = t.task.toLowerCase().includes('go live') || t.task.includes('🚀');
+    const bc = barCls(t.res);
+    h += `<tr class="${isGoLive?'go-live-row':''}">
+      <td class="g-no">${esc(t.no)}</td>
+      <td class="g-own">${esc(t.res)}</td>
+      <td class="g-task">${esc(t.task)}</td>`;
+    weeks.forEach((wkStart, wi) => {
+      const wkEnd = addDays(wkStart, 6);
+      const inRange = t.ds && t.de && t.ds <= wkEnd && t.de >= wkStart;
+      if (inRange) {
+        const isFirst = wi === 0 || !(t.ds <= addDays(wkStart,-1) && t.de >= wkStart);
+        const isLast  = wi === weeks.length-1 || !(t.ds <= addDays(wkStart,6) && t.de >= addDays(wkStart,7));
+        const mk = (isFirst && isLast) ? (isGoLive?'🚀':'◆') : isFirst ? '▶' : isLast ? '◀' : '';
+        h += `<td class="g-week ${bc}">${mk}</td>`;
+      } else {
+        h += `<td class="g-week"></td>`;
+      }
+    });
+    h += '</tr>';
+  });
+  h += '</tbody></table></div></div>';
+  wrap.innerHTML = h;
+}
+
+/* ══════════════════════════════════════════
+   FEATURES
+══════════════════════════════════════════ */
+const FEAT_LIST = [
+  {cat:'1. Channel'},
+  {label:'Web Browser', on:true},{label:'Mobile Application / Line OA', on:true},
+  {cat:'2. โครงสร้างทั่วไป'},
+  {label:'รองรับหลายนิติบุคคล', on:true},{label:'รองรับหลายสาขา', on:true},
+  {label:'รองรับ 3 ภาษา (ไทย/อังกฤษ/พม่า)', on:false},
+  {cat:'3. โครงสร้างองค์กร'},
+  {label:'โครงสร้างองค์กร / โครงสร้างตำแหน่ง', on:true},
+  {label:'เก็บประวัติข้อมูลพนักงาน', on:true},
+  {label:'รองรับการเก็บไฟล์ไม่จำกัดพื้นที่', on:false},
+  {cat:'4. จัดการสิทธิ์การเข้าถึงข้อมูล'},
+  {label:'กำหนดสิทธิ์ผู้ดูแลระบบ (ไม่จำกัด User)', on:true},
+  {label:'กำหนดสิทธิ์มองเห็น/แก้ไขของแต่ละ User', on:false},
+  {label:'จัดกลุ่มผู้ใช้ได้', on:false},
+  {cat:'5. ระบบความปลอดภัย'},
+  {label:'Strong Password', on:false},{label:'PDPA Conceal', on:false},
+  {cat:'6. จัดการกะ'},
+  {label:'กะได้หลายรูปแบบ (Default / หลายกะ / Excel Import)', on:true},
+  {label:'วางแผนกะรายเดือน / รายสัปดาห์', on:true},
+  {label:'สิทธิ์จัดกะแบบยืดหยุ่น (HR / หัวหน้า / พนักงาน)', on:true},
+  {cat:'7. ลงเวลาการทำงาน'},
+  {label:'Face Scan (Face Recognition)', on:false},{label:'GPS', on:false},
+  {label:'เครื่องสแกนนิ้ว', on:true},{label:'ADMS (Real-Time sync)', on:false},
+  {label:'Beacon / Time App / Member Scan', on:false},
+  {cat:'8. เอกสารและการอนุมัติ'},
+  {label:'เอกสารพื้นฐาน (ลา / OT / สลับกะ / ขอเพิ่มเวลา)', on:true},
+  {label:'เบิกเงินล่วงหน้า', on:false},{label:'หนังสือรับรองเงินเดือน', on:false},
+  {label:'อนุมัติผ่าน Website', on:false},{label:'อนุมัติผ่าน App', on:false},
+  {label:'สายการอนุมัติ 3-5 ขั้น', on:true},
+  {cat:'9. การคำนวณเงินเดือน'},
+  {label:'รายรับ/รายจ่าย (อัตโนมัติ / Manual)', on:true},
+  {label:'งวดเงินเดือน สูงสุด 4 งวด', on:true},{label:'สลิปเงินเดือน', on:true},
+  {label:'Text File นำส่งธนาคาร', on:true},
+  {label:'ภาษี / ประกันสังคม / กองทุน', on:false},{label:'เบี้ยเลี้ยง / เบี้ยขยัน', on:false},
+  {cat:'10. รายงาน'},
+  {label:'รายงานมากกว่า 50 แบบ (.pdf / .xlsx / .txt / .dat)', on:true},
+  {cat:'11. การเรียนรู้และพัฒนาองค์กร (HRD)'},
+  {label:'E-Library / E-Learning', on:true},{label:'ประเมินพนักงาน (ไม่จำกัดรอบ)', on:true},
+  {label:'KPI Profile', on:true},{label:'บันทึกการฝึกอบรม', on:false},
+  {cat:'12. ระบบรับสมัครพนักงาน'},
+  {label:'ใบสมัครงานออนไลน์', on:true},{label:'ระบบติดตามผู้สมัคร', on:true},
+  {label:'เอกสารสัญญาจ้าง (ทดลองงาน/บรรจุ)', on:true},
+];
+
+function initFeatures() {
+  const body = document.getElementById('featBody');
+  if (!body) return;
+  let grid = null, catLabel = '';
+  FEAT_LIST.forEach(f => {
+    if (f.cat) {
+      const hd = document.createElement('div');
+      hd.className = 'feat-group-hd'; hd.textContent = f.cat;
+      body.appendChild(hd);
+      grid = document.createElement('div');
+      grid.className = 'feat-grid';
+      body.appendChild(grid);
+      catLabel = f.cat;
+    } else {
+      const lbl = document.createElement('label');
+      lbl.className = 'feat-item '+(f.on?'is-on':'is-off');
+      lbl.dataset.label = f.label; lbl.dataset.cat = catLabel;
+      lbl.innerHTML = `<input type="checkbox" ${f.on?'checked':''}><span class="fi">${f.label}</span>`;
+      lbl.querySelector('input').addEventListener('change', function(){
+        lbl.className = 'feat-item '+(this.checked?'is-on':'is-off');
+      });
+      (grid||body).appendChild(lbl);
+    }
   });
 }
 
