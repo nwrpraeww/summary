@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Summary Report Form – HumanSoft</title>
+  <title>Customer Requirement Report – HumanSoft</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
@@ -331,7 +331,7 @@ input.date-sel{font-size:11px;padding:3px 5px;border:1.5px solid var(--border);b
 <nav class="navbar">
   <div class="nav-brand">
     <span class="brand-logo">HS</span>
-    <span class="brand-title">Summary Report Form</span>
+    <span class="brand-title">Customer Requirement Report</span>
     <span class="brand-sub">HumanSoft</span>
   </div>
   <div class="nav-actions">
@@ -490,7 +490,7 @@ input.date-sel{font-size:11px;padding:3px 5px;border:1.5px solid var(--border);b
         </table>
       </div>
       <button class="add-row no-print" onclick="addTL()">＋ เพิ่มรายการ</button>
-      <button class="add-row no-print" style="margin-top:6px;border-color:var(--navy);color:var(--navy)" onclick="renderGantt()">📊 แสดง Gantt Chart</button>
+      <button class="add-row no-print" style="margin-top:6px;border-color:var(--navy);color:var(--navy)" onclick="renderGantt()">📅 แสดง Timeline</button>
       <div id="ganttWrap" class="no-print" style="margin-top:6px"></div>
     </div>
   </div>
@@ -1467,7 +1467,7 @@ function buildGanttPDF(tl) {
                     : ro(r).includes('humansoft') ? 'bar-hs' : 'bar-cl';
 
   let h = '<div class="section-block" style="margin-top:12px">\n'+
-    '<div class="sec-title" style="margin-bottom:6px">📊 Gantt Chart</div>\n'+
+    '<div class="sec-title" style="margin-bottom:6px">📅 Timeline</div>\n'+
     '<div style="overflow-x:auto">\n'+
     '<table class="gtbl"><thead><tr>\n'+
     '<th rowspan="2">No.</th>\n'+
@@ -2148,7 +2148,7 @@ function renderGantt() {
   });
 
   const allDates = taskData.flatMap(t => [t.ds, t.de]).filter(Boolean);
-  if (!allDates.length) { wrap.innerHTML='<div style="padding:10px;color:var(--muted);font-size:12px">กรอกวันที่เริ่ม-สิ้นสุดในตาราง Timeline เพื่อแสดง Gantt Chart</div>'; return; }
+  if (!allDates.length) { wrap.innerHTML='<div style="padding:10px;color:var(--muted);font-size:12px">กรอกวันที่เริ่ม-สิ้นสุดในตาราง Timeline เพื่อแสดง</div>'; return; }
 
   const minDate = startOfWeek(new Date(Math.min(...allDates)));
   const maxDate = startOfWeek(new Date(Math.max(...allDates)));
@@ -2178,7 +2178,7 @@ function renderGantt() {
 
   let h = `
   <div class="gantt-section">
-    <div class="g-title">📊 Gantt Chart Preview</div>
+    <div class="g-title">📅 Timeline</div>
     <div class="gantt-legend">
       <div class="gl-item"><div class="gl-dot" style="background:#1A56DB"></div>Humansoft</div>
       <div class="gl-item"><div class="gl-dot" style="background:#059669"></div>Client</div>
