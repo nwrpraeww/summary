@@ -1156,63 +1156,7 @@ function buildXLSX(data) {
     scp(r,1,' '+p.range+' คน  |  '+p.periodLabel+'  |  จ่าย 10 ฟรี '+p.freeMos+(p.discPct?' + ส่วนลด '+p.discPct+'%':''),
       {fill:solid(C.tblHdBg),font:reg(9,C.tblHdTxt,false),alignment:al('left','center')}); r++;
     rhp(r,6); r++;
-    if (p.compareMode && p2) {
-    // Side-by-side: ตัวเลือก A vs ตัวเลือก B
-    const PKG_CLR2={Basic:'#2E7D32',Standard:'#E65100',Advanced:'#1565C0',Professional:'#1A56DB'};
-    const clr2 = PKG_CLR2[p2.pkg]||'#1A56DB';
-    out += '<div style="border:1.5px solid #7C3AED;border-radius:6px;overflow:hidden;margin-top:5px">';
-    out += '<table style="width:100%;border-collapse:collapse;font-size:8.5px">';
-    out += '<thead><tr>';
-    out += '<th style="background:#F3F4F6;color:#374151;padding:3px 8px;border:.5px solid #E5E7EB;width:30%">รายการ</th>';
-    out += '<th style="background:#EEF2FF;color:#1E3A8A;padding:3px 6px;border:.5px solid #BFDBFE;width:35%;text-align:center">Option 1</th>';
-    out += '<th style="background:#F5F3FF;color:#5B21B6;padding:3px 6px;border:.5px solid #DDD6FE;width:35%;text-align:center">Option 2</th>';
-    out += '</tr></thead><tbody>';
-    // แพ็กเกจ
-    out += '<tr><td style="padding:3px 8px;border:.5px solid #E5E7EB;color:#374151;font-size:8px">แพ็กเกจ</td>';
-    out += '<td style="text-align:center;padding:3px;border:.5px solid #EEF2FF;font-weight:700;color:'+clr+'">'+p.pkg+'</td>';
-    out += '<td style="text-align:center;padding:3px;border:.5px solid #EEF2FF;font-weight:700;color:'+clr2+'">'+p2.pkg+'</td></tr>';
-    // จำนวนพนักงาน
-    out += '<tr style="background:#F9FAFB"><td style="padding:3px 8px;border:.5px solid #E5E7EB;color:#374151;font-size:8px">จำนวนพนักงาน</td>';
-    out += '<td style="text-align:center;padding:3px;border:.5px solid #EEF2FF">'+p.range+' คน</td>';
-    out += '<td style="text-align:center;padding:3px;border:.5px solid #EEF2FF">'+p2.range+' คน</td></tr>';
-    // ประเภทการชำระ
-    out += '<tr><td style="padding:3px 8px;border:.5px solid #E5E7EB;color:#374151;font-size:8px">ระยะเวลา</td>';
-    out += '<td style="text-align:center;padding:3px;border:.5px solid #EEF2FF">'+p.periodLabel+'</td>';
-    out += '<td style="text-align:center;padding:3px;border:.5px solid #EEF2FF">'+p2.periodLabel+'</td></tr>';
-    // โปร
-    out += '<tr style="background:#F9FAFB"><td style="padding:3px 8px;border:.5px solid #E5E7EB;color:#374151;font-size:8px">โปรโมชั่น</td>';
-    out += '<td style="text-align:center;padding:3px;border:.5px solid #EEF2FF">จ่าย 10 ฟรี '+p.freeMos+' เดือน</td>';
-    out += '<td style="text-align:center;padding:3px;border:.5px solid #EEF2FF">จ่าย 10 ฟรี '+p2.freeMos+' เดือน</td></tr>';
-    // ราคาปกติ
-    out += '<tr><td style="padding:3px 8px;border:.5px solid #E5E7EB;color:#9CA3AF;font-size:8px">ราคาปกติ (ไม่มีโปร)</td>';
-    out += '<td style="text-align:center;padding:3px;border:.5px solid #EEF2FF;color:#9CA3AF;text-decoration:line-through">'+thb(p.normalTotal)+' บาท</td>';
-    out += '<td style="text-align:center;padding:3px;border:.5px solid #EEF2FF;color:#9CA3AF;text-decoration:line-through">'+thb(p2.normalTotal)+' บาท</td></tr>';
-    // ส่วนลด
-    if (p.discPct || p2.discPct) {
-      out += '<tr style="background:#F9FAFB"><td style="padding:3px 8px;border:.5px solid #E5E7EB;color:#C85E0F;font-size:8px">ส่วนลดพิเศษ</td>';
-      out += '<td style="text-align:center;padding:3px;border:.5px solid #EEF2FF;color:#C85E0F">'+(p.discPct ? p.discPct+'% (−'+thb(p.discAmt)+')' : '—')+'</td>';
-      out += '<td style="text-align:center;padding:3px;border:.5px solid #EEF2FF;color:#C85E0F">'+(p2.discPct ? p2.discPct+'% (−'+thb(p2.discAmt)+')' : '—')+'</td></tr>';
-    }
-    // ยอดสุทธิ
-    out += '<tr style="background:#F0FDF4"><td style="padding:4px 8px;border:.5px solid #E5E7EB;font-weight:700;color:#374151">💎 ยอดสุทธิ</td>';
-    out += '<td style="text-align:center;padding:4px;border:.5px solid #EEF2FF;font-weight:700;font-size:11px;color:#065F46">'+thb(p.finalTotal)+' บาท</td>';
-    out += '<td style="text-align:center;padding:4px;border:.5px solid #EEF2FF;font-weight:700;font-size:11px;color:#065F46">'+thb(p2.finalTotal)+' บาท</td></tr>';
-    // เดือนละ
-    out += '<tr><td style="padding:3px 8px;border:.5px solid #E5E7EB;color:#374151;font-size:8px">ราคาเฉลี่ยต่อเดือน</td>';
-    out += '<td style="text-align:center;padding:3px;border:.5px solid #EEF2FF;color:#1240B0;font-weight:700">'+thb(p.avgMonthly)+' บาท</td>';
-    out += '<td style="text-align:center;padding:3px;border:.5px solid #EEF2FF;color:#1240B0;font-weight:700">'+thb(p2.avgMonthly)+' บาท</td></tr>';
-    // ประหยัด
-    const saveA = p.normalTotal - p.finalTotal;
-    const saveB = p2.normalTotal - p2.finalTotal;
-    out += '<tr style="background:#F0FDF4"><td style="padding:3px 8px;border:.5px solid #E5E7EB;color:#065F46;font-size:8px">💚 ประหยัดรวม</td>';
-    out += '<td style="text-align:center;padding:3px;border:.5px solid #EEF2FF;color:#065F46;font-weight:700">'+thb(saveA)+' บาท ('+Math.round(saveA/p.normalTotal*100)+'%)</td>';
-    out += '<td style="text-align:center;padding:3px;border:.5px solid #EEF2FF;color:#065F46;font-weight:700">'+thb(saveB)+' บาท ('+Math.round(saveB/p2.normalTotal*100)+'%)</td></tr>';
-    out += '</tbody></table>';
-    if (p.offers.length) out += '<div style="background:#FFF4ED;padding:5px 8px;border-top:1px solid #FDE8D0;font-size:8px;color:#C85E0F"><strong>🎁 Ontop:</strong> '+p.offers.join(' &nbsp;|&nbsp; ')+'</div>';
-    out += '</div>';
-    return out;
-  }
-  if (p.summaryOnly) {
+    if (p.summaryOnly) {
       // Summary-only: condensed price table (no scenario breakdown)
       rhp(r,22); mgp(r,1,r,8);
       scp(r,1,'  📊 สรุปราคา (ไม่ได้เลือก Scenario)',
