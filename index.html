@@ -391,7 +391,7 @@ input.date-sel{font-size:11px;padding:3px 5px;border:1.5px solid var(--border);b
     <div class="card-body">
       <div class="form-grid">
         <div class="fg"><label class="lbl">Domain <span style="color:var(--red)">*</span></label>
-          <input id="fDomain" type="text" class="fc" placeholder="เช่น hachiban" oninput="syncPrint()">
+          <input id="fDomain" type="text" class="fc" placeholder="ชื่อ Domain" oninput="syncPrint()">
         </div>
         <div class="fg"><label class="lbl">บริษัท (Company)</label>
           <input id="fCompany" type="text" class="fc" placeholder="ชื่อบริษัท" oninput="syncPrint()">
@@ -524,6 +524,13 @@ input.date-sel{font-size:11px;padding:3px 5px;border:1.5px solid var(--border);b
       </div>
       <!-- Result -->
       <div id="priceResult"></div>
+      <!-- Scenario selector -->
+      <div class="price-sep"></div>
+      <div class="lbl" style="margin-bottom:8px">📋 แสดงในไฟล์ Output</div>
+      <div class="offers-grid" style="margin-bottom:12px">
+        <label class="offer-item"><input type="checkbox" id="fSc1"><span>💳 จ่ายเต็ม (Scenario 1)</span></label>
+        <label class="offer-item"><input type="checkbox" id="fSc2"><span>📆 แบ่งจ่าย 2 งวด (Scenario 2)</span></label>
+      </div>
       <!-- Ontop offers -->
       <div class="price-sep"></div>
       <div class="lbl" style="margin-bottom:8px">🎁 Ontop Offers</div>
@@ -791,7 +798,41 @@ function collect() {
              ds:t[5]?.querySelector('input.date-sel')?.value||'',
              de:t[6]?.querySelector('input.date-sel')?.value||'' };
   });
-  return { domain, company, date, pp, so, tl };
+  // Price data
+  const rIdx = _selRangeIdx;
+  const priceRow = rIdx >= 0 ? PRICE_TABLE[rIdx] : null;
+  const period  = document.getElementById('fPeriod')?.value || 'y1';
+  const freeMos = parseInt(document.getElementById('fPromo')?.value || '2');
+  const discPct = parseFloat(document.getElementById('fDiscount')?.value) || 0;
+  const sc1 = document.getElementById('fSc1')?.checked || false;
+  const sc2 = document.getElementById('fSc2')?.checked || false;
+  const offers = ['fOffer1','fOffer2','fOffer3','fOffer4','fOffer5']
+    .filter(id => document.getElementById(id)?.checked)
+    .map(id => document.getElementById(id).nextElementSibling?.textContent || '');
+  let priceData = null;
+  if (priceRow && (sc1 || sc2)) {
+    const annualPromo = priceRow[_selPkg] || 0;
+    const monthlyRate = annualPromo / 10;
+    const mult = PERIOD_MONTHS[period] || 10;
+    const totalBefore = monthlyRate * mult;
+    const freeTotalMos = (mult / 10) * freeMos;
+    const promoSaving = monthlyRate * freeTotalMos;
+    const normalTotal = totalBefore + promoSaving;
+    const discAmt = totalBefore * (discPct / 100);
+    const finalTotal = totalBefore - discAmt;
+    priceData = {
+      pkg: _selPkg, range: priceRow.range, period, freeMos, discPct,
+      annualPromo, monthlyRate, mult, totalBefore,
+      promoSaving, normalTotal, discAmt, finalTotal,
+      inst: finalTotal / 2,
+      periodLabel: PERIOD_LABEL[period] || period,
+      sc1, sc2, offers
+    };
+  }
+  const feats = [...document.querySelectorAll('#featBody .feat-item')]
+    .filter(l => l.querySelector('input')?.checked)
+    .map(l => ({ label: l.dataset.label, cat: l.dataset.cat }));
+  return { domain, company, date, pp, so, tl, price: priceData, feats };
 }
 
 function fmtDate(s) {
@@ -998,6 +1039,149 @@ function buildXLSX(data) {
 
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Summary');
+
+  // ── Price sheet (only if scenarios selected) ──
+  if (data.price) {
+    const p = data.price;
+    const wp = {}; const wpm=[]; const wpr=[]; const wpc=[];
+    const PKG_CLR={Basic:'2E7D32',Standard:'E65100',Advanced:'1565C0',Professional:'1A56DB'};
+    const pkgClr = PKG_CLR[p.pkg]||C.navy;
+    let r=1;
+    function scp(row,col,val,s){ const k=XLSX.utils.encode_cell({r:row-1,c:col-1}); wp[k]={v:val,t:typeof val==='number'?'n':'s',s:s||{}}; return k; }
+    function mgp(r1,c1,r2,c2){ wpm.push({s:{r:r1-1,c:c1-1},e:{r:r2-1,c:c2-1}}); }
+    function rhp(row,h){ while(wpr.length<row) wpr.push({hpx:20}); wpr[row-1]={hpx:h}; }
+    const thHd=(bg,fg)=>({fill:solid(bg),font:reg(8,fg,true),alignment:al('center','center',true),border:bdr()});
+    const thV=(bg,fg,fmt)=>({fill:solid(bg),font:reg(10,fg,false),alignment:al('center','center'),border:bdr(),numFmt:fmt||'#,##0'});
+    // top bar
+    rhp(r,4); for(let c=1;c<=8;c++) scp(r,c,'',{fill:solid(C.navy)}); r++;
+    // title
+    rhp(r,32); mgp(r,1,r,6);
+    scp(r,1,'💰  ราคา & แพ็กเกจ — '+p.pkg,{fill:solid(C.navy),font:reg(14,C.white,true),alignment:al('left','center')});
+    for(let c=7;c<=8;c++) scp(r,c,'',{fill:solid(C.navy)});
+    scp(r,7,'Human',{fill:solid(C.navy),font:reg(12,C.white,true),alignment:al('right','center')});
+    scp(r,8,'Soft',{fill:solid(C.orange),font:reg(12,C.white,true),alignment:al('left','center')}); r++;
+    // subtitle
+    rhp(r,18); mgp(r,1,r,8);
+    scp(r,1,' '+p.range+' คน  |  '+p.periodLabel+'  |  จ่าย 10 ฟรี '+p.freeMos+(p.discPct?' + ส่วนลด '+p.discPct+'%':''),
+      {fill:solid(C.tblHdBg),font:reg(9,C.tblHdTxt,false),alignment:al('left','center')}); r++;
+    rhp(r,6); r++;
+    if (p.sc1) {
+      // Scenario 1 header
+      rhp(r,22); mgp(r,1,r,8);
+      scp(r,1,'  Scenario 1  :  ชำระครั้งเดียว'+( p.discPct ? ' + ส่วนลด '+p.discPct+'%' : ''),
+        {fill:solid(pkgClr),font:reg(11,C.white,true),alignment:al('left','center')}); r++;
+      // Table header
+      rhp(r,36);
+      const s1Hdrs=['','แพ็กเกจ / ช่วงพนักงาน','ราคาปกติ
+(ไม่มีโปร)','จ่าย 10 ฟรี '+p.freeMos+'
+(ประหยัด)','ส่วนลด '+p.discPct+'%','💎 ยอดสุทธิ','เดือนละ'];
+      if (!p.discPct) s1Hdrs.splice(4,1);
+      s1Hdrs.forEach((h,i)=>scp(r,i+1,h,thHd(C.tblHdBg,C.tblHdTxt))); r++;
+      // Data row
+      rhp(r,28);
+      scp(r,1,'',{fill:solid(C.white),border:bdr()});
+      scp(r,2,p.pkg+' — '+p.range+' คน',{fill:solid(C.white),font:reg(10,C.bodyTxt,true),alignment:al('left','center'),border:bdr()});
+      scp(r,3,p.normalTotal,{...thV(C.white,C.gray),font:{...reg(9,C.gray),strike:true}});
+      scp(r,4,p.promoSaving,{...thV(C.okBg,C.okTxt)});
+      let col=5;
+      if (p.discPct){ scp(r,col,p.discAmt,{...thV('FFF4ED','C85E0F')}); col++; }
+      scp(r,col,p.finalTotal,{...thV(C.okBg,C.okTxt),font:reg(11,C.okTxt,true)});
+      scp(r,col+1,p.monthlyRate,{...thV(C.tblHdBg,C.tblHdTxt),font:reg(10,C.tblHdTxt,true)}); r++;
+      // Saving note
+      rhp(r,20); mgp(r,2,r,7);
+      scp(r,1,'',{fill:solid(C.okBg)}); scp(r,8,'',{fill:solid(C.okBg)});
+      scp(r,2,'💚 ประหยัดรวม = '+thb(p.normalTotal-p.finalTotal)+' บาท ('+Math.round((p.normalTotal-p.finalTotal)/p.normalTotal*100)+'%)',
+        {fill:solid(C.okBg),font:reg(9,C.okTxt,true),alignment:al('left','center')}); r++;
+      // Ontop
+      if (p.offers.length) {
+        rhp(r,20); mgp(r,2,r,8);
+        scp(r,1,'🎁',{fill:solid(C.orangeLt),font:reg(10,C.orange,false),alignment:al('center','center')});
+        scp(r,2,p.offers.join('  |  '),{fill:solid(C.orangeLt),font:reg(9,'C85E0F',false),alignment:al('left','center',true)}); r++;
+      }
+      rhp(r,6); r++;
+    }
+    if (p.sc2) {
+      rhp(r,22); mgp(r,1,r,8);
+      scp(r,1,'  Scenario 2  :  แบ่งจ่าย 2 งวด  (จ่าย 10 ฟรี '+p.freeMos+')',
+        {fill:solid(C.orange),font:reg(11,C.white,true),alignment:al('left','center')}); r++;
+      rhp(r,36);
+      ['','แพ็กเกจ / ช่วงพนักงาน','ราคาปกติ
+(ไม่มีโปร)','💎 ยอดสุทธิ','งวดที่ 1
+(เซ็นสัญญา)','งวดที่ 2
+(ก่อน Go Live)']
+        .forEach((h,i)=>scp(r,i+1,h,thHd(C.orangeLt,'C85E0F'))); r++;
+      rhp(r,28);
+      scp(r,1,'',{fill:solid(C.white),border:bdr()});
+      scp(r,2,p.pkg+' — '+p.range+' คน',{fill:solid(C.white),font:reg(10,C.bodyTxt,true),alignment:al('left','center'),border:bdr()});
+      scp(r,3,p.normalTotal,{...thV(C.white,C.gray),font:{...reg(9,C.gray),strike:true}});
+      scp(r,4,p.totalBefore,{...thV(C.okBg,C.okTxt),font:reg(11,C.okTxt,true)});
+      scp(r,5,p.totalBefore/2,{...thV(C.tblHdBg,C.tblHdTxt),font:reg(10,C.tblHdTxt,true)});
+      scp(r,6,p.totalBefore/2,{...thV(C.tblHdBg,C.tblHdTxt),font:reg(10,C.tblHdTxt,true)}); r++;
+      rhp(r,20); mgp(r,2,r,6);
+      scp(r,1,'',{fill:solid(C.okBg)}); scp(r,7,'',{fill:solid(C.okBg)});
+      scp(r,2,'💚 ประหยัดรวม = '+thb(p.normalTotal-p.totalBefore)+' บาท ('+Math.round((p.normalTotal-p.totalBefore)/p.normalTotal*100)+'%)',
+        {fill:solid(C.okBg),font:reg(9,C.okTxt,true),alignment:al('left','center')}); r++;
+      if (p.offers.length) {
+        rhp(r,20); mgp(r,2,r,8);
+        scp(r,1,'🎁',{fill:solid(C.orangeLt),font:reg(10,C.orange,false),alignment:al('center','center')});
+        scp(r,2,p.offers.join('  |  '),{fill:solid(C.orangeLt),font:reg(9,'C85E0F',false),alignment:al('left','center',true)}); r++;
+      }
+      rhp(r,6); r++;
+    }
+    // bottom bar
+    rhp(r,4); for(let c=1;c<=8;c++) scp(r,c,'',{fill:solid(C.orange)});
+    wp['!ref']=XLSX.utils.encode_range({s:{r:0,c:0},e:{r:r,c:7}});
+    wp['!merges']=wpm; wp['!rows']=wpr;
+    wp['!cols']=[{wch:3},{wch:30},{wch:16},{wch:16},{wch:14},{wch:16},{wch:14},{wch:14}];
+    XLSX.utils.book_append_sheet(wb, wp, 'Price');
+  }
+
+  // ── Features sheet (only if any checked) ──
+  if (data.feats && data.feats.length) {
+    const wf={}; const wfm=[]; const wfr=[];
+    let r=1;
+    function scf(row,col,val,s){ const k=XLSX.utils.encode_cell({r:row-1,c:col-1}); wf[k]={v:val,t:typeof val==='number'?'n':'s',s:s||{}}; }
+    function mgf(r1,c1,r2,c2){ wfm.push({s:{r:r1-1,c:c1-1},e:{r:r2-1,c:c2-1}}); }
+    function rhf(row,h){ while(wfr.length<row) wfr.push({hpx:22}); wfr[row-1]={hpx:h}; }
+    // top bar
+    rhf(r,4); for(let c=1;c<=4;c++) scf(r,c,'',{fill:solid(C.navy)}); r++;
+    // title
+    rhf(r,32); mgf(r,1,r,3);
+    scf(r,1,'✅  Features ที่ต้องการใช้งาน',{fill:solid(C.navy),font:reg(14,C.white,true),alignment:al('left','center')});
+    scf(r,4,'Soft',{fill:solid(C.orange),font:reg(12,C.white,true),alignment:al('left','center')}); r++;
+    // subtitle
+    rhf(r,18); mgf(r,1,r,4);
+    scf(r,1,'  ✓ = ต้องการใช้งาน',{fill:solid(C.tblHdBg),font:reg(9,C.tblHdTxt,false),alignment:al('left','center')}); r++;
+    rhf(r,6); r++;
+    // table header
+    rhf(r,22);
+    scf(r,1,'',{fill:solid(C.tblHdBg),border:bdr()});
+    scf(r,2,'✓',{fill:solid(C.tblHdBg),font:reg(9,C.tblHdTxt,true),alignment:al('center','center'),border:bdr()});
+    mgf(r,3,r,4); scf(r,3,'ฟีเจอร์ที่เลือก',{fill:solid(C.tblHdBg),font:reg(9,C.tblHdTxt,true),alignment:al('left','center'),border:bdr()}); r++;
+    // group features by cat
+    const bycat={};
+    data.feats.forEach(f=>{ if(!bycat[f.cat]) bycat[f.cat]=[]; bycat[f.cat].push(f.label); });
+    let rowNum=0;
+    Object.entries(bycat).forEach(([cat,items])=>{
+      // category header
+      rhf(r,22); mgf(r,1,r,4);
+      scf(r,1,'  '+cat,{fill:solid(C.navy),font:reg(9,C.white,true),alignment:al('left','center'),border:{left:Side(C.orange,'medium')}}); r++;
+      items.forEach(lbl=>{
+        rowNum++; const bg=rowNum%2===0?C.rowAlt:C.white;
+        rhf(r,24);
+        scf(r,1,'',{fill:solid(bg),border:bdr()});
+        scf(r,2,'✓',{fill:solid(C.okBg),font:reg(11,C.okTxt,true),alignment:al('center','center'),border:bdr()});
+        mgf(r,3,r,4); scf(r,3,lbl,{fill:solid(bg),font:reg(10,C.bodyTxt,false),alignment:al('left','center'),border:bdr()}); r++;
+      });
+    });
+    // bottom bar
+    rhf(r,4); for(let c=1;c<=4;c++) scf(r,c,'',{fill:solid(C.orange)});
+    wf['!ref']=XLSX.utils.encode_range({s:{r:0,c:0},e:{r:r,c:3}});
+    wf['!merges']=wfm; wf['!rows']=wfr;
+    wf['!cols']=[{wch:3},{wch:5},{wch:40},{wch:4}];
+    XLSX.utils.book_append_sheet(wb, wf, 'Features');
+  }
+
   return wb;
 }
 
@@ -1016,6 +1200,81 @@ function exportXLSX() {
 /* ══════════════════════════════════════════
    BUILD CLEAN PRINT HTML  — HumanSoft CI
 ══════════════════════════════════════════ */
+function thb(n){ return Math.round(n).toLocaleString('th-TH'); }
+
+function buildPricePDF(p) {
+  const PKG_CLR={Basic:'#2E7D32',Standard:'#E65100',Advanced:'#1565C0',Professional:'#1A56DB'};
+  const clr = PKG_CLR[p.pkg]||'#1A56DB';
+  const discLine = p.discPct > 0
+    ? '<tr><td colspan="2" style="background:#FFF4ED;color:#C85E0F;font-size:8.5px;padding:4px 8px;font-weight:700">🏷️ ส่วนลดพิเศษ '+p.discPct+'% — ลด '+thb(p.discAmt)+' บาท</td></tr>'
+    : '';
+  const offersLine = p.offers.length
+    ? '<div style="background:#FFF4ED;padding:5px 8px;border-top:1px solid #FDE8D0;font-size:8px;color:#C85E0F"><strong>🎁 Ontop:</strong> '+p.offers.join(' &nbsp;|&nbsp; ')+'</div>'
+    : '';
+  let out = '<div class="section-hd">💰 ราคา &amp; แพ็กเกจ</div>';
+  out += '<div style="font-size:8.5px;color:#9CA3AF;padding:4px 0 2px">แพ็กเกจ: <strong style="color:'+clr+'">'+p.pkg+'</strong> &nbsp;|&nbsp; '+p.range+' คน &nbsp;|&nbsp; '+p.periodLabel+'</div>';
+  if (p.sc1) {
+    out += '<div style="border:1px solid #BFDBFE;border-radius:5px;overflow:hidden;margin-top:5px">';
+    out += '<div style="background:'+clr+';color:white;font-size:9px;font-weight:700;padding:4px 8px">Scenario 1 — ชำระครั้งเดียว &nbsp; จ่าย 10 ฟรี '+p.freeMos+(p.discPct?(' + ส่วนลด '+p.discPct+'%'):'')+'</div>';
+    out += '<table style="width:100%;border-collapse:collapse;font-size:8.5px"><thead><tr>';
+    out += '<th style="background:#EEF2FF;color:#1E3A8A;padding:3px 6px;border:.5px solid #BFDBFE">ราคาปกติ / '+p.periodLabel+'</th>';
+    out += '<th style="background:#EEF2FF;color:#1E3A8A;padding:3px 6px;border:.5px solid #BFDBFE">ได้รับฟรี '+p.freeMos+' เดือน</th>';
+    if (p.discPct) out += '<th style="background:#EEF2FF;color:#1E3A8A;padding:3px 6px;border:.5px solid #BFDBFE">ส่วนลด '+p.discPct+'%</th>';
+    out += '<th style="background:#EEF2FF;color:#1E3A8A;padding:3px 6px;border:.5px solid #BFDBFE">💎 ยอดสุทธิ</th>';
+    out += '<th style="background:#EEF2FF;color:#1E3A8A;padding:3px 6px;border:.5px solid #BFDBFE">เดือนละ</th>';
+    out += '</tr></thead><tbody><tr>';
+    out += '<td style="text-align:center;color:#9CA3AF;text-decoration:line-through;padding:4px 6px;border:.5px solid #EEF2FF">'+thb(p.normalTotal)+'</td>';
+    out += '<td style="text-align:center;background:#D1FAE5;color:#065F46;font-weight:700;padding:4px 6px;border:.5px solid #EEF2FF">+'+p.freeMos*(p.mult/10)+' เดือน</td>';
+    if (p.discPct) out += '<td style="text-align:center;background:#FFF4ED;color:#C85E0F;font-weight:700;padding:4px 6px;border:.5px solid #EEF2FF">−'+thb(p.discAmt)+'</td>';
+    out += '<td style="text-align:center;background:#D1FAE5;color:#065F46;font-weight:700;font-size:10px;padding:4px 6px;border:.5px solid #EEF2FF">'+thb(p.finalTotal)+' บาท</td>';
+    out += '<td style="text-align:center;background:#EEF2FF;color:#1240B0;font-weight:700;padding:4px 6px;border:.5px solid #BFDBFE">'+thb(p.monthlyRate)+' บาท</td>';
+    out += '</tr><tr><td colspan="'+(p.discPct?5:4)+'" style="background:#D1FAE5;color:#065F46;font-size:8px;padding:3px 6px;font-weight:700">💚 ประหยัดจากราคาปกติ = '+thb(p.normalTotal-p.finalTotal)+' บาท ('+Math.round((p.normalTotal-p.finalTotal)/p.normalTotal*100)+'%)</td></tr>';
+    out += '</tbody></table>'+offersLine+'</div>';
+  }
+  if (p.sc2) {
+    out += '<div style="border:1px solid #FDE8D0;border-radius:5px;overflow:hidden;margin-top:6px">';
+    out += '<div style="background:#F47B20;color:white;font-size:9px;font-weight:700;padding:4px 8px">Scenario 2 — แบ่งจ่าย 2 งวด &nbsp; จ่าย 10 ฟรี '+p.freeMos+'</div>';
+    out += '<table style="width:100%;border-collapse:collapse;font-size:8.5px"><thead><tr>';
+    out += '<th style="background:#FFF4ED;color:#C85E0F;padding:3px 6px;border:.5px solid #FDE8D0">ราคาปกติ / '+p.periodLabel+'</th>';
+    out += '<th style="background:#FFF4ED;color:#C85E0F;padding:3px 6px;border:.5px solid #FDE8D0">ยอดสุทธิ (จ่าย 10 ฟรี '+p.freeMos+')</th>';
+    out += '<th style="background:#FFF4ED;color:#C85E0F;padding:3px 6px;border:.5px solid #FDE8D0">งวดที่ 1 (เซ็นสัญญา)</th>';
+    out += '<th style="background:#FFF4ED;color:#C85E0F;padding:3px 6px;border:.5px solid #FDE8D0">งวดที่ 2 (ก่อน Go Live)</th>';
+    out += '</tr></thead><tbody><tr>';
+    out += '<td style="text-align:center;color:#9CA3AF;text-decoration:line-through;padding:4px 6px;border:.5px solid #EEF2FF">'+thb(p.normalTotal)+'</td>';
+    out += '<td style="text-align:center;background:#D1FAE5;color:#065F46;font-weight:700;font-size:10px;padding:4px 6px;border:.5px solid #EEF2FF">'+thb(p.totalBefore)+' บาท</td>';
+    out += '<td style="text-align:center;background:#EEF2FF;color:#1240B0;font-weight:700;padding:4px 6px;border:.5px solid #BFDBFE">'+thb(p.totalBefore/2)+' บาท</td>';
+    out += '<td style="text-align:center;background:#EEF2FF;color:#1240B0;font-weight:700;padding:4px 6px;border:.5px solid #BFDBFE">'+thb(p.totalBefore/2)+' บาท</td>';
+    out += '</tr><tr><td colspan="4" style="background:#D1FAE5;color:#065F46;font-size:8px;padding:3px 6px;font-weight:700">💚 ประหยัดจากราคาปกติ = '+thb(p.normalTotal-p.totalBefore)+' บาท ('+Math.round((p.normalTotal-p.totalBefore)/p.normalTotal*100)+'%)</td></tr>';
+    out += '</tbody></table>'+offersLine+'</div>';
+  }
+  return out+'
+';
+}
+
+function buildFeatsPDF(feats) {
+  if (!feats || !feats.length) return '';
+  const bycat = {};
+  feats.forEach(f => { if (!bycat[f.cat]) bycat[f.cat]=[]; bycat[f.cat].push(f.label); });
+  let rows = '';
+  Object.entries(bycat).forEach(([cat,items]) => {
+    rows += '<tr><td colspan="2" style="background:#1A56DB;color:white;font-weight:700;font-size:9px;padding:3px 8px;border-left:3px solid #F47B20">'+cat+'</td></tr>';
+    items.forEach((lbl,i) => {
+      const bg = i%2===0?'white':'#F8FAFF';
+      rows += '<tr><td style="background:#D1FAE5;color:#065F46;font-weight:700;font-size:11px;text-align:center;width:22px;padding:2px 4px;border:.5px solid #EEF2FF">✓</td><td style="background:'+bg+';font-size:9px;padding:3px 6px;border:.5px solid #EEF2FF">'+lbl+'</td></tr>';
+    });
+  });
+  const mid = Math.ceil(rows.split('</tr>').length / 2);
+  const allRows = rows.split('</tr>').filter(Boolean).map(r=>r+'</tr>');
+  const left = allRows.slice(0, Math.ceil(allRows.length/2)).join('');
+  const right = allRows.slice(Math.ceil(allRows.length/2)).join('');
+  return '<div class="section-hd">✅ Features ที่ต้องการใช้งาน</div>'+
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:0 10px;margin-top:4px">'+
+    '<table style="width:100%;border-collapse:collapse"><tbody>'+left+'</tbody></table>'+
+    '<table style="width:100%;border-collapse:collapse"><tbody>'+right+'</tbody></table>'+
+    '</div>
+';
+}
+
 function buildPrintHTML(data, autoPrint) {
   const respBadge = {'Humansoft':'r-hs','Client':'r-cl','Humansoft / Client':'r-both'};
   const statBadge = {'Not started':'s-ns','In progress':'s-prog','Done':'s-done','On hold':'s-hold'};
@@ -1153,6 +1412,8 @@ function buildPrintHTML(data, autoPrint) {
     '      <th style="width:10%" class="c">วันที่เริ่ม</th>\n'+
     '      <th style="width:10%" class="c">วันที่สิ้นสุด</th>\n'+
     '    </tr></thead><tbody>'+tlRows+'</tbody></table>\n'+
+    (data.price ? buildPricePDF(data.price) : '')+
+    (data.feats && data.feats.length ? buildFeatsPDF(data.feats) : '')+
     '  </div>\n'+
     '  <div class="bottom-bar"><div class="bb-blue"></div><div class="bb-orange"></div></div>\n'+
     '</div>\n</body>\n</html>';
@@ -1569,46 +1830,46 @@ function renderGantt() {
 ══════════════════════════════════════════ */
 const FEAT_LIST = [
   {cat:'1. Channel'},
-  {label:'Web Browser', on:true},{label:'Mobile Application / Line OA', on:true},
+  {label:'Web Browser', on:false},{label:'Mobile Application / Line OA', on:false},
   {cat:'2. โครงสร้างทั่วไป'},
-  {label:'รองรับหลายนิติบุคคล', on:true},{label:'รองรับหลายสาขา', on:true},
+  {label:'รองรับหลายนิติบุคคล', on:false},{label:'รองรับหลายสาขา', on:false},
   {label:'รองรับ 3 ภาษา (ไทย/อังกฤษ/พม่า)', on:false},
   {cat:'3. โครงสร้างองค์กร'},
-  {label:'โครงสร้างองค์กร / โครงสร้างตำแหน่ง', on:true},
-  {label:'เก็บประวัติข้อมูลพนักงาน', on:true},
+  {label:'โครงสร้างองค์กร / โครงสร้างตำแหน่ง', on:false},
+  {label:'เก็บประวัติข้อมูลพนักงาน', on:false},
   {label:'รองรับการเก็บไฟล์ไม่จำกัดพื้นที่', on:false},
   {cat:'4. จัดการสิทธิ์การเข้าถึงข้อมูล'},
-  {label:'กำหนดสิทธิ์ผู้ดูแลระบบ (ไม่จำกัด User)', on:true},
+  {label:'กำหนดสิทธิ์ผู้ดูแลระบบ (ไม่จำกัด User)', on:false},
   {label:'กำหนดสิทธิ์มองเห็น/แก้ไขของแต่ละ User', on:false},
   {label:'จัดกลุ่มผู้ใช้ได้', on:false},
   {cat:'5. ระบบความปลอดภัย'},
   {label:'Strong Password', on:false},{label:'PDPA Conceal', on:false},
   {cat:'6. จัดการกะ'},
-  {label:'กะได้หลายรูปแบบ (Default / หลายกะ / Excel Import)', on:true},
-  {label:'วางแผนกะรายเดือน / รายสัปดาห์', on:true},
-  {label:'สิทธิ์จัดกะแบบยืดหยุ่น (HR / หัวหน้า / พนักงาน)', on:true},
+  {label:'กะได้หลายรูปแบบ (Default / หลายกะ / Excel Import)', on:false},
+  {label:'วางแผนกะรายเดือน / รายสัปดาห์', on:false},
+  {label:'สิทธิ์จัดกะแบบยืดหยุ่น (HR / หัวหน้า / พนักงาน)', on:false},
   {cat:'7. ลงเวลาการทำงาน'},
   {label:'Face Scan (Face Recognition)', on:false},{label:'GPS', on:false},
-  {label:'เครื่องสแกนนิ้ว', on:true},{label:'ADMS (Real-Time sync)', on:false},
+  {label:'เครื่องสแกนนิ้ว', on:false},{label:'ADMS (Real-Time sync)', on:false},
   {label:'Beacon / Time App / Member Scan', on:false},
   {cat:'8. เอกสารและการอนุมัติ'},
-  {label:'เอกสารพื้นฐาน (ลา / OT / สลับกะ / ขอเพิ่มเวลา)', on:true},
+  {label:'เอกสารพื้นฐาน (ลา / OT / สลับกะ / ขอเพิ่มเวลา)', on:false},
   {label:'เบิกเงินล่วงหน้า', on:false},{label:'หนังสือรับรองเงินเดือน', on:false},
   {label:'อนุมัติผ่าน Website', on:false},{label:'อนุมัติผ่าน App', on:false},
-  {label:'สายการอนุมัติ 3-5 ขั้น', on:true},
+  {label:'สายการอนุมัติ 3-5 ขั้น', on:false},
   {cat:'9. การคำนวณเงินเดือน'},
-  {label:'รายรับ/รายจ่าย (อัตโนมัติ / Manual)', on:true},
-  {label:'งวดเงินเดือน สูงสุด 4 งวด', on:true},{label:'สลิปเงินเดือน', on:true},
-  {label:'Text File นำส่งธนาคาร', on:true},
+  {label:'รายรับ/รายจ่าย (อัตโนมัติ / Manual)', on:false},
+  {label:'งวดเงินเดือน สูงสุด 4 งวด', on:false},{label:'สลิปเงินเดือน', on:false},
+  {label:'Text File นำส่งธนาคาร', on:false},
   {label:'ภาษี / ประกันสังคม / กองทุน', on:false},{label:'เบี้ยเลี้ยง / เบี้ยขยัน', on:false},
   {cat:'10. รายงาน'},
-  {label:'รายงานมากกว่า 50 แบบ (.pdf / .xlsx / .txt / .dat)', on:true},
+  {label:'รายงานมากกว่า 50 แบบ (.pdf / .xlsx / .txt / .dat)', on:false},
   {cat:'11. การเรียนรู้และพัฒนาองค์กร (HRD)'},
-  {label:'E-Library / E-Learning', on:true},{label:'ประเมินพนักงาน (ไม่จำกัดรอบ)', on:true},
-  {label:'KPI Profile', on:true},{label:'บันทึกการฝึกอบรม', on:false},
+  {label:'E-Library / E-Learning', on:false},{label:'ประเมินพนักงาน (ไม่จำกัดรอบ)', on:false},
+  {label:'KPI Profile', on:false},{label:'บันทึกการฝึกอบรม', on:false},
   {cat:'12. ระบบรับสมัครพนักงาน'},
-  {label:'ใบสมัครงานออนไลน์', on:true},{label:'ระบบติดตามผู้สมัคร', on:true},
-  {label:'เอกสารสัญญาจ้าง (ทดลองงาน/บรรจุ)', on:true},
+  {label:'ใบสมัครงานออนไลน์', on:false},{label:'ระบบติดตามผู้สมัคร', on:false},
+  {label:'เอกสารสัญญาจ้าง (ทดลองงาน/บรรจุ)', on:false},
 ];
 
 function initFeatures() {
