@@ -1695,15 +1695,15 @@ function buildPrintHTML(data, autoPrint) {
   return '<!DOCTYPE html>\n<html lang="th">\n<head>\n<meta charset="UTF-8">\n'+
     '<title>Summary Report – '+e(data.domain)+'</title>\n'+
     '<link rel="preconnect" href="https://fonts.googleapis.com">\n'+
-    '<link href="https://fonts.googleapis.com/css2?family=Anuphan:wght@300;400;500;600;700&display=swap" rel="stylesheet">\n'+
+    '<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">\n'+
     '<style>\n'+
     ':root{--blue:#1A56DB;--blue-dk:#1240B0;--blue-lt:#EEF2FF;--blue-md:#BFDBFE;'+
     '--orange:#F47B20;--orange-dk:#C85E0F;--orange-lt:#FFF4ED;--orange-md:#FDE8D0;'+
     '--green-bg:#D1FAE5;--green-txt:#065F46;--red-bg:#FEE2E2;--red-txt:#991B1B;'+
     '--row-alt:#F8FAFF;--gray:#9CA3AF;--body:#374151;--border:#DBEAFE;}\n'+
     '*{box-sizing:border-box;margin:0;padding:0;}\n'+
-    'body{font-family:\'Anuphan\',sans-serif;font-size:12px;color:#1A1F2E;background:#E5E7EB;}\n'+
-    '.page{width:210mm;min-height:297mm;background:white;margin:0 auto;padding:0 0 12mm;}\n'+
+    'body{font-family:\'Sarabun\',\'Anuphan\',sans-serif;font-size:12px;color:#1A1F2E;background:#E5E7EB;}\n'+
+    '.page{width:210mm;background:white;margin:0 auto;padding-bottom:6px;}\n'+
     '.top-bar-blue{height:6px;background:var(--blue);}\n'+
     '.top-bar-orange{height:3px;background:var(--orange);}\n'+
     '.header{display:flex;justify-content:space-between;align-items:flex-end;padding:10px 10mm 9px;border-bottom:2px solid var(--orange);background:white;}\n'+
@@ -1744,7 +1744,7 @@ function buildPrintHTML(data, autoPrint) {
     '.r-hs{background:var(--blue-lt);color:var(--blue-dk);}\n'+
     '.r-cl{background:var(--green-bg);color:var(--green-txt);}\n'+
     '.r-both{background:var(--orange-lt);color:var(--orange-dk);}\n'+
-    '.bottom-bar{display:flex;height:5px;margin-top:12mm;}\n'+
+    '.bottom-bar{display:flex;height:5px;margin-top:10px;}\n'+
     '.bb-blue{flex:2;background:var(--blue);}\n'+
     '.bb-orange{flex:1;background:var(--orange);}\n'+
     '.gtbl{width:100%;border-collapse:collapse;font-size:8px;margin-top:6px;}\n'+
@@ -1932,22 +1932,30 @@ async function makePDFBlob() {
   const html = buildPrintHTML(data, false);
   return new Promise(function(resolve, reject) {
     const iframe = document.createElement('iframe');
-    iframe.style.cssText = 'position:fixed;top:0;left:-9999px;width:794px;height:1123px;border:none;opacity:0;pointer-events:none;z-index:-1;';
+    iframe.style.cssText = 'position:fixed;top:0;left:-9999px;width:794px;height:5000px;border:none;opacity:0;pointer-events:none;z-index:-1;';
     document.body.appendChild(iframe);
     iframe.onload = async function() {
       try {
-        await new Promise(function(r){ setTimeout(r, 1200); }); // wait for fonts
+        await new Promise(function(r){ setTimeout(r, 2500); }); // wait for fonts + render
         const el = iframe.contentDocument.querySelector('.page') || iframe.contentDocument.body;
-        const canvas = await html2canvas(el, {scale:1.5, useCORS:true, allowTaint:true, windowWidth:794, windowHeight:1123});
+        const canvas = await html2canvas(el, {scale:2, useCORS:true, allowTaint:true, windowWidth:794, logging:false});
         if (document.body.contains(iframe)) document.body.removeChild(iframe);
         const {jsPDF} = window.jspdf;
-        const pdf = new jsPDF('p','mm','a4');
         const W=210, H=297;
         const iH = canvas.height * W / canvas.width;
-        const img = canvas.toDataURL('image/jpeg',.88);
+        const img = canvas.toDataURL('image/jpeg', 0.95);
+        const pdf = new jsPDF('p','mm','a4');
+        // หน้าแรก: A4 เต็ม หรือสั้นกว่า (กรณีเนื้อหาน้อย)
         pdf.addImage(img,'JPEG',0,0,W,Math.min(iH,H));
-        let rem = iH-H, yp = 0;
-        while (rem > 0) { yp -= H; pdf.addPage(); pdf.addImage(img,'JPEG',0,yp,W,iH); rem -= H; }
+        let rem = iH - H, yp = 0;
+        // หน้าถัดไป: ใช้ความสูงพอดี (ไม่มีช่องว่างท้ายหน้าสุดท้าย)
+        while (rem > 2) {
+          yp -= H;
+          const pageH = Math.min(rem, H);
+          pdf.addPage([W, pageH]);
+          pdf.addImage(img,'JPEG',0,yp,W,iH);
+          rem -= H;
+        }
         resolve(pdf.output('blob'));
       } catch(err) {
         if (document.body.contains(iframe)) document.body.removeChild(iframe);
