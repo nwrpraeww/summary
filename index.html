@@ -1875,21 +1875,22 @@ async function saveToDrive() {
     const wb = buildXLSX(data);
     const arr = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
     const xlsxBlob = new Blob([arr], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    showOvl('กำลังตรวจสอบชื่อไฟล์…');
+    const xlsxFname = await nextAvailableName(baseName, '.xlsx', fId);
+    const pdfFname  = await nextAvailableName(baseName, '.pdf',  fId);
     showOvl('กำลังอัพโหลด XLSX…');
-    const xlsxFname = baseName+'.xlsx';
     await uploadFile(xlsxBlob, xlsxFname,
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', fId);
     showOvl('กำลังสร้าง PDF…');
     const pdfBlob = await makePDFBlob();
     showOvl('กำลังอัพโหลด PDF…');
-    const pdfFname = baseName+'.pdf';
     await uploadFile(pdfBlob, pdfFname, 'application/pdf', fId);
     hideOvl();
     // แสดงปุ่มเปิดโฟลเดอร์
     const btn = document.getElementById('btnFolder');
     btn.style.display = '';
     btn.title = _lastFolderUrl;
-    toast(`✅ บันทึกลง Drive สำเร็จ! โฟลเดอร์: "Shared/${data.domain}"`, 'ok');
+    toast(`✅ บันทึกลง Drive สำเร็จ! "${xlsxFname}"`, 'ok');
   } catch (e) { hideOvl(); toast('เกิดข้อผิดพลาด: ' + e.message, 'err'); console.error(e); }
 }
 
@@ -1904,6 +1905,17 @@ async function findOrMakeFolder(name) {
     body:JSON.stringify({name,mimeType:'application/vnd.google-apps.folder',parents:[TARGET_FOLDER_ID]}),
   });
   return c.id;
+}
+
+// ตรวจชื่อไฟล์ซ้ำใน folder แล้วคืน baseName.ext หรือ baseName V.N.ext
+async function nextAvailableName(baseName, ext, folderId) {
+  const q = encodeURIComponent(`'${folderId}' in parents and trashed=false`);
+  const r = await apiGet(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(name)&pageSize=1000`);
+  const existing = new Set((r.files || []).map(f => f.name));
+  if (!existing.has(baseName + ext)) return baseName + ext;
+  let v = 1;
+  while (existing.has(`${baseName} V.${v}${ext}`)) v++;
+  return `${baseName} V.${v}${ext}`;
 }
 
 async function uploadFile(blob,name,mime,folderId) {
