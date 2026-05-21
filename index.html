@@ -2237,20 +2237,15 @@ function selectPkg2(btn) {
 
 function autoSelectRange2() {
   const v = parseInt(document.getElementById('fUsers2').value) || 0;
-  _selRangeIdx2 = -1;
   const hint = document.getElementById('rangeHint2');
-  for (let i = 0; i < PRICE_TABLE.length; i++) {
-    const [lo, hi] = PRICE_TABLE[i].range.split('-').map(Number);
-    if (v >= lo && (!hi || v <= hi)) { _selRangeIdx2 = i; break; }
-  }
+  if (!v || v <= 0) { _selRangeIdx2 = -1; if (hint) hint.textContent = ''; calcPrice2(); return; }
+  _selRangeIdx2 = PRICE_TABLE.findIndex(r => v >= r.min && v <= r.max);
   if (_selRangeIdx2 >= 0) {
-    hint.textContent = '✅ Range: ' + PRICE_TABLE[_selRangeIdx2].range + ' คน';
+    hint.textContent = '📌 ช่วง: ' + PRICE_TABLE[_selRangeIdx2].range + ' คน';
     hint.style.color = 'var(--green)';
-  } else if (v > 0) {
-    hint.textContent = '⚠️ ไม่พบ range — กรุณาตรวจสอบ';
-    hint.style.color = 'var(--red)';
   } else {
-    hint.textContent = '';
+    hint.textContent = '⚠️ ไม่พบช่วงที่ตรงกัน';
+    hint.style.color = 'var(--red)';
   }
   calcPrice2();
 }
