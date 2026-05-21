@@ -458,7 +458,7 @@ input.date-sel{font-size:11px;padding:3px 5px;border:1.5px solid var(--border);b
           <thead><tr>
             <th class="col-no">No.</th>
             <th style="min-width:150px">รายการ</th>
-            <th style="min-width:320px">รายละเอียด</th>
+            <th style="min-width:480px">รายละเอียด</th>
             <th class="col-act no-print"></th>
           </tr></thead>
           <tbody id="soBody"></tbody>
@@ -663,7 +663,10 @@ input.date-sel{font-size:11px;padding:3px 5px;border:1.5px solid var(--border);b
    DEFAULT DATA
 ══════════════════════════════════════════ */
 const DEF_PP = [];
-const DEF_SO = [];
+const DEF_SO = [
+  { item:'ข้อเสนอพิเศษ', det:'สำหรับการสมัครใช้งานแพ็กเกจ (สัญญา 1 ปี) — 10 ฟรี 2 เมื่อชำระภายในเดือน' },
+  { item:'บริการ', det:'• ไม่มีค่า MA\n• ขึ้นระบบให้ฟรี\n• ไม่มีค่าเช่า Cloud\n• Support ทุกวัน 08.30–17.30 น.\n• รองรับ Multi Company\n• Training ฟรี 3 ครั้ง' },
+];
 const DEF_TL = [];
 
 /* ══════════════════════════════════════════
