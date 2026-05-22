@@ -665,7 +665,29 @@ footer {
   <!-- Grid -->
   <div class="doc-grid" id="docGrid">
 
-    <!-- Card: Customer Requirement Report -->
+    <!-- Card: Document Suite (Combined) -->
+    <div class="doc-card" data-name="Document Suite">
+      <div class="card-top" style="background: linear-gradient(135deg, #1A56DB 0%, #F47B20 100%);">
+        <span class="card-icon">🗂️</span>
+        <div class="card-title">Document Suite</div>
+        <div class="card-desc">Customer Report · Requirement Tracker · Timeline — ในไฟล์เดียว</div>
+      </div>
+      <div class="card-body">
+        <div class="card-meta">
+          <span class="tag">FM-SE-03/04</span>
+          <span class="tag orange">HumanSoft</span>
+          <span class="tag green">พร้อมใช้งาน</span>
+        </div>
+        <div class="export-label">เปิดเอกสาร</div>
+        <div class="btn-group">
+          <a class="btn btn-primary" href="combined.html" target="_blank" style="flex:1;justify-content:center;">
+            🗂️ เปิด Document Suite
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card: Customer Requirement Report (standalone) -->
     <div class="doc-card" data-name="Customer Requirement Report">
       <div class="card-top">
         <span class="card-icon">🎯</span>
@@ -680,14 +702,36 @@ footer {
         </div>
         <div class="export-label">เปิดเอกสาร</div>
         <div class="btn-group">
-          <button class="btn btn-pdf" onclick="exportDoc('customer-requirement', 'html')" style="background:#EEF2FF;color:#1240B0;border-color:#BFDBFE;">
+          <a class="btn btn-pdf" href="index.html" target="_blank" style="background:#EEF2FF;color:#1240B0;border-color:#BFDBFE;flex:1;justify-content:center;text-decoration:none;">
             🗂️ สร้าง / แก้ไข
-          </button>
+          </a>
         </div>
       </div>
     </div>
 
-    <!-- Card: Implementation Timeline -->
+    <!-- Card: Requirement Tracker (standalone) -->
+    <div class="doc-card" data-name="Requirement Tracker">
+      <div class="card-top" style="background: linear-gradient(135deg, #059669 0%, #047857 100%);">
+        <span class="card-icon">📋</span>
+        <div class="card-title">Requirement Tracker</div>
+        <div class="card-desc">บันทึก Requirement รายโดเมน พร้อม Export XLSX</div>
+      </div>
+      <div class="card-body">
+        <div class="card-meta">
+          <span class="tag green">Interactive</span>
+          <span class="tag orange">HumanSoft</span>
+          <span class="tag green">พร้อมใช้งาน</span>
+        </div>
+        <div class="export-label">เปิดเอกสาร</div>
+        <div class="btn-group">
+          <a class="btn btn-excel" href="requirement-tracker.html" target="_blank" style="flex:1;justify-content:center;">
+            📋 สร้าง / แก้ไข
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card: Implementation Timeline (standalone) -->
     <div class="doc-card" data-name="Implementation Timeline">
       <div class="card-top" style="background: linear-gradient(135deg,#1E40AF 0%,#1A56DB 100%);">
         <span class="card-icon">📅</span>
@@ -702,9 +746,9 @@ footer {
         </div>
         <div class="export-label">เปิดเอกสาร</div>
         <div class="btn-group">
-          <button class="btn btn-pdf" onclick="exportDoc('timeline', 'html')" style="background:#EEF2FF;color:#1240B0;border-color:#BFDBFE;">
+          <a class="btn btn-pdf" href="timeline_template.html" target="_blank" style="background:#EEF2FF;color:#1240B0;border-color:#BFDBFE;flex:1;justify-content:center;text-decoration:none;">
             🗂️ สร้าง / แก้ไข
-          </button>
+          </a>
         </div>
       </div>
     </div>

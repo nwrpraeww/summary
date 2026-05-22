@@ -328,8 +328,6 @@ td.td-del {
 <!-- ── CONTROL BAR ── -->
 <div class="ctrl-bar">
   <div class="ctrl-top">
-    <button class="btn-act btn-preview" onclick="window.location.href='homepage.html'" style="gap:4px;">‹ หน้าหลัก</button>
-    <div class="ctrl-sep"></div>
     <div class="ctrl-brand">Human<b>Soft</b> — Timeline</div>
     <div class="ctrl-sep"></div>
 
@@ -385,7 +383,6 @@ td.td-del {
     <h1>Implementation Timeline</h1>
     <div class="doc-header-right">
       <span class="brand">HumanSoft</span>
-      <span class="doc-id">FM-SE-04</span>
       <span class="doc-dt">วันที่เริ่มใช้/ แก้ไข : 22 พ.ค. 2569 / 00</span>
     </div>
   </div>
@@ -394,19 +391,19 @@ td.td-del {
   <div class="meta-strip">
     <div class="meta-item">
       <span class="meta-lbl">Domain</span>
-      <span class="meta-val" contenteditable="true">&nbsp;</span>
+      <span class="meta-val">&nbsp;</span>
     </div>
     <div class="meta-item">
       <span class="meta-lbl">บริษัท (Company)</span>
-      <span class="meta-val" contenteditable="true">&nbsp;</span>
+      <span class="meta-val">&nbsp;</span>
     </div>
     <div class="meta-item">
       <span class="meta-lbl">วันที่อัปเดต</span>
-      <span class="meta-val" contenteditable="true" id="f-date">&nbsp;</span>
+      <span class="meta-val" id="f-date">&nbsp;</span>
     </div>
     <div class="meta-item">
       <span class="meta-lbl">Sale / ผู้รับผิดชอบ</span>
-      <span class="meta-val" contenteditable="true">&nbsp;</span>
+      <span class="meta-val">&nbsp;</span>
     </div>
   </div>
 
@@ -1014,6 +1011,77 @@ document.getElementById('f-date').textContent =
 
 initSelectors();
 rebuildTable();
+
+/* ── setSharedData : receive all project info from combined.html ── */
+window.setSharedData = function(domain, company, date, team) {
+  const metaEls = document.querySelectorAll('.meta-val');
+  // meta-val order: [0]=Domain, [1]=Company, [2]=วันที่, [3]=Sale/ผู้รับผิดชอบ
+  const fmt = v => v || ' ';
+  const fmtDate = d => {
+    if (!d) return ' ';
+    const [y, m, dd] = d.split('-');
+    return dd && m && y ? `${dd}/${m}/${y}` : d;
+  };
+  if (metaEls[0]) metaEls[0].textContent = fmt(domain);
+  if (metaEls[1]) metaEls[1].textContent = fmt(company);
+  if (metaEls[2]) metaEls[2].textContent = fmtDate(date);
+  if (metaEls[3]) metaEls[3].textContent = fmt(team);
+};
+
+/* ── getSheetData : expose data to combined.html parent ── */
+window.getSheetData = function() {
+  const metas = [...document.querySelectorAll('.meta-val')].map(e => e.textContent.trim().replace(/ /g,''));
+  const domain = metas[0] || '';
+
+  const rows = [];
+  rows.push(['📌 ข้อมูล Timeline']);
+  rows.push(['Domain','Company','วันที่อัปเดต','Sale / ผู้รับผิดชอบ']);
+  rows.push(metas);
+  rows.push([]);
+
+  const respMap   = { hs:'HumanSoft', cl:'Client', both:'HS + Client', '':''  };
+  const statusMap = { ns:'Not Started', ip:'In Progress', dn:'Done', '':'' };
+
+  const taskRows = [];
+  let no = 0;
+  document.querySelectorAll('#tbody tr').forEach(tr => {
+    if (tr.classList.contains('row-section')) {
+      const label = tr.querySelector('td')?.textContent?.trim() || '';
+      if (label) taskRows.push(['', '', '── ' + label + ' ──', '']);
+    } else if (tr.classList.contains('row-data')) {
+      const resp   = tr.querySelector('select.sel-resp')?.value   || '';
+      const task   = tr.querySelector('td.td-task')?.textContent?.trim() || '';
+      const status = tr.querySelector('select.sel-status')?.value || '';
+      if (task) {
+        no++;
+        taskRows.push([no, respMap[resp] || resp, task, statusMap[status] || status]);
+      }
+    }
+  });
+
+  if (taskRows.length) {
+    rows.push(['No.','ผู้รับผิดชอบ','งาน / Task','Status']);
+    taskRows.forEach(r => rows.push(r));
+  }
+
+  // Notes
+  const notes = document.querySelector('.notes-box')?.textContent?.trim() || '';
+  if (notes && notes !== 'กรอกหมายเหตุเพิ่มเติม...') {
+    rows.push([]);
+    rows.push(['หมายเหตุ / Notes']);
+    rows.push([notes]);
+  }
+
+  return { sheetName: 'Timeline', data: rows, domain };
+};
+
+/* ── Embedded mode: hide duplicate action buttons ── */
+if (new URLSearchParams(location.search).get('embedded')) {
+  document.addEventListener('DOMContentLoaded', () => {
+    // Hide export/drive/preview/import — keep + กลุ่ม and + แถว
+    document.querySelectorAll('.btn-preview,.btn-import,.btn-xlsx,.btn-pdf,.btn-drive,.ctrl-divider').forEach(el => el.style.display = 'none');
+  });
+}
 </script>
 </body>
 </html>

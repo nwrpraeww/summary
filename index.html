@@ -390,8 +390,8 @@ input.date-sel{font-size:11px;padding:3px 5px;border:1.5px solid var(--border);b
 
 <div class="container" id="reportContainer">
 
-  <!-- ── 1. ข้อมูลโครงการ ── -->
-  <div class="card">
+  <!-- ── 1. ข้อมูลโครงการ (hidden — values synced from combined.html info-strip) ── -->
+  <div class="card" style="display:none">
     <div class="card-hd">
       <div class="card-title">🏢 ข้อมูลโครงการ</div>
     </div>
@@ -3035,6 +3035,83 @@ function toast(msg,type='inf'){
   el.className=`toast ${cl}`;el.id=id;el.innerHTML=`${ic} ${msg}`;
   w.appendChild(el);
   setTimeout(()=>{const e=document.getElementById(id);if(e)e.remove();},4500);
+}
+
+/* ── setSharedData : receive all project info from combined.html ── */
+window.setSharedData = function(domain, company, date, team) {
+  const set = (id, val) => { const el = document.getElementById(id); if (el && val !== undefined) el.value = val; };
+  set('fDomain',  domain);
+  set('fCompany', company);
+  set('fDate',    date);
+  set('fTeam',    team);
+};
+
+/* ── getSheetData : expose data to combined.html parent ── */
+window.getSheetData = function() {
+  const domain   = document.getElementById('fDomain')?.value  || '';
+  const company  = document.getElementById('fCompany')?.value || '';
+  const date     = document.getElementById('fDate')?.value    || '';
+  const team     = document.getElementById('fTeam')?.value    || '';
+
+  const rows = [];
+
+  // Project info
+  rows.push(['📌 ข้อมูลโครงการ']);
+  rows.push(['Domain','Company','วันที่อัปเดต','ทีมที่ดูแล']);
+  rows.push([domain, company, date, team]);
+  rows.push([]);
+
+  // Pain Points — skip entire section if no rows have any content
+  const ppRows = [];
+  document.querySelectorAll('#ppBody tr').forEach((tr, i) => {
+    const tds = tr.querySelectorAll('td');
+    const req = tds[1]?.querySelector('textarea')?.value?.trim() || '';
+    const sol = tds[4]?.querySelector('textarea')?.value?.trim() || '';
+    const sup = tds[2]?.querySelector('input[type=checkbox]')?.checked;
+    const not = tds[3]?.querySelector('input[type=checkbox]')?.checked;
+    if (req || sol || sup || not) {
+      ppRows.push([
+        i + 1,
+        req,
+        sup ? '✓' : '',
+        not ? '✓' : '',
+        sol,
+        tds[5]?.querySelector('select')?.value || ''
+      ]);
+    }
+  });
+  if (ppRows.length) {
+    rows.push(['🎯 Pain Points']);
+    rows.push(['No.','Requirement / ความต้องการ','รองรับ ✓','ยังไม่รองรับ','Solutions','ระดับความสำคัญ']);
+    ppRows.forEach(r => rows.push(r));
+    rows.push([]);
+  }
+
+  // Special Offers — skip if all items are empty
+  const soRows = [];
+  document.querySelectorAll('#soBody tr').forEach((tr, i) => {
+    const tds = tr.querySelectorAll('td');
+    const item = tds[1]?.querySelector('input')?.value?.trim()    || '';
+    const desc = tds[2]?.querySelector('textarea')?.value?.trim() || '';
+    if (item || desc) {
+      soRows.push([i + 1, item, desc]);
+    }
+  });
+  if (soRows.length) {
+    rows.push(['🎁 Special Offers']);
+    rows.push(['No.','รายการ','รายละเอียด']);
+    soRows.forEach(r => rows.push(r));
+  }
+
+  return { sheetName: 'Customer Report', data: rows, domain };
+};
+
+/* ── Embedded mode: hide duplicate action buttons ── */
+if (new URLSearchParams(location.search).get('embedded')) {
+  document.addEventListener('DOMContentLoaded', () => {
+    const el = document.querySelector('.nav-actions');
+    if (el) el.style.display = 'none';
+  });
 }
 </script>
 </body>
