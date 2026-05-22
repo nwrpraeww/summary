@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HumanSoft – Document Suite</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anuphan:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
+<style>
+:root {
+  --blue:    #1A56DB;
+  --blue-dk: #1240B0;
+  --blue-lt: #EEF2FF;
+  --blue-md: #BFDBFE;
+  --orange:  #F47B20;
+  --border:  #D1D5DB;
+  --nav-h:   56px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Anuphan', sans-serif;
+  background: #E8EDF8;
+  overflow: hidden;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Master Nav ───────────────────────────────────────── */
+.master-nav {
+  height: var(--nav-h);
+  background: white;
+  border-bottom: 1px solid var(--border);
+  box-shadow: 0 2px 8px rgba(0,0,0,.12);
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  gap: 12px;
+  flex-shrink: 0;
+  z-index: 999;
+}
+
+/* ── Info strip (project fields) ─────────────────────────── */
+.info-strip {
+  background: #F0F4FF;
+  border-bottom: 1px solid var(--blue-md);
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  gap: 6px;
+  flex-shrink: 0;
+  height: 42px;
+  overflow-x: auto;
+}
+.info-lbl {
+  font-size: 11px; font-weight: 700; color: var(--blue-dk);
+  white-space: nowrap; flex-shrink: 0;
+}
+.info-input {
+  height: 28px; padding: 0 9px;
+  border: 1.5px solid var(--blue-md); border-radius: 6px;
+  font-family: 'Anuphan', sans-serif; font-size: 12px; font-weight: 500;
+  color: #1E293B; background: white; outline: none;
+  transition: border-color .15s, box-shadow .15s;
+  flex-shrink: 0;
+}
+.info-input:focus { border-color: var(--blue); box-shadow: 0 0 0 2px rgba(26,86,219,.12); }
+.info-input::placeholder { color: #94A3B8; }
+.info-input.w-domain  { width: 160px; }
+.info-input.w-company { width: 160px; }
+.info-input.w-date    { width: 140px; }
+.info-select {
+  height: 28px; padding: 0 8px;
+  border: 1.5px solid var(--blue-md); border-radius: 6px;
+  font-family: 'Anuphan', sans-serif; font-size: 12px; font-weight: 500;
+  color: #1E293B; background: white; outline: none; cursor: pointer;
+  width: 148px; transition: border-color .15s;
+  flex-shrink: 0;
+}
+.info-select:focus { border-color: var(--blue); }
+.info-sep { width: 1px; height: 18px; background: var(--blue-md); flex-shrink: 0; margin: 0 4px; }
+
+.nav-sep { width: 1px; height: 22px; background: var(--border); flex-shrink: 0; }
+
+.nav-brand {
+  font-size: 16px; font-weight: 800; color: var(--blue); white-space: nowrap;
+}
+.nav-brand b { color: var(--orange); }
+
+/* page dots / tabs */
+.nav-tabs {
+  display: flex; gap: 4px; align-items: center;
+}
+.nav-tab {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 14px; border-radius: 20px;
+  font-size: 11.5px; font-weight: 600;
+  cursor: pointer; border: 1.5px solid transparent;
+  transition: all .15s; white-space: nowrap;
+  color: #6B7280; background: #F9FAFB; border-color: var(--border);
+}
+.nav-tab:hover { border-color: var(--blue-md); color: var(--blue); background: var(--blue-lt); }
+.nav-tab.active {
+  background: var(--blue); color: white; border-color: var(--blue);
+  box-shadow: 0 2px 8px rgba(26,86,219,.3);
+}
+.tab-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: currentColor; opacity: .7; flex-shrink: 0;
+}
+
+/* nav right side */
+.nav-right {
+  margin-left: auto;
+  display: flex; align-items: center; gap: 8px;
+}
+
+.nav-page-info {
+  font-size: 11px; color: #9CA3AF; font-weight: 600;
+  background: #F3F4F6; border: 1px solid var(--border);
+  border-radius: 6px; padding: 4px 10px; white-space: nowrap;
+}
+.nav-page-info span { color: var(--blue); font-weight: 800; }
+
+.btn-nav {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 7px 16px; border-radius: 8px;
+  font-family: 'Anuphan', sans-serif; font-size: 12px; font-weight: 700;
+  cursor: pointer; border: 1.5px solid transparent;
+  transition: all .15s; white-space: nowrap;
+}
+.btn-nav:disabled { opacity: .35; cursor: not-allowed; }
+.btn-prev {
+  background: var(--blue-lt); color: var(--blue-dk); border-color: var(--blue-md);
+}
+.btn-prev:not(:disabled):hover { background: var(--blue-md); }
+.btn-next {
+  background: var(--blue); color: white; border-color: var(--blue);
+  box-shadow: 0 2px 6px rgba(26,86,219,.3);
+}
+.btn-next:not(:disabled):hover { background: var(--blue-dk); }
+
+.btn-save-all {
+  background: #D1FAE5; color: #065F46;
+  border: 1.5px solid #A7F3D0;
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 7px 16px; border-radius: 8px;
+  font-family: 'Anuphan', sans-serif; font-size: 12px; font-weight: 700;
+  cursor: pointer; white-space: nowrap; transition: all .15s;
+}
+.btn-save-all:hover { background: #A7F3D0; box-shadow: 0 2px 6px rgba(5,150,105,.25); }
+.btn-save-all.loading { opacity: .6; cursor: wait; }
+
+.btn-action {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 6px 14px; border-radius: 8px;
+  font-family: 'Anuphan', sans-serif; font-size: 12px; font-weight: 700;
+  cursor: pointer; border: 1.5px solid transparent;
+  transition: all .15s; white-space: nowrap;
+}
+.btn-action:disabled { opacity: .35; cursor: not-allowed; }
+.btn-act-preview { background: #EFF6FF; color: #1D4ED8; border-color: #BFDBFE; }
+.btn-act-preview:hover:not(:disabled) { background: #DBEAFE; }
+.btn-act-import  { background: #F3F4F6; color: #374151; border-color: #D1D5DB; }
+.btn-act-import:hover:not(:disabled)  { background: #E5E7EB; }
+.btn-act-drive   { background: #D1FAE5; color: #065F46; border-color: #A7F3D0; }
+.btn-act-drive:not(.loading):hover    { background: #A7F3D0; box-shadow: 0 2px 6px rgba(5,150,105,.25); }
+.btn-act-drive.loading { opacity: .6; cursor: wait; }
+
+/* toast */
+.c-toast {
+  position: fixed; bottom: 24px; right: 24px; z-index: 9999;
+  background: #1A1F2E; color: white;
+  padding: 11px 20px; border-radius: 10px;
+  font-size: 13px; font-weight: 600;
+  box-shadow: 0 4px 16px rgba(0,0,0,.3);
+  transform: translateY(80px); opacity: 0;
+  transition: all .3s ease; pointer-events: none;
+  max-width: 360px; white-space: pre-line;
+}
+.c-toast.show { transform: translateY(0); opacity: 1; }
+
+/* ── Page indicator strip ─────────────────────────────── */
+.page-strip {
+  height: 3px;
+  background: var(--blue-lt);
+  flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+}
+.page-strip-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--blue) 0%, var(--orange) 100%);
+  transition: width .35s cubic-bezier(.4,0,.2,1);
+}
+
+/* ── Iframe wrapper ──────────────────────────────────── */
+.frame-wrap {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+.doc-frame {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  border: none;
+  display: none;
+  background: #E8EDF8;
+  opacity: 0;
+  transition: opacity .2s ease;
+}
+.doc-frame.active {
+  display: block;
+  opacity: 1;
+}
+
+/* ── Page slide animation ────────────────────────────── */
+@keyframes slideInRight {
+  from { transform: translateX(40px); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+@keyframes slideInLeft {
+  from { transform: translateX(-40px); opacity: 0; }
+  to   { transform: translateX(0);     opacity: 1; }
+}
+.slide-in-right { animation: slideInRight .25s ease forwards; }
+.slide-in-left  { animation: slideInLeft  .25s ease forwards; }
+</style>
+</head>
+<body>
+
+<!-- ── Master Navigation ──────────────────────────────────── -->
+<nav class="master-nav">
+  <!-- Brand -->
+  <div class="nav-brand">Human<b>Soft</b></div>
+
+  <div class="nav-sep"></div>
+
+  <!-- Page tabs -->
+  <div class="nav-tabs">
+    <button class="nav-tab active" id="tab-1" onclick="goPage(1)">
+      <span class="tab-dot"></span>
+      🎯 Customer Report
+    </button>
+    <button class="nav-tab" id="tab-2" onclick="goPage(2)">
+      <span class="tab-dot"></span>
+      📋 Requirement Tracker
+    </button>
+    <button class="nav-tab" id="tab-3" onclick="goPage(3)">
+      <span class="tab-dot"></span>
+      📅 Timeline
+    </button>
+  </div>
+
+  <!-- Right: action buttons + page info + prev/next -->
+  <div class="nav-right">
+    <button class="btn-action btn-act-preview" id="btnPreview" onclick="doPreview()">👁 พรีวิว</button>
+    <label  class="btn-action btn-act-import"  id="btnImport"  title="นำเข้า XLSX" style="cursor:pointer;user-select:none">
+      📂 นำเข้า XLSX
+      <input type="file" id="masterImport" accept=".xlsx" style="display:none" onchange="onMasterImport(this)">
+    </label>
+    <button class="btn-action btn-act-drive"   id="btnDrive"   onclick="doSaveDrive()">☁️ บันทึก Drive</button>
+    <div class="nav-sep"></div>
+    <div class="nav-page-info">หน้า <span id="pageNum">1</span> / 3</div>
+    <button class="btn-nav btn-prev" id="btnPrev" onclick="goPage(currentPage-1)" disabled>
+      ← ย้อนกลับ
+    </button>
+    <button class="btn-nav btn-next" id="btnNext" onclick="goPage(currentPage+1)">
+      ถัดไป →
+    </button>
+  </div>
+</nav>
+
+<!-- ── Project Info Strip ──────────────────────────────────── -->
+<div class="info-strip">
+  <span class="info-lbl">🌐 Domain:</span>
+  <input class="info-input w-domain" id="sharedDomain" placeholder="เช่น thaisugarmill" oninput="pushSharedData()" />
+  <div class="info-sep"></div>
+  <span class="info-lbl">🏢 บริษัท:</span>
+  <input class="info-input w-company" id="sharedCompany" placeholder="ชื่อบริษัท" oninput="pushSharedData()" />
+  <div class="info-sep"></div>
+  <span class="info-lbl">📅 วันที่:</span>
+  <input class="info-input w-date" id="sharedDate" type="date" onchange="pushSharedData()" />
+  <div class="info-sep"></div>
+  <span class="info-lbl">👥 ทีม:</span>
+  <select class="info-select" id="sharedTeam" onchange="pushSharedData()">
+    <option value="">— เลือกทีม —</option>
+    <optgroup label="Sale">
+      <option value="(S) บี">(S) บี</option>
+      <option value="(S) แต้ว">(S) แต้ว</option>
+      <option value="(S) พลอย">(S) พลอย</option>
+      <option value="(S) กิต">(S) กิต</option>
+      <option value="(S) อ้อมแอ้ม">(S) อ้อมแอ้ม</option>
+    </optgroup>
+    <optgroup label="M Team">
+      <option value="(M) กานต์,วิลล์">(M) กานต์,วิลล์</option>
+      <option value="(M) ออม,กวาง">(M) ออม,กวาง</option>
+    </optgroup>
+    <optgroup label="L Team">
+      <option value="(L) นัท,ปอปลา">(L) นัท,ปอปลา</option>
+      <option value="(L) อาร์ม,บุษ">(L) อาร์ม,บุษ</option>
+    </optgroup>
+  </select>
+</div>
+
+<!-- Progress strip -->
+<div class="page-strip">
+  <div class="page-strip-fill" id="progressFill" style="width:33.33%"></div>
+</div>
+
+<!-- Toast -->
+<div class="c-toast" id="cToast"></div>
+
+<!-- ── Iframe Frames ──────────────────────────────────────── -->
+<div class="frame-wrap">
+  <iframe class="doc-frame active" id="frame-1" src="index.html?embedded=1"               title="Customer Requirement Report"></iframe>
+  <iframe class="doc-frame"        id="frame-2" src="requirement-tracker.html?embedded=1" title="Requirement Tracker"></iframe>
+  <iframe class="doc-frame"        id="frame-3" src="timeline_template.html?embedded=1"   title="Implementation Timeline"></iframe>
+</div>
+
+<script>
+let currentPage = 1;
+const TOTAL = 3;
+
+/* ── Shared domain/team sync to all iframes ────────────────── */
+function pushSharedData() {
+  const domain  = document.getElementById('sharedDomain').value.trim();
+  const company = document.getElementById('sharedCompany').value.trim();
+  const date    = document.getElementById('sharedDate').value;
+  const team    = document.getElementById('sharedTeam').value;
+  ['frame-1','frame-2','frame-3'].forEach(fid => {
+    try {
+      const win = document.getElementById(fid).contentWindow;
+      if (typeof win.setSharedData === 'function') win.setSharedData(domain, company, date, team);
+    } catch(e) {}
+  });
+}
+// Set today's date as default
+document.getElementById('sharedDate').value = new Date().toISOString().split('T')[0];
+
+// Push shared data each time an iframe loads
+['frame-1','frame-2','frame-3'].forEach(fid => {
+  document.getElementById(fid).addEventListener('load', () => {
+    setTimeout(pushSharedData, 100);
+  });
+});
+const ANIM_PREV = 'slide-in-left';
+const ANIM_NEXT = 'slide-in-right';
+
+function goPage(n, direction) {
+  if (n < 1 || n > TOTAL || n === currentPage) return;
+
+  const dir = direction || (n > currentPage ? 'next' : 'prev');
+  const animClass = dir === 'next' ? ANIM_NEXT : ANIM_PREV;
+
+  // Hide current
+  const oldFrame = document.getElementById('frame-' + currentPage);
+  oldFrame.classList.remove('active');
+
+  // Show new
+  currentPage = n;
+  const newFrame = document.getElementById('frame-' + currentPage);
+  newFrame.classList.remove(ANIM_NEXT, ANIM_PREV);
+  newFrame.classList.add('active', animClass);
+
+  // Remove animation class after it completes
+  newFrame.addEventListener('animationend', () => {
+    newFrame.classList.remove(ANIM_NEXT, ANIM_PREV);
+  }, { once: true });
+
+  updateNav();
+}
+
+function updateNav() {
+  // Update tabs
+  for (let i = 1; i <= TOTAL; i++) {
+    document.getElementById('tab-' + i).classList.toggle('active', i === currentPage);
+  }
+
+  // Update page number
+  document.getElementById('pageNum').textContent = currentPage;
+
+  // Update prev/next buttons
+  document.getElementById('btnPrev').disabled = currentPage === 1;
+  document.getElementById('btnNext').disabled = currentPage === TOTAL;
+
+  // Update progress bar
+  const pct = (currentPage / TOTAL) * 100;
+  document.getElementById('progressFill').style.width = pct + '%';
+
+  // Context-aware: preview & import only for page 1 (Customer Report) and page 3 (Timeline)
+  const hasCtx = currentPage !== 2;
+  document.getElementById('btnPreview').style.display = hasCtx ? '' : 'none';
+  document.getElementById('btnImport').style.display  = hasCtx ? '' : 'none';
+}
+
+// Keyboard navigation
+document.addEventListener('keydown', (e) => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') goPage(currentPage + 1, 'next');
+  if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   goPage(currentPage - 1, 'prev');
+});
+
+/* ── Toast helper ──────────────────────────────────────────── */
+let _cToastTimer;
+function cToast(msg) {
+  const el = document.getElementById('cToast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(_cToastTimer);
+  _cToastTimer = setTimeout(() => el.classList.remove('show'), 4500);
+}
+
+/* ── Style helpers ─────────────────────────────────────────── */
+function hdrStyle(rgb) {
+  return {
+    fill: { patternType:'solid', fgColor:{ rgb } },
+    font: { bold:true, color:{ rgb:'FFFFFF' }, name:'Anuphan', sz:11 },
+    alignment: { horizontal:'center', vertical:'center', wrapText:true },
+    border: {
+      top:   { style:'thin', color:{ rgb:'000000' } },
+      bottom:{ style:'thin', color:{ rgb:'000000' } },
+      left:  { style:'thin', color:{ rgb:'000000' } },
+      right: { style:'thin', color:{ rgb:'000000' } }
+    }
+  };
+}
+function cellStyle(fill) {
+  return {
+    fill: { patternType:'solid', fgColor:{ rgb: fill } },
+    font: { name:'Anuphan', sz:11 },
+    alignment: { vertical:'top', wrapText:true },
+    border: {
+      top:   { style:'thin', color:{ rgb:'D1D5DB' } },
+      bottom:{ style:'thin', color:{ rgb:'D1D5DB' } },
+      left:  { style:'thin', color:{ rgb:'D1D5DB' } },
+      right: { style:'thin', color:{ rgb:'D1D5DB' } }
+    }
+  };
+}
+function sectionStyle() {
+  return {
+    fill: { patternType:'solid', fgColor:{ rgb:'EEF2FF' } },
+    font: { bold:true, color:{ rgb:'1240B0' }, name:'Anuphan', sz:11 },
+    alignment: { vertical:'center', wrapText:true }
+  };
+}
+
+function applySheetStyles(ws, headerRgb) {
+  if (!ws['!ref']) return;
+  const range = XLSX.utils.decode_range(ws['!ref']);
+  let isFirstDataRow = true;
+
+  for (let R = range.s.r; R <= range.e.r; R++) {
+    const firstCell = ws[XLSX.utils.encode_cell({r:R, c:0})];
+    const rowText = firstCell?.v?.toString() || '';
+
+    // Section/title rows (emoji prefix or ──)
+    const isSection = rowText.startsWith('📌') || rowText.startsWith('🎯') ||
+                      rowText.startsWith('🎁') || rowText.startsWith('──') ||
+                      rowText.startsWith('หมายเหตุ');
+
+    // First data row after a title row = header row
+    const isHeader = !isSection && isFirstDataRow && rowText !== '';
+    if (rowText !== '') isFirstDataRow = false;
+    if (isSection) isFirstDataRow = true;
+
+    for (let C = range.s.c; C <= range.e.c; C++) {
+      const addr = XLSX.utils.encode_cell({r:R, c:C});
+      if (!ws[addr]) ws[addr] = { t:'s', v:'' };
+
+      if (isSection) {
+        ws[addr].s = sectionStyle();
+      } else if (isHeader) {
+        ws[addr].s = hdrStyle(headerRgb);
+      } else {
+        ws[addr].s = cellStyle(R % 2 === 0 ? 'FFFFFF' : 'F8FAFF');
+      }
+    }
+  }
+}
+
+/* ── Build XLSX Blob (shared by Drive upload) ──────────────── */
+async function buildXlsxBlob() {
+  const frameIds  = ['frame-1', 'frame-2', 'frame-3'];
+  const hdrColors = ['1A56DB', '059669', '1E40AF'];
+  const colWidths = [
+    [{wch:8},{wch:20},{wch:25},{wch:14},{wch:14},{wch:50},{wch:16},{wch:30}],
+    [{wch:8},{wch:16},{wch:22},{wch:16},{wch:12},{wch:50},{wch:14},{wch:30}],
+    [{wch:6},{wch:18},{wch:50},{wch:16}],
+  ];
+  const wb = XLSX.utils.book_new();
+  frameIds.forEach((fid, i) => {
+    try {
+      const fn = document.getElementById(fid).contentWindow.getSheetData;
+      if (typeof fn !== 'function') return;
+      const result = fn();
+      if (!result || !result.data) return;
+      const ws = XLSX.utils.aoa_to_sheet(result.data);
+      ws['!cols'] = colWidths[i] || Array(8).fill({wch:20});
+      applySheetStyles(ws, hdrColors[i]);
+      XLSX.utils.book_append_sheet(wb, ws, result.sheetName);
+    } catch(e) {}
+  });
+  if (!wb.SheetNames.length) throw new Error('ไม่มีข้อมูลในเอกสาร');
+  const arr = XLSX.write(wb, { bookType:'xlsx', type:'array' });
+  return new Blob([arr], { type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+}
+
+/* ── Preview / Import actions ──────────────────────────────── */
+function doPreview() {
+  try {
+    if (currentPage === 1) document.getElementById('frame-1').contentWindow.previewPDF();
+    else if (currentPage === 3) document.getElementById('frame-3').contentWindow.openPreview();
+  } catch(e) { cToast('⚠️ ไม่สามารถเปิดพรีวิวได้: ' + e.message); }
+}
+
+function onMasterImport(input) {
+  const file = input.files[0];
+  if (!file) return;
+  input.value = '';
+  try {
+    const dt = new DataTransfer();
+    dt.items.add(file);
+    if (currentPage === 1) {
+      const fi = document.getElementById('frame-1').contentDocument.getElementById('xlsxImportInput');
+      fi.files = dt.files;
+      fi.dispatchEvent(new Event('change'));
+    } else if (currentPage === 3) {
+      const fi = document.getElementById('frame-3').contentDocument.getElementById('import-input');
+      fi.files = dt.files;
+      fi.dispatchEvent(new Event('change'));
+    }
+  } catch(e) { cToast('❌ นำเข้าไม่สำเร็จ: ' + e.message); }
+}
+
+/* ── Google Drive upload ───────────────────────────────────── */
+const TARGET_FOLDER_ID = '1Li1cTg9Pn_1TD0QIOZ5OJM3q6-vCGfrk';
+let _cwTok = null;
+
+async function _cwToken() {
+  // Delegate OAuth to frame-1 (index.html has CLIENT_ID + token client set up)
+  _cwTok = await document.getElementById('frame-1').contentWindow._getToken();
+  return _cwTok;
+}
+async function _cwGet(url) {
+  const tok = await _cwToken();
+  const r = await fetch(url, { headers:{ Authorization:`Bearer ${tok}` } });
+  if (!r.ok) throw new Error(r.statusText);
+  return r.json();
+}
+async function _cwPost(url, opts) {
+  const tok = _cwTok || await _cwToken();
+  const r = await fetch(url, { ...opts, headers:{ Authorization:`Bearer ${tok}`, ...(opts.headers||{}) } });
+  if (!r.ok) throw new Error(r.statusText);
+  return r.json();
+}
+async function _cwFindOrMakeFolder(name) {
+  const q = encodeURIComponent(`name='${name}' and mimeType='application/vnd.google-apps.folder' and '${TARGET_FOLDER_ID}' in parents and trashed=false`);
+  const r = await _cwGet(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id)`);
+  if (r.files?.length) return r.files[0].id;
+  const c = await _cwPost('https://www.googleapis.com/drive/v3/files', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ name, mimeType:'application/vnd.google-apps.folder', parents:[TARGET_FOLDER_ID] }),
+  });
+  return c.id;
+}
+async function _cwNextName(base, ext, fid) {
+  const q = encodeURIComponent(`'${fid}' in parents and trashed=false`);
+  const r = await _cwGet(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(name)&pageSize=1000`);
+  const ex = new Set((r.files||[]).map(f => f.name));
+  if (!ex.has(base+ext)) return base+ext;
+  let v=1; while(ex.has(`${base} V.${v}${ext}`)) v++;
+  return `${base} V.${v}${ext}`;
+}
+async function _cwUpload(blob, name, mime, folderId) {
+  const form = new FormData();
+  form.append('metadata', new Blob([JSON.stringify({name,parents:[folderId]})],{type:'application/json'}));
+  form.append('file', blob);
+  const r = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',
+    { method:'POST', headers:{ Authorization:`Bearer ${_cwTok}` }, body:form });
+  if (!r.ok) throw new Error('Upload failed: '+r.statusText);
+  return r.json();
+}
+
+async function doSaveDrive() {
+  const btn = document.getElementById('btnDrive');
+  const domain  = document.getElementById('sharedDomain').value.trim();
+  const team    = document.getElementById('sharedTeam').value;
+  if (!domain && !team) { cToast('⚠️ กรุณาระบุ Domain หรือ ชื่อทีม ก่อนบันทึก'); return; }
+  const baseName = [team, domain].filter(Boolean).join(' - ') || 'HumanSoft_Report';
+
+  btn.classList.add('loading');
+  btn.textContent = '⏳ กำลังดำเนินการ…';
+  try {
+    cToast('🔐 กำลังเข้าสู่ระบบ Drive…');
+    await _cwToken();
+
+    cToast('📁 กำลังสร้างโฟลเดอร์…');
+    const fId = await _cwFindOrMakeFolder(baseName);
+
+    cToast('📊 กำลังสร้าง XLSX…');
+    const xlsxBlob = await buildXlsxBlob();
+    const xlsxName = await _cwNextName(baseName, '.xlsx', fId);
+
+    cToast('📄 กำลังสร้าง PDF…');
+    const pdfBlob  = await document.getElementById('frame-1').contentWindow.makePDFBlob();
+    const pdfName  = await _cwNextName(baseName, '.pdf',  fId);
+
+    cToast('⬆️ กำลังอัพโหลด…');
+    await _cwUpload(xlsxBlob, xlsxName, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', fId);
+    await _cwUpload(pdfBlob,  pdfName,  'application/pdf', fId);
+
+    const folderUrl = `https://drive.google.com/drive/folders/${fId}`;
+    cToast(`✅ บันทึกสำเร็จ!\n📊 ${xlsxName}\n📄 ${pdfName}\n📁 ${baseName}`);
+    setTimeout(() => window.open(folderUrl, '_blank'), 2500);
+
+  } catch(e) {
+    cToast('❌ เกิดข้อผิดพลาด: ' + e.message);
+    console.error(e);
+  } finally {
+    btn.classList.remove('loading');
+    btn.textContent = '☁️ บันทึก Drive';
+  }
+}
+</script>
+</body>
+</html>

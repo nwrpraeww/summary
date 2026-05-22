@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Requirement Tracker – HumanSoft</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Anuphan:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <style>
+    :root {
+      --blue:      #1A56DB;
+      --blue-dk:   #1240B0;
+      --blue-lt:   #EEF2FF;
+      --blue-mid:  #BFDBFE;
+      --navy:      #1E40AF;
+      --orange:    #F47B20;
+      --orange-dk: #C85E0F;
+      --orange-lt: #FFF4ED;
+      --green:     #059669;
+      --green-lt:  #D1FAE5;
+      --green-dk:  #065F46;
+      --gray:      #6B7280;
+      --border:    #D1D5DB;
+      --white:     #FFFFFF;
+      --row-alt:   #F8FAFF;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Anuphan', sans-serif;
+      background: #E8EDF8;
+      color: #1A1F2E;
+      font-size: 12px;
+      min-height: 100vh;
+    }
+
+    /* ── CONTROL BAR ───────────────────────────────────────── */
+    .ctrl-bar {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 999;
+      background: white;
+      border-bottom: 1px solid var(--border);
+      box-shadow: 0 2px 8px rgba(0,0,0,.1);
+    }
+
+    .ctrl-top {
+      display: flex; align-items: center; gap: 12px;
+      padding: 7px 20px;
+      flex-wrap: wrap;
+    }
+
+    .ctrl-brand {
+      font-size: 15px; font-weight: 800; color: var(--blue); white-space: nowrap;
+    }
+    .ctrl-brand b { color: var(--orange); }
+
+    .ctrl-sep { height: 22px; width: 1px; background: var(--border); flex-shrink: 0; }
+
+    /* Domain input group */
+    .domain-group {
+      display: flex; align-items: center; gap: 6px;
+      background: var(--blue-lt); border: 1px solid var(--blue-mid);
+      border-radius: 8px; padding: 3px 10px;
+    }
+    .domain-group .grp-label {
+      font-size: 9px; font-weight: 700; color: var(--blue-dk);
+      text-transform: uppercase; letter-spacing: .4px; white-space: nowrap;
+    }
+    .domain-input {
+      border: none; background: transparent;
+      font-family: 'Anuphan', sans-serif; font-size: 12px; font-weight: 600;
+      color: var(--blue); outline: none; width: 200px;
+    }
+    .domain-input::placeholder { color: var(--blue-mid); }
+
+    /* action buttons — same style as timeline */
+    .ctrl-actions { margin-left: auto; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+
+    .btn-act {
+      display: inline-flex; align-items: center; gap: 5px;
+      border-radius: 8px; padding: 6px 13px;
+      font-family: 'Anuphan', sans-serif; font-size: 11px; font-weight: 600;
+      cursor: pointer; white-space: nowrap;
+      border: 1px solid transparent;
+      transition: background .15s, box-shadow .15s, transform .15s;
+      text-decoration: none;
+    }
+    .btn-act:hover  { transform: translateY(-1px); box-shadow: 0 3px 8px rgba(0,0,0,.12); }
+    .btn-act:active { transform: none; box-shadow: none; }
+
+    .btn-add-row { background: var(--green-lt);  color: var(--green-dk);  border-color: #A7F3D0; }
+    .btn-add-row:hover { background: #A7F3D0; }
+
+    .btn-xlsx    { background: var(--green-lt);  color: var(--green-dk);  border-color: #A7F3D0; }
+    .btn-xlsx:hover    { background: #A7F3D0; }
+
+    .btn-drive   { background: #EDE9FE; color: #5B21B6; border-color: #DDD6FE; }
+    .btn-drive:hover   { background: #DDD6FE; }
+
+    /* ── PAGE ─────────────────────────────────────────────── */
+    .page {
+      max-width: 1400px;
+      background: white;
+      margin: 80px auto 40px;
+      box-shadow: 0 4px 24px rgba(0,0,0,.15);
+      overflow: hidden;
+      border-radius: 4px;
+    }
+
+    .top-bar-blue   { height: 5px; background: var(--blue); }
+    .top-bar-orange { height: 3px; background: var(--orange); }
+
+    /* ── DOC HEADER ───────────────────────────────────────── */
+    .doc-header {
+      display: flex; justify-content: space-between; align-items: flex-end;
+      padding: 10px 18px 8px;
+      border-bottom: 2px solid var(--orange);
+    }
+    .doc-header h1 { font-size: 20px; font-weight: 800; color: var(--blue); }
+    .doc-header-right { text-align: right; }
+    .doc-header-right .brand { font-size: 15px; font-weight: 800; color: var(--orange); display: block; }
+    .doc-header-right .doc-sub { font-size: 9px; font-weight: 700; color: var(--gray); display: block; margin-top: 2px; letter-spacing: .4px; text-transform: uppercase; }
+
+    /* ── TABLE WRAPPER ────────────────────────────────────── */
+    .table-wrap { overflow-x: auto; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px;
+      table-layout: fixed;
+      min-width: 1050px;
+    }
+
+    /* Header */
+    thead tr { background: var(--blue); }
+    thead th {
+      color: white;
+      padding: 10px 9px;
+      font-weight: 700;
+      font-size: 11px;
+      border: 0.5px solid rgba(255,255,255,.25);
+      text-align: left;
+      letter-spacing: .3px;
+      user-select: none;
+    }
+
+    /* Sub-header row */
+    thead tr.row-ch th {
+      background: var(--blue-dk);
+      font-size: 10px;
+    }
+
+    /* Body rows */
+    tbody tr:nth-child(even) { background: var(--row-alt); }
+    tbody tr:hover { background: var(--blue-lt) !important; }
+
+    td {
+      border: 0.5px solid var(--border);
+      padding: 4px 7px;
+      vertical-align: top;
+    }
+
+    /* Cell inputs */
+    td input, td textarea {
+      width: 100%;
+      border: none;
+      background: transparent;
+      font-family: 'Anuphan', sans-serif;
+      font-size: 11px;
+      padding: 3px 2px;
+      outline: none;
+      resize: vertical;
+      line-height: 1.55;
+      color: #1A1F2E;
+    }
+    td textarea { min-height: 70px; }
+    td input:focus, td textarea:focus {
+      background: var(--blue-lt);
+      border-radius: 3px;
+    }
+    .num-input { text-align: center; color: var(--gray); font-weight: 700; }
+    .price-input { text-align: right; font-weight: 600; color: var(--blue-dk); }
+
+    /* ── Dropdowns ────────────────────────────────────────── */
+    .type-sel {
+      width: 100%;
+      border: 1px solid var(--blue-mid);
+      border-radius: 14px;
+      background: var(--blue-lt);
+      color: var(--blue-dk);
+      font-family: 'Anuphan', sans-serif;
+      font-size: 10.5px; font-weight: 700;
+      padding: 3px 8px;
+      outline: none; cursor: pointer;
+      -webkit-appearance: none; appearance: none;
+      text-align: center;
+    }
+    .type-sel:focus { box-shadow: 0 0 0 2px var(--blue-mid); }
+
+    .stat-sel {
+      width: 100%;
+      border-radius: 14px;
+      font-family: 'Anuphan', sans-serif;
+      font-size: 10.5px; font-weight: 700;
+      padding: 3px 8px;
+      outline: none; cursor: pointer;
+      -webkit-appearance: none; appearance: none;
+      text-align: center;
+      transition: background .15s;
+    }
+    .stat-sel:focus { box-shadow: 0 0 0 2px rgba(0,0,0,.12); }
+
+    .s-done       { background: var(--green-lt);  color: var(--green-dk);  border: 1px solid #A7F3D0; }
+    .s-inprogress { background: var(--blue-lt);   color: var(--blue-dk);   border: 1px solid var(--blue-mid); }
+    .s-pending    { background: var(--orange-lt);  color: var(--orange-dk); border: 1px solid #FDE8D0; }
+    .s-cancelled  { background: #FEE2E2; color: #991B1B; border: 1px solid #FECACA; }
+    .s-hold       { background: #F3F4F6; color: var(--gray); border: 1px solid var(--border); }
+
+    /* ── Column widths ────────────────────────────────────── */
+    .c-no     { width: 46px; }
+    .c-code   { width: 128px; }
+    .c-topic  { width: 150px; }
+    .c-type   { width: 138px; }
+    .c-price  { width: 90px; }
+    .c-sol    { min-width: 260px; }
+    .c-status { width: 115px; }
+    .c-remark { width: 190px; }
+    .c-del    { width: 36px; }
+
+    /* ── Delete button ────────────────────────────────────── */
+    .btn-del {
+      background: none; border: none;
+      color: #D1D5DB; font-size: 18px;
+      width: 26px; height: 26px;
+      border-radius: 5px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background .15s, color .15s;
+    }
+    .btn-del:hover { background: #FEE2E2; color: #EF4444; }
+
+    /* ── Footer strip ─────────────────────────────────────── */
+    .footer-strip {
+      background: var(--blue-lt);
+      border-top: 1px solid var(--blue-mid);
+      padding: 7px 18px;
+      display: flex; align-items: center; gap: 10px;
+      font-size: 11px; color: var(--blue-dk);
+    }
+    .row-badge {
+      background: var(--blue); color: white;
+      font-size: 10px; font-weight: 700;
+      padding: 2px 10px; border-radius: 10px;
+    }
+
+    /* ── Toast ────────────────────────────────────────────── */
+    .toast-notif {
+      position: fixed; bottom: 24px; right: 24px; z-index: 3000;
+      background: #1A1F2E; color: white;
+      padding: 10px 18px; border-radius: 10px;
+      font-size: 12px; font-weight: 600;
+      display: flex; align-items: center; gap: 8px;
+      box-shadow: 0 4px 16px rgba(0,0,0,.3);
+      transform: translateY(80px); opacity: 0;
+      transition: all .3s ease; pointer-events: none;
+      max-width: 380px; white-space: pre-line;
+    }
+    .toast-notif.show { transform: translateY(0); opacity: 1; }
+
+    .sol-ta { min-height: 105px; }
+  </style>
+</head>
+<body>
+
+<!-- ═══ Control Bar ═══════════════════════════════════════════ -->
+<div class="ctrl-bar">
+  <div class="ctrl-top">
+    <!-- Brand -->
+    <div class="ctrl-brand">Human<b>Soft</b></div>
+    <div class="ctrl-sep"></div>
+
+    <!-- Domain (hidden — synced from combined.html info-strip) -->
+    <input type="hidden" id="domainName" />
+
+    <!-- Actions -->
+    <div class="ctrl-actions">
+      <button class="btn-act btn-add-row" onclick="addRow()">＋ เพิ่มแถว</button>
+      <div style="height:20px;width:1px;background:var(--border);"></div>
+      <button class="btn-act btn-xlsx"    onclick="exportXLSX()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        บันทึก XLSX
+      </button>
+      <a class="btn-act btn-drive"
+         href="https://drive.google.com/drive/u/1/folders/1tdp-vy53x4FXc7PMZr45YUksu2QV_vfr"
+         target="_blank">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+        Google Drive
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ Page ═════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="top-bar-blue"></div>
+  <div class="top-bar-orange"></div>
+
+  <!-- Doc header -->
+  <div class="doc-header">
+    <h1>Requirement List</h1>
+    <div class="doc-header-right">
+      <span class="brand">HumanSoft</span>
+      <span class="doc-sub">Customer Requirements</span>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="table-wrap">
+    <table id="reqTable">
+      <thead>
+        <tr>
+          <th class="c-no">No</th>
+          <th class="c-code">CODE</th>
+          <th class="c-topic">Topic</th>
+          <th class="c-type">Type</th>
+          <th class="c-price">Price</th>
+          <th class="c-sol">Solution</th>
+          <th class="c-status">Status</th>
+          <th class="c-remark">Remark</th>
+          <th class="c-del"></th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+
+  <!-- Footer strip -->
+  <div class="footer-strip">
+    <span class="row-badge" id="badge">0 แถว</span>
+    <span>คลิก <strong>เพิ่มแถว</strong> เพื่อเพิ่มข้อมูล &nbsp;•&nbsp; คลิก <strong>บันทึก XLSX</strong> เพื่อดาวน์โหลดไฟล์ แล้วอัปโหลดไปยัง Google Drive</span>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast-notif" id="toast"></div>
+
+<script>
+/* ─── Options ─────────────────────────────────────────────── */
+const TYPE_OPTS = ['Requirement','Bug','Enhancement','Change Request','Other'];
+const STATUS_OPTS = [
+  { v:'Done',        cls:'s-done'       },
+  { v:'In Progress', cls:'s-inprogress' },
+  { v:'Pending',     cls:'s-pending'    },
+  { v:'Cancelled',   cls:'s-cancelled'  },
+  { v:'On Hold',     cls:'s-hold'       },
+];
+function sCls(v) { return (STATUS_OPTS.find(s=>s.v===v)||{cls:'s-pending'}).cls; }
+
+/* ─── Add Row ─────────────────────────────────────────────── */
+function addRow(d={}) {
+  const tbody = document.getElementById('tbody');
+  const n = tbody.children.length + 1;
+
+  const typeOpts   = TYPE_OPTS.map(t=>`<option${d.type===t?' selected':''}>${t}</option>`).join('');
+  const defSt      = d.status||'Pending';
+  const statusOpts = STATUS_OPTS.map(s=>`<option${defSt===s.v?' selected':''}>${s.v}</option>`).join('');
+
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td class="c-no">
+      <input class="num-input" type="number" value="${d.no??n}" min="1" />
+    </td>
+    <td class="c-code">
+      <input type="text" value="${d.code||''}" placeholder="REQ…" />
+    </td>
+    <td class="c-topic">
+      <textarea rows="2" placeholder="หัวข้อ…">${d.topic||''}</textarea>
+    </td>
+    <td class="c-type" style="padding:7px;">
+      <select class="type-sel">${typeOpts}</select>
+    </td>
+    <td class="c-price">
+      <input class="price-input" type="text" value="${d.price||'฿0.00'}" />
+    </td>
+    <td class="c-sol">
+      <textarea class="sol-ta" rows="6" placeholder="Pain point :\n\nเนื่องจาก :\n1. \n\nSolution :">${d.solution||''}</textarea>
+    </td>
+    <td class="c-status" style="padding:7px;">
+      <select class="stat-sel ${sCls(defSt)}" onchange="updStat(this)">${statusOpts}</select>
+    </td>
+    <td class="c-remark">
+      <textarea rows="3" placeholder="หมายเหตุ…">${d.remark||''}</textarea>
+    </td>
+    <td class="c-del" style="text-align:center;padding-top:6px;">
+      <button class="btn-del" onclick="delRow(this)" title="ลบแถว">×</button>
+    </td>
+  `;
+  tbody.appendChild(tr);
+  updateBadge();
+  tr.querySelector('input[type=text]').focus();
+}
+
+function delRow(btn) {
+  if (!confirm('ต้องการลบแถวนี้หรือไม่?')) return;
+  btn.closest('tr').remove();
+  renumber(); updateBadge();
+}
+
+function renumber() {
+  document.querySelectorAll('#tbody tr').forEach((tr,i)=>{
+    const inp = tr.querySelector('td:first-child input');
+    if (inp) inp.value = i+1;
+  });
+}
+
+function updStat(sel) { sel.className = 'stat-sel '+sCls(sel.value); }
+
+function updateBadge() {
+  const n = document.querySelectorAll('#tbody tr').length;
+  document.getElementById('badge').textContent = `${n} แถว`;
+}
+
+/* ─── Export XLSX ─────────────────────────────────────────── */
+function gcv(cell, sel) { const e=cell.querySelector(sel); return e?e.value.trim():''; }
+
+function exportXLSX() {
+  const domain = document.getElementById('domainName').value.trim() || 'HumanSoft_Report';
+
+  const rows = document.querySelectorAll('#tbody tr');
+  if (!rows.length) { toast('⚠️ ไม่มีข้อมูล กรุณาเพิ่มแถวก่อนบันทึก'); return; }
+
+  const aoa = [['No','CODE','Topic','Type','Price','Solution','Status','Remark']];
+  rows.forEach(tr=>{
+    const td=tr.querySelectorAll('td');
+    aoa.push([gcv(td[0],'input'),gcv(td[1],'input'),gcv(td[2],'textarea'),
+              gcv(td[3],'select'),gcv(td[4],'input'),gcv(td[5],'textarea'),
+              gcv(td[6],'select'),gcv(td[7],'textarea')]);
+  });
+
+  const wb=XLSX.utils.book_new();
+  const ws=XLSX.utils.aoa_to_sheet(aoa);
+
+  ws['!cols']=[{wch:6},{wch:16},{wch:22},{wch:16},{wch:12},{wch:55},{wch:14},{wch:32}];
+  ws['!rows']=[{hpx:26}];
+  for(let i=1;i<=rows.length;i++) ws['!rows'][i]={hpx:90};
+
+  const ref=XLSX.utils.decode_range(ws['!ref']);
+  // Header style
+  for(let C=ref.s.c;C<=ref.e.c;C++){
+    const a=XLSX.utils.encode_cell({r:0,c:C});
+    if(!ws[a]) continue;
+    ws[a].s={
+      fill:{patternType:'solid',fgColor:{rgb:'1A56DB'}},
+      font:{bold:true,color:{rgb:'FFFFFF'},name:'Anuphan',sz:11},
+      alignment:{horizontal:'center',vertical:'center',wrapText:true},
+      border:{top:{style:'thin',color:{rgb:'1240B0'}},bottom:{style:'thin',color:{rgb:'1240B0'}},
+              left:{style:'thin',color:{rgb:'1240B0'}},right:{style:'thin',color:{rgb:'1240B0'}}}
+    };
+  }
+  // Data rows
+  for(let R=1;R<=ref.e.r;R++){
+    const fill=R%2===0?'F8FAFF':'FFFFFF';
+    for(let C=ref.s.c;C<=ref.e.c;C++){
+      const a=XLSX.utils.encode_cell({r:R,c:C});
+      if(!ws[a]) ws[a]={t:'s',v:''};
+      ws[a].s={
+        fill:{patternType:'solid',fgColor:{rgb:fill}},
+        font:{name:'Anuphan',sz:11},
+        alignment:{vertical:'top',wrapText:true},
+        border:{top:{style:'thin',color:{rgb:'D1D5DB'}},bottom:{style:'thin',color:{rgb:'D1D5DB'}},
+                left:{style:'thin',color:{rgb:'D1D5DB'}},right:{style:'thin',color:{rgb:'D1D5DB'}}}
+      };
+    }
+  }
+
+  XLSX.utils.book_append_sheet(wb,ws,'Condition');
+  const fname=`${domain}.xlsx`;
+  XLSX.writeFile(wb,fname,{bookSST:false});
+  toast(`✅ ดาวน์โหลด "${fname}" สำเร็จ!\nกรุณาอัปโหลดไฟล์ไปยัง Google Drive`);
+}
+
+/* ─── Toast ───────────────────────────────────────────────── */
+let toastTimer;
+function toast(msg){
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>el.classList.remove('show'),4500);
+}
+
+/* ─── Init ────────────────────────────────────────────────── */
+addRow();
+
+/* ── setSharedData : receive project info from combined.html ── */
+window.setSharedData = function(domain, company, date, team) {
+  const el = document.getElementById('domainName');
+  if (el && domain !== undefined) el.value = domain;
+};
+
+/* ── getSheetData : expose data to combined.html parent ── */
+window.getSheetData = function() {
+  const domain = document.getElementById('domainName')?.value?.trim() || '';
+  const dataRows = [];
+  document.querySelectorAll('#tbody tr').forEach(tr => {
+    const td = tr.querySelectorAll('td');
+    const code  = gcv(td[1],'input');
+    const topic = gcv(td[2],'textarea');
+    const price = gcv(td[4],'input');
+    const sol   = gcv(td[5],'textarea');
+    const type  = gcv(td[3],'select');
+    const stat  = gcv(td[6],'select');
+    const rem   = gcv(td[7],'textarea');
+    // Skip row if all meaningful fields are empty
+    if (!code && !topic && !price && !sol && !type && !stat && !rem) return;
+    dataRows.push([
+      gcv(td[0],'input'),
+      code, topic, type, price, sol, stat, rem
+    ]);
+  });
+  if (!dataRows.length) return null; // skip sheet if no data
+  const rows = [['No','CODE','Topic','Type','Price','Solution','Status','Remark']];
+  dataRows.forEach(r => rows.push(r));
+  return { sheetName: 'Requirement Tracker', data: rows, domain };
+};
+
+/* ── Embedded mode: hide duplicate action buttons ── */
+if (new URLSearchParams(location.search).get('embedded')) {
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.btn-xlsx, .btn-drive').forEach(el => el.style.display = 'none');
+    // also hide the separator between add-row and save buttons
+    document.querySelectorAll('.ctrl-actions > div').forEach(el => el.style.display = 'none');
+  });
+}
+</script>
+</body>
+</html>
