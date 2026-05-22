@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HumanSoft – Document Center</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anuphan:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --blue:      #1A56DB;
+  --blue-dk:   #1240B0;
+  --blue-lt:   #EEF2FF;
+  --blue-mid:  #BFDBFE;
+  --orange:    #F47B20;
+  --orange-dk: #C85E0F;
+  --orange-lt: #FFF4ED;
+  --gray:      #6B7280;
+  --gray-lt:   #F3F4F6;
+  --border:    #E5E7EB;
+  --body:      #1A1F2E;
+  --white:     #FFFFFF;
+  --green:     #059669;
+  --green-lt:  #D1FAE5;
+  --shadow-sm: 0 1px 4px rgba(0,0,0,.08);
+  --shadow-md: 0 4px 16px rgba(0,0,0,.12);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,.15);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Anuphan', sans-serif;
+  background: #F0F4FF;
+  color: var(--body);
+  min-height: 100vh;
+}
+
+/* ── TOP BAR ── */
+.topbar {
+  height: 5px;
+  background: linear-gradient(90deg, var(--blue) 70%, var(--orange) 100%);
+}
+
+/* ── NAV ── */
+nav {
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+  padding: 0 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 60px;
+  box-shadow: var(--shadow-sm);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.nav-logo {
+  width: 36px;
+  height: 36px;
+  background: var(--blue);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 800;
+  color: white;
+  letter-spacing: -1px;
+}
+
+.nav-name {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--blue);
+}
+.nav-name span { color: var(--orange); }
+
+.nav-sub {
+  font-size: 11px;
+  color: var(--gray);
+  border-left: 1px solid var(--border);
+  padding-left: 12px;
+  margin-left: 4px;
+}
+
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.nav-pill {
+  background: var(--blue-lt);
+  color: var(--blue);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 20px;
+  border: 1px solid var(--blue-mid);
+}
+
+/* ── MAIN ── */
+main {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 40px 24px 80px;
+}
+
+/* ── HERO ── */
+.hero {
+  text-align: center;
+  margin-bottom: 48px;
+}
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--orange-lt);
+  color: var(--orange-dk);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 14px;
+  border-radius: 20px;
+  border: 1px solid #FDE8D0;
+  margin-bottom: 16px;
+}
+
+.hero h1 {
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--blue-dk);
+  margin-bottom: 10px;
+  line-height: 1.2;
+}
+
+.hero p {
+  font-size: 15px;
+  color: var(--gray);
+  max-width: 480px;
+  margin: 0 auto;
+  line-height: 1.7;
+}
+
+/* ── SEARCH BAR ── */
+.search-wrap {
+  max-width: 480px;
+  margin: 24px auto 0;
+  position: relative;
+}
+
+.search-wrap input {
+  width: 100%;
+  padding: 12px 16px 12px 44px;
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  font-family: 'Anuphan', sans-serif;
+  font-size: 14px;
+  background: white;
+  color: var(--body);
+  outline: none;
+  transition: border-color .2s, box-shadow .2s;
+}
+
+.search-wrap input:focus {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(26,86,219,.1);
+}
+
+.search-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--gray);
+  font-size: 16px;
+  pointer-events: none;
+}
+
+/* ── SECTION TITLE ── */
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.section-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--blue-dk);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.section-count {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--gray);
+  background: var(--gray-lt);
+  padding: 2px 10px;
+  border-radius: 20px;
+}
+
+/* ── GRID ── */
+.doc-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+  margin-bottom: 48px;
+}
+
+/* ── CARD ── */
+.doc-card {
+  background: white;
+  border-radius: 16px;
+  border: 1.5px solid var(--border);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  transition: transform .2s, box-shadow .2s, border-color .2s;
+  cursor: default;
+}
+
+.doc-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--blue-mid);
+}
+
+.card-top {
+  background: linear-gradient(135deg, var(--blue) 0%, var(--blue-dk) 100%);
+  padding: 20px 20px 16px;
+  position: relative;
+  overflow: hidden;
+}
+
+.card-top::before {
+  content: '';
+  position: absolute;
+  top: -20px; right: -20px;
+  width: 80px; height: 80px;
+  background: rgba(255,255,255,.08);
+  border-radius: 50%;
+}
+
+.card-top::after {
+  content: '';
+  position: absolute;
+  bottom: -30px; right: 20px;
+  width: 60px; height: 60px;
+  background: rgba(255,255,255,.06);
+  border-radius: 50%;
+}
+
+.card-top.orange-theme {
+  background: linear-gradient(135deg, var(--orange) 0%, var(--orange-dk) 100%);
+}
+
+.card-top.green-theme {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+}
+
+.card-icon {
+  font-size: 28px;
+  margin-bottom: 10px;
+  display: block;
+  position: relative;
+  z-index: 1;
+}
+
+.card-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: white;
+  line-height: 1.3;
+  position: relative;
+  z-index: 1;
+}
+
+.card-desc {
+  font-size: 11px;
+  color: rgba(255,255,255,.75);
+  margin-top: 4px;
+  position: relative;
+  z-index: 1;
+}
+
+.card-body {
+  padding: 16px 20px 20px;
+}
+
+.card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.tag {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: var(--blue-lt);
+  color: var(--blue);
+  border: 1px solid var(--blue-mid);
+}
+
+.tag.orange { background: var(--orange-lt); color: var(--orange-dk); border-color: #FDE8D0; }
+.tag.green  { background: var(--green-lt);  color: var(--green);     border-color: #A7F3D0; }
+.tag.gray   { background: var(--gray-lt);   color: var(--gray);      border-color: var(--border); }
+
+/* ── EXPORT BUTTONS ── */
+.export-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--gray);
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  margin-bottom: 8px;
+}
+
+.btn-group {
+  display: flex;
+  gap: 8px;
+}
+
+.btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-family: 'Anuphan', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all .18s;
+  text-decoration: none;
+}
+
+.btn-pdf {
+  background: #FEE2E2;
+  color: #B91C1C;
+  border: 1.5px solid #FECACA;
+}
+.btn-pdf:hover {
+  background: #B91C1C;
+  color: white;
+  border-color: #B91C1C;
+}
+
+.btn-excel {
+  background: #D1FAE5;
+  color: #065F46;
+  border: 1.5px solid #A7F3D0;
+}
+.btn-excel:hover {
+  background: #059669;
+  color: white;
+  border-color: #059669;
+}
+
+.btn-primary {
+  background: var(--blue);
+  color: white;
+  border: 1.5px solid var(--blue);
+}
+.btn-primary:hover {
+  background: var(--blue-dk);
+  border-color: var(--blue-dk);
+}
+
+/* ── ADD CARD ── */
+.add-card {
+  background: white;
+  border-radius: 16px;
+  border: 2px dashed var(--border);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 40px 20px;
+  cursor: pointer;
+  transition: all .2s;
+  min-height: 220px;
+  color: var(--gray);
+}
+
+.add-card:hover {
+  border-color: var(--blue);
+  background: var(--blue-lt);
+  color: var(--blue);
+}
+
+.add-card .add-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: var(--gray-lt);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  transition: background .2s;
+}
+
+.add-card:hover .add-icon {
+  background: var(--blue-mid);
+}
+
+.add-card span {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* ── MODAL ── */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.45);
+  backdrop-filter: blur(4px);
+  z-index: 500;
+  align-items: center;
+  justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+
+.modal {
+  background: white;
+  border-radius: 20px;
+  width: 460px;
+  max-width: 95vw;
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+  animation: slideUp .25s ease;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.modal-header {
+  background: linear-gradient(135deg, var(--blue) 0%, var(--blue-dk) 100%);
+  padding: 20px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.modal-header h2 { font-size: 16px; font-weight: 700; color: white; }
+
+.modal-close {
+  background: rgba(255,255,255,.2);
+  border: none;
+  color: white;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.modal-close:hover { background: rgba(255,255,255,.35); }
+
+.modal-body { padding: 24px; }
+
+.form-group { margin-bottom: 16px; }
+.form-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--blue-dk);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: .4px;
+}
+
+.form-input {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  font-family: 'Anuphan', sans-serif;
+  font-size: 14px;
+  color: var(--body);
+  outline: none;
+  transition: border-color .2s, box-shadow .2s;
+}
+.form-input:focus {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(26,86,219,.1);
+}
+
+.color-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.color-opt {
+  padding: 10px;
+  border-radius: 10px;
+  border: 2px solid var(--border);
+  cursor: pointer;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 600;
+  transition: all .15s;
+}
+.color-opt:hover,
+.color-opt.selected { border-color: var(--blue); background: var(--blue-lt); }
+.color-opt.blue-opt { color: var(--blue); }
+.color-opt.orange-opt { color: var(--orange-dk); }
+.color-opt.green-opt  { color: var(--green); }
+
+.modal-footer {
+  padding: 16px 24px 24px;
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.btn-cancel {
+  padding: 10px 20px;
+  border-radius: 10px;
+  border: 1.5px solid var(--border);
+  background: white;
+  font-family: 'Anuphan', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--gray);
+  cursor: pointer;
+}
+.btn-cancel:hover { background: var(--gray-lt); }
+
+.btn-save {
+  padding: 10px 20px;
+  border-radius: 10px;
+  border: none;
+  background: var(--blue);
+  font-family: 'Anuphan', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: white;
+  cursor: pointer;
+  transition: background .15s;
+}
+.btn-save:hover { background: var(--blue-dk); }
+
+/* ── TOAST ── */
+.toast {
+  position: fixed;
+  bottom: 32px;
+  right: 32px;
+  background: #1A1F2E;
+  color: white;
+  padding: 12px 20px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: var(--shadow-lg);
+  z-index: 999;
+  transform: translateY(80px);
+  opacity: 0;
+  transition: all .3s ease;
+}
+.toast.show { transform: translateY(0); opacity: 1; }
+.toast-icon { font-size: 16px; }
+
+/* ── FOOTER ── */
+footer {
+  border-top: 1px solid var(--border);
+  padding: 20px 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: white;
+}
+
+.footer-brand {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--blue);
+}
+.footer-brand span { color: var(--orange); }
+
+.footer-copy {
+  font-size: 11px;
+  color: var(--gray);
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 600px) {
+  nav { padding: 0 16px; }
+  .nav-sub { display: none; }
+  main { padding: 24px 16px 60px; }
+  .hero h1 { font-size: 24px; }
+  footer { flex-direction: column; gap: 8px; text-align: center; }
+}
+</style>
+</head>
+<body>
+
+<!-- Top bar -->
+<div class="topbar"></div>
+
+<!-- Nav -->
+<nav>
+  <div class="nav-brand">
+    <div class="nav-logo">HS</div>
+    <div>
+      <div class="nav-name">Human<span>Soft</span></div>
+    </div>
+    <div class="nav-sub">Document Center</div>
+  </div>
+  <div class="nav-right">
+    <div class="nav-pill" id="docCount">📄 2 เอกสาร</div>
+  </div>
+</nav>
+
+<!-- Main -->
+<main>
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="hero-badge">✦ ระบบออกเอกสาร</div>
+    <h1>เลือกเอกสารที่ต้องการ</h1>
+    <p>เลือกประเภทเอกสาร แล้ว Export เป็น PDF หรือ Excel ได้ทันที</p>
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="searchInput" placeholder="ค้นหาเอกสาร...">
+    </div>
+  </div>
+
+  <!-- Section -->
+  <div class="section-header">
+    <div class="section-title">
+      📂 เอกสารทั้งหมด
+    </div>
+    <div class="section-count" id="visibleCount">1 รายการ</div>
+  </div>
+
+  <!-- Grid -->
+  <div class="doc-grid" id="docGrid">
+
+    <!-- Card: Customer Requirement Report -->
+    <div class="doc-card" data-name="Customer Requirement Report">
+      <div class="card-top">
+        <span class="card-icon">🎯</span>
+        <div class="card-title">Customer Requirement Report</div>
+        <div class="card-desc">สรุป Pain Point และ Solution ของลูกค้า</div>
+      </div>
+      <div class="card-body">
+        <div class="card-meta">
+          <span class="tag">FM-SE-03</span>
+          <span class="tag orange">HumanSoft</span>
+          <span class="tag green">พร้อมใช้งาน</span>
+        </div>
+        <div class="export-label">เปิดเอกสาร</div>
+        <div class="btn-group">
+          <button class="btn btn-pdf" onclick="exportDoc('customer-requirement', 'html')" style="background:#EEF2FF;color:#1240B0;border-color:#BFDBFE;">
+            🗂️ สร้าง / แก้ไข
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card: Implementation Timeline -->
+    <div class="doc-card" data-name="Implementation Timeline">
+      <div class="card-top" style="background: linear-gradient(135deg,#1E40AF 0%,#1A56DB 100%);">
+        <span class="card-icon">📅</span>
+        <div class="card-title">Implementation Timeline</div>
+        <div class="card-desc">Gantt chart ตารางแผนการดำเนินงาน</div>
+      </div>
+      <div class="card-body">
+        <div class="card-meta">
+          <span class="tag">FM-SE-04</span>
+          <span class="tag orange">HumanSoft</span>
+          <span class="tag green">พร้อมใช้งาน</span>
+        </div>
+        <div class="export-label">เปิดเอกสาร</div>
+        <div class="btn-group">
+          <button class="btn btn-pdf" onclick="exportDoc('timeline', 'html')" style="background:#EEF2FF;color:#1240B0;border-color:#BFDBFE;">
+            🗂️ สร้าง / แก้ไข
+          </button>
+        </div>
+      </div>
+    </div>
+
+
+  </div>
+
+</main>
+
+<!-- Footer -->
+<footer>
+  <div class="footer-brand">Human<span>Soft</span></div>
+  <div class="footer-copy">© 2569 HumanSoft Co., Ltd. — FM-SE-03</div>
+</footer>
+
+<!-- Modal: Add document -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModalOutside(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>➕ เพิ่มประเภทเอกสารใหม่</h2>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">ชื่อเอกสาร *</label>
+        <input class="form-input" id="docName" type="text" placeholder="เช่น Quotation, Proposal...">
+      </div>
+      <div class="form-group">
+        <label class="form-label">คำอธิบาย</label>
+        <input class="form-input" id="docDesc" type="text" placeholder="คำอธิบายสั้น ๆ ของเอกสาร">
+      </div>
+      <div class="form-group">
+        <label class="form-label">ไอคอน</label>
+        <input class="form-input" id="docIcon" type="text" placeholder="Emoji เช่น 📋 💼 📑" maxlength="4">
+      </div>
+      <div class="form-group">
+        <label class="form-label">สีธีม</label>
+        <div class="color-grid">
+          <div class="color-opt blue-opt selected" data-color="blue" onclick="selectColor(this)">🔵 Navy Blue</div>
+          <div class="color-opt orange-opt" data-color="orange" onclick="selectColor(this)">🟠 Orange</div>
+          <div class="color-opt green-opt" data-color="green" onclick="selectColor(this)">🟢 Green</div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal()">ยกเลิก</button>
+      <button class="btn-save" onclick="addDocument()">✓ เพิ่มเอกสาร</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast">
+  <span class="toast-icon" id="toastIcon">✅</span>
+  <span id="toastMsg">สำเร็จ</span>
+</div>
+
+<script>
+/* ── DATA ── */
+let customDocs = [];
+let selectedColor = 'blue';
+
+/* ── MODAL ── */
+function openModal() {
+  document.getElementById('modalOverlay').classList.add('open');
+  document.getElementById('docName').focus();
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('open');
+  document.getElementById('docName').value = '';
+  document.getElementById('docDesc').value = '';
+  document.getElementById('docIcon').value = '';
+  selectedColor = 'blue';
+  document.querySelectorAll('.color-opt').forEach(el => el.classList.remove('selected'));
+  document.querySelector('[data-color="blue"]').classList.add('selected');
+}
+
+function closeModalOutside(e) {
+  if (e.target === document.getElementById('modalOverlay')) closeModal();
+}
+
+function selectColor(el) {
+  document.querySelectorAll('.color-opt').forEach(x => x.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedColor = el.dataset.color;
+}
+
+/* ── ADD DOC ── */
+function addDocument() {
+  const name = document.getElementById('docName').value.trim();
+  if (!name) {
+    document.getElementById('docName').focus();
+    showToast('⚠️', 'กรุณาใส่ชื่อเอกสาร');
+    return;
+  }
+
+  const desc = document.getElementById('docDesc').value.trim() || 'เอกสารที่เพิ่มโดยผู้ใช้';
+  const icon = document.getElementById('docIcon').value.trim() || '📋';
+  const color = selectedColor;
+  const id = 'custom-' + Date.now();
+
+  customDocs.push({ id, name, desc, icon, color });
+  renderCustomCards();
+  updateCount();
+  closeModal();
+  showToast('✅', `เพิ่ม "${name}" แล้ว`);
+}
+
+/* ── RENDER ── */
+function renderCustomCards() {
+  // Remove old custom cards
+  document.querySelectorAll('.custom-card').forEach(el => el.remove());
+
+  const grid = document.getElementById('docGrid');
+  const addCard = grid.querySelector('.add-card');
+
+  customDocs.forEach(doc => {
+    const themeClass = doc.color === 'orange' ? 'orange-theme' : doc.color === 'green' ? 'green-theme' : '';
+    const card = document.createElement('div');
+    card.className = 'doc-card custom-card';
+    card.dataset.name = doc.name;
+    card.innerHTML = `
+      <div class="card-top ${themeClass}">
+        <span class="card-icon">${doc.icon}</span>
+        <div class="card-title">${doc.name}</div>
+        <div class="card-desc">${doc.desc}</div>
+      </div>
+      <div class="card-body">
+        <div class="card-meta">
+          <span class="tag ${doc.color === 'orange' ? 'orange' : doc.color === 'green' ? 'green' : ''}">Custom</span>
+          <span class="tag green">พร้อมใช้งาน</span>
+        </div>
+        <div class="export-label">Export เป็น</div>
+        <div class="btn-group">
+          <button class="btn btn-pdf" onclick="exportDoc('${doc.id}', 'pdf')">📄 PDF</button>
+          <button class="btn btn-excel" onclick="exportDoc('${doc.id}', 'xlsx')">📊 Excel</button>
+        </div>
+      </div>
+    `;
+    grid.insertBefore(card, addCard);
+  });
+}
+
+/* ── EXPORT ── */
+function exportDoc(id, format) {
+  const fileMap = {
+    'customer-requirement': {
+      html: 'https://nwrpraeww.github.io/summary/',
+      pdf:  'sample_output_preview.pdf',
+      xlsx: 'sample_output_preview.xlsx'
+    },
+    'timeline': {
+      html: 'timeline_template.html',
+      pdf:  'timeline_template.html'
+    }
+  };
+
+  if (fileMap[id]) {
+    const filename = fileMap[id][format];
+    if (format === 'html') {
+      showToast('🗂️', 'กำลังเปิดเอกสาร...');
+      setTimeout(() => { window.open(filename, '_blank'); }, 300);
+    } else if (id === 'timeline' && format === 'pdf') {
+      showToast('🖨️', 'เปิดไฟล์แล้วกด พิมพ์ / PDF ในหน้าเอกสาร');
+      setTimeout(() => { window.open(filename, '_blank'); }, 300);
+    } else {
+      showToast('⬇️', `กำลัง Export ${format.toUpperCase()}: ${filename}`);
+      setTimeout(() => {
+        const link = document.createElement('a');
+        link.href = filename;
+        link.download = filename;
+        link.click();
+      }, 400);
+    }
+  } else {
+    showToast('📄', `Export ${format.toUpperCase()} — ยังไม่มีไฟล์เชื่อมต่อ`);
+  }
+}
+
+/* ── SEARCH ── */
+document.getElementById('searchInput').addEventListener('input', function() {
+  const q = this.value.toLowerCase();
+  const cards = document.querySelectorAll('.doc-card');
+  let visible = 0;
+  cards.forEach(card => {
+    const match = card.dataset.name.toLowerCase().includes(q);
+    card.style.display = match ? '' : 'none';
+    if (match) visible++;
+  });
+  document.getElementById('visibleCount').textContent = (visible) + ' รายการ';
+});
+
+/* ── COUNT ── */
+function updateCount() {
+  const total = 2 + customDocs.length;
+  document.getElementById('docCount').textContent = '📄 ' + total + ' เอกสาร';
+  document.getElementById('visibleCount').textContent = (total) + ' รายการ';
+}
+
+/* ── TOAST ── */
+function showToast(icon, msg) {
+  const toast = document.getElementById('toast');
+  document.getElementById('toastIcon').textContent = icon;
+  document.getElementById('toastMsg').textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+/* ── KEYBOARD ── */
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeModal();
+  if (e.key === 'Enter' && document.getElementById('modalOverlay').classList.contains('open')) {
+    addDocument();
+  }
+});
+</script>
+</body>
+</html>

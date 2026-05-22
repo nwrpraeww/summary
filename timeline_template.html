@@ -1,0 +1,1019 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Timeline – HumanSoft</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anuphan:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root {
+  --blue:      #1A56DB;
+  --blue-dk:   #1240B0;
+  --blue-lt:   #EEF2FF;
+  --blue-mid:  #BFDBFE;
+  --navy:      #1E40AF;
+  --orange:    #F47B20;
+  --orange-dk: #C85E0F;
+  --orange-lt: #FFF4ED;
+  --green:     #059669;
+  --green-lt:  #D1FAE5;
+  --gray:      #6B7280;
+  --border:    #D1D5DB;
+  --white:     #FFFFFF;
+  --row-alt:   #F8FAFF;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Anuphan', sans-serif; background: #E8EDF8; color: #1A1F2E; font-size: 11px; }
+
+/* ── TOP CONTROL BAR ── */
+.ctrl-bar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 999;
+  background: white;
+  border-bottom: 1px solid var(--border);
+  box-shadow: 0 2px 8px rgba(0,0,0,.1);
+}
+.ctrl-top {
+  display: flex; align-items: center; gap: 12px;
+  padding: 7px 20px;
+  border-bottom: 1px solid #F3F4F6;
+  flex-wrap: wrap;
+}
+.ctrl-brand { font-size: 15px; font-weight: 800; color: var(--blue); white-space: nowrap; }
+.ctrl-brand b { color: var(--orange); }
+.ctrl-sep { height: 22px; width: 1px; background: var(--border); flex-shrink: 0; }
+
+/* month range controls */
+.month-ctrl {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+}
+.month-ctrl label {
+  font-size: 10px; color: var(--gray); font-weight: 700;
+  text-transform: uppercase; letter-spacing: .4px; white-space: nowrap;
+}
+.month-ctrl select {
+  border: 1px solid var(--border); border-radius: 6px;
+  padding: 4px 8px; font-family: 'Anuphan', sans-serif; font-size: 11px;
+  background: white; color: #1A1F2E; cursor: pointer; outline: none;
+}
+.month-ctrl select:focus { border-color: var(--blue); }
+
+/* each start/end group sits in its own pill */
+.month-group {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--blue-lt); border: 1px solid var(--blue-mid);
+  border-radius: 8px; padding: 3px 8px;
+}
+.month-group .grp-label {
+  font-size: 9px; font-weight: 700; color: var(--blue-dk);
+  text-transform: uppercase; letter-spacing: .4px; white-space: nowrap;
+  margin-right: 2px;
+}
+.btn-arrow {
+  background: white; color: var(--blue-dk);
+  border: 1px solid var(--blue-mid); border-radius: 5px;
+  width: 24px; height: 24px; font-size: 13px; font-weight: 700;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; line-height: 1;
+}
+.btn-arrow:hover { background: var(--blue); color: white; border-color: var(--blue); }
+.month-arrow { font-size: 11px; color: var(--gray); font-weight: 600; padding: 0 2px; }
+/* keep old class for compat */
+.btn-month {
+  background: var(--blue-lt); color: var(--blue-dk);
+  border: 1px solid var(--blue-mid); border-radius: 6px;
+  padding: 4px 10px; font-family: 'Anuphan', sans-serif;
+  font-size: 11px; font-weight: 700; cursor: pointer; white-space: nowrap;
+}
+.btn-month:hover { background: var(--blue-mid); }
+.btn-month.danger { background: #FEE2E2; color: #991B1B; border-color: #FECACA; }
+.btn-month.danger:hover { background: #FECACA; }
+
+.ctrl-actions { margin-left: auto; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.ctrl-divider { height: 20px; width: 1px; background: var(--border); margin: 0 2px; }
+
+/* action buttons */
+.btn-act {
+  display: flex; align-items: center; gap: 5px;
+  border-radius: 8px; padding: 6px 12px;
+  font-family: 'Anuphan', sans-serif; font-size: 11px; font-weight: 600;
+  cursor: pointer; white-space: nowrap; border: 1px solid transparent;
+}
+.btn-preview  { background: #F3F4F6; color: #374151; border-color: var(--border); }
+.btn-preview:hover  { background: #E5E7EB; }
+.btn-import   { background: var(--orange-lt); color: var(--orange-dk); border-color: #FDE8D0; }
+.btn-import:hover   { background: #FDE8D0; }
+.btn-xlsx     { background: #D1FAE5; color: #065F46; border-color: #A7F3D0; }
+.btn-xlsx:hover     { background: #A7F3D0; }
+.btn-pdf      { background: #FEE2E2; color: #991B1B; border-color: #FECACA; }
+.btn-pdf:hover      { background: #FECACA; }
+.btn-drive    { background: #EDE9FE; color: #5B21B6; border-color: #DDD6FE; }
+.btn-drive:hover    { background: #DDD6FE; }
+.btn-add-section { background: var(--blue-lt); color: var(--blue-dk); border-color: var(--blue-mid); }
+.btn-add-section:hover { background: var(--blue-mid); }
+.btn-add-row  { background: var(--green-lt); color: #065F46; border-color: #A7F3D0; }
+.btn-add-row:hover  { background: #A7F3D0; }
+
+/* ── PREVIEW MODAL ── */
+.preview-overlay {
+  display: none; position: fixed; inset: 0; z-index: 2000;
+  background: rgba(15,23,42,.75); backdrop-filter: blur(4px);
+  overflow-y: auto;
+}
+.preview-overlay.open { display: block; }
+.preview-bar {
+  position: sticky; top: 0; z-index: 10;
+  background: #1A1F2E; padding: 10px 20px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.preview-bar-title { color: white; font-size: 13px; font-weight: 700; }
+.preview-bar-actions { display: flex; gap: 8px; }
+.btn-preview-print {
+  background: var(--blue); color: white; border: none;
+  padding: 7px 16px; border-radius: 8px;
+  font-family: 'Anuphan', sans-serif; font-size: 12px; font-weight: 600; cursor: pointer;
+}
+.btn-preview-close {
+  background: rgba(255,255,255,.15); color: white; border: none;
+  padding: 7px 14px; border-radius: 8px;
+  font-family: 'Anuphan', sans-serif; font-size: 12px; font-weight: 600; cursor: pointer;
+}
+.preview-content {
+  max-width: 1200px; margin: 24px auto 40px;
+  background: white; border-radius: 12px;
+  overflow: hidden; box-shadow: 0 8px 32px rgba(0,0,0,.3);
+}
+
+/* ── TOAST ── */
+.toast-notif {
+  position: fixed; bottom: 24px; right: 24px; z-index: 3000;
+  background: #1A1F2E; color: white;
+  padding: 10px 18px; border-radius: 10px;
+  font-size: 12px; font-weight: 600;
+  display: flex; align-items: center; gap: 8px;
+  box-shadow: 0 4px 16px rgba(0,0,0,.3);
+  transform: translateY(80px); opacity: 0;
+  transition: all .3s ease; pointer-events: none;
+}
+.toast-notif.show { transform: translateY(0); opacity: 1; }
+
+/* ── PAGE ── */
+.page {
+  width: max-content; min-width: 100%;
+  background: white;
+  margin: 74px auto 32px;
+  box-shadow: 0 4px 24px rgba(0,0,0,.18);
+  overflow: hidden;
+}
+.top-bar-blue   { height: 5px; background: var(--blue); }
+.top-bar-orange { height: 3px; background: var(--orange); }
+
+/* ── DOC HEADER ── */
+.doc-header {
+  display: flex; justify-content: space-between; align-items: flex-end;
+  padding: 8px 16px 7px;
+  border-bottom: 2px solid var(--orange);
+}
+.doc-header h1 { font-size: 20px; font-weight: 800; color: var(--blue); }
+.doc-header-right { text-align: right; }
+.doc-header-right .brand { font-size: 15px; font-weight: 800; color: var(--orange); display: block; }
+.doc-header-right .doc-id { font-size: 9px; font-weight: 700; color: var(--orange); display: block; margin-top: 1px; }
+.doc-header-right .doc-dt { font-size: 8px; color: var(--gray); display: block; margin-top: 1px; }
+
+/* ── META STRIP ── */
+.meta-strip {
+  display: flex; gap: 28px; flex-wrap: wrap;
+  background: var(--blue-lt); padding: 6px 16px;
+  border-bottom: 1px solid var(--blue-mid);
+}
+.meta-item { display: flex; flex-direction: column; gap: 1px; }
+.meta-lbl { font-size: 7px; font-weight: 700; color: var(--blue-dk); text-transform: uppercase; letter-spacing: .5px; }
+.meta-val {
+  font-size: 12px; font-weight: 600; color: var(--blue);
+  border-bottom: 1px solid var(--blue-mid);
+  min-width: 110px; padding-bottom: 1px; outline: none;
+}
+.meta-val:focus { border-color: var(--blue); background: #F0F8FF; }
+
+/* ── LEGEND ── */
+.legend {
+  display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+  padding: 5px 16px; border-bottom: 1px solid var(--border); background: #FAFBFF;
+}
+.legend-title { font-size: 9px; font-weight: 700; color: var(--gray); text-transform: uppercase; letter-spacing: .5px; }
+.legend-item { display: flex; align-items: center; gap: 5px; font-size: 10px; font-weight: 600; }
+.legend-box { width: 18px; height: 11px; border-radius: 2px; }
+.legend-box.hs { background: var(--blue); }
+.legend-box.cl { background: var(--orange); }
+.legend-box.gl { background: var(--green); }
+.legend-box.gray { background: #9CA3AF; }
+
+/* ── TABLE ── */
+.table-wrap { overflow-x: auto; }
+table { border-collapse: collapse; font-size: 10px; }
+
+/* col widths */
+.c-no   { width: 28px; min-width: 28px; }
+.c-resp { width: 90px; min-width: 90px; }
+.c-task { width: 200px; min-width: 200px; }
+.c-stat { width: 95px; min-width: 95px; }
+.c-wk   { width: 22px; min-width: 22px; }
+
+/* header rows */
+.row-q th, .row-m th, .row-w th, .row-ch th {
+  border: 0.5px solid rgba(255,255,255,.25);
+  padding: 3px 2px; white-space: nowrap;
+}
+.row-q th  { background: var(--blue); color: white; font-size: 10px; font-weight: 700; text-align: center; padding: 4px 4px; }
+.row-m th  { background: var(--navy); color: white; font-size: 9px; font-weight: 600; text-align: center; }
+.row-w th  { background: var(--blue-lt); color: var(--blue-dk); font-size: 8px; font-weight: 700; text-align: center; border-color: var(--blue-mid); }
+.row-ch th { background: var(--blue-dk); color: white; font-size: 9px; font-weight: 700; text-align: center; padding: 5px 4px; }
+.row-ch th.th-task { text-align: left; padding-left: 8px; }
+
+.hdr-fixed { text-align: left !important; padding-left: 6px !important; }
+
+/* data rows */
+tr.row-data td {
+  border: 0.5px solid var(--border);
+  height: 26px; padding: 2px 4px;
+  vertical-align: middle;
+}
+tr.row-data.alt td { background: var(--row-alt); }
+tr.row-data.alt td.gantt { background: #F5F8FF; }
+
+tr.row-section td {
+  background: var(--blue-lt); color: var(--blue-dk);
+  font-weight: 700; font-size: 10px;
+  padding: 4px 8px; border: 0.5px solid var(--blue-mid);
+}
+
+/* ── DROPDOWNS ── */
+select.sel-resp, select.sel-status {
+  width: 100%; border: none; outline: none;
+  background: transparent; font-family: 'Anuphan', sans-serif;
+  font-size: 10px; font-weight: 700; cursor: pointer;
+  border-radius: 4px; padding: 2px 2px;
+  -webkit-appearance: none; appearance: none;
+  text-align: center;
+}
+/* resp colors */
+select.sel-resp[data-v="hs"] { background: var(--blue-lt); color: var(--blue-dk); }
+select.sel-resp[data-v="cl"] { background: var(--orange-lt); color: var(--orange-dk); }
+select.sel-resp[data-v="both"] { background: #F0F4FF; color: var(--blue-dk); }
+select.sel-resp[data-v=""] { background: transparent; color: var(--gray); }
+
+/* status colors */
+select.sel-status[data-v="ns"] { background: #FEE2E2; color: #991B1B; }
+select.sel-status[data-v="ip"] { background: #FEF3C7; color: #92400E; }
+select.sel-status[data-v="dn"] { background: var(--green-lt); color: #065F46; }
+select.sel-status[data-v=""]  { background: transparent; color: var(--gray); }
+
+td.td-resp { padding: 2px 4px !important; }
+td.td-stat { padding: 2px 4px !important; }
+
+/* task cell */
+td.td-task { font-size: 10px; white-space: normal; line-height: 1.35; }
+td.td-task[contenteditable="true"]:focus { outline: 1px solid var(--blue); background: #F0F8FF; }
+.indent1 { padding-left: 14px !important; }
+.indent2 { padding-left: 22px !important; }
+
+/* gantt cells */
+td.gantt {
+  border: 0.5px solid #E5E7EB; padding: 0;
+  height: 26px; cursor: pointer;
+}
+td.gantt.month-sep-l { border-left: 1.5px solid #9CA3AF !important; }
+td.gantt.bar-hs { background: var(--blue); }
+td.gantt.bar-cl { background: var(--orange); }
+td.gantt.bar-gl { background: var(--green); }
+td.gantt.bar-gr { background: #9CA3AF; }
+tr.row-section td.gantt { background: var(--blue-lt); cursor: default; }
+
+/* delete row button */
+td.td-del {
+  width: 20px; padding: 0 !important; text-align: center;
+  border: 0.5px solid var(--border);
+}
+.btn-del {
+  background: none; border: none; color: #FECACA;
+  font-size: 13px; cursor: pointer; line-height: 1; padding: 2px;
+}
+.btn-del:hover { color: #991B1B; }
+
+/* notes */
+.notes-wrap { padding: 10px 16px 16px; }
+.notes-lbl { font-size: 9px; font-weight: 700; color: var(--blue-dk); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 5px; }
+.notes-box {
+  min-height: 36px; border: 0.5px solid var(--border); border-radius: 6px;
+  padding: 6px 10px; font-size: 10px; line-height: 1.7;
+  color: var(--gray); background: #FAFBFF; outline: none;
+}
+
+/* ── PRINT ── */
+@media print {
+  @page { size: A2 landscape; margin: 8mm; }
+  body { background: white; }
+  .ctrl-bar, .preview-overlay, .toast-notif { display: none !important; }
+  .page { margin: 0; box-shadow: none; width: 100%; }
+  .btn-del { display: none; }
+  td.td-del { display: none; }
+  select.sel-resp, select.sel-status { -webkit-appearance: none; }
+  table { font-size: 8px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ── CONTROL BAR ── -->
+<div class="ctrl-bar">
+  <div class="ctrl-top">
+    <button class="btn-act btn-preview" onclick="window.location.href='homepage.html'" style="gap:4px;">‹ หน้าหลัก</button>
+    <div class="ctrl-sep"></div>
+    <div class="ctrl-brand">Human<b>Soft</b> — Timeline</div>
+    <div class="ctrl-sep"></div>
+
+    <!-- Month range -->
+    <div class="month-ctrl">
+      <label>ช่วงเวลา</label>
+
+      <!-- Start group -->
+      <div class="month-group">
+        <span class="grp-label">เริ่ม</span>
+        <button class="btn-arrow" onclick="shiftStart(-1)" title="ย้อนกลับ 1 เดือน">‹</button>
+        <select id="sel-sm" onchange="rebuildTable()"></select>
+        <select id="sel-sy" onchange="rebuildTable()"></select>
+        <button class="btn-arrow" onclick="shiftStart(1)" title="เลื่อนไป 1 เดือน">›</button>
+      </div>
+
+      <span class="month-arrow">→</span>
+
+      <!-- End group -->
+      <div class="month-group">
+        <span class="grp-label">สิ้นสุด</span>
+        <button class="btn-arrow" onclick="shiftEnd(-1)" title="ย้อนกลับ 1 เดือน">‹</button>
+        <select id="sel-em" onchange="rebuildTable()"></select>
+        <select id="sel-ey" onchange="rebuildTable()"></select>
+        <button class="btn-arrow" onclick="shiftEnd(1)" title="เลื่อนไป 1 เดือน">›</button>
+      </div>
+    </div>
+
+    <div class="ctrl-sep"></div>
+    <div class="ctrl-actions">
+      <!-- Edit -->
+      <button class="btn-act btn-add-section" onclick="addSection()">＋ กลุ่ม</button>
+      <button class="btn-act btn-add-row" onclick="addRow()">＋ แถว</button>
+      <div class="ctrl-divider"></div>
+      <!-- View / Export -->
+      <button class="btn-act btn-preview" onclick="openPreview()">👁 พรีวิว</button>
+      <button class="btn-act btn-import" onclick="triggerImport()">📥 นำเข้า XLSX</button>
+      <button class="btn-act btn-xlsx" onclick="exportXLSX()">📊 บันทึก XLSX</button>
+      <button class="btn-act btn-pdf" onclick="exportPDF()">📄 Export PDF</button>
+      <button class="btn-act btn-drive" onclick="saveToDrive()">☁️ Save to Drive</button>
+    </div>
+    <input type="file" id="import-input" accept=".xlsx" style="display:none" onchange="handleImport(event)">
+  </div>
+</div>
+
+<!-- ── PAGE ── -->
+<div class="page">
+  <div class="top-bar-blue"></div>
+  <div class="top-bar-orange"></div>
+
+  <!-- Header -->
+  <div class="doc-header">
+    <h1>Implementation Timeline</h1>
+    <div class="doc-header-right">
+      <span class="brand">HumanSoft</span>
+      <span class="doc-id">FM-SE-04</span>
+      <span class="doc-dt">วันที่เริ่มใช้/ แก้ไข : 22 พ.ค. 2569 / 00</span>
+    </div>
+  </div>
+
+  <!-- Meta -->
+  <div class="meta-strip">
+    <div class="meta-item">
+      <span class="meta-lbl">Domain</span>
+      <span class="meta-val" contenteditable="true">&nbsp;</span>
+    </div>
+    <div class="meta-item">
+      <span class="meta-lbl">บริษัท (Company)</span>
+      <span class="meta-val" contenteditable="true">&nbsp;</span>
+    </div>
+    <div class="meta-item">
+      <span class="meta-lbl">วันที่อัปเดต</span>
+      <span class="meta-val" contenteditable="true" id="f-date">&nbsp;</span>
+    </div>
+    <div class="meta-item">
+      <span class="meta-lbl">Sale / ผู้รับผิดชอบ</span>
+      <span class="meta-val" contenteditable="true">&nbsp;</span>
+    </div>
+  </div>
+
+  <!-- Legend -->
+  <div class="legend">
+    <span class="legend-title">ตำนาน :</span>
+    <div class="legend-item"><div class="legend-box hs"></div> HumanSoft Task</div>
+    <div class="legend-item"><div class="legend-box cl"></div> Client Task</div>
+    <div class="legend-item"><div class="legend-box gl"></div> Go Live Period</div>
+    <div class="legend-item"><div class="legend-box gray"></div> ทั่วไป</div>
+    <span style="font-size:10px;color:var(--gray);margin-left:8px;">💡 คลิกช่องสีเพื่อเปลี่ยน | ลากเพื่อวาดบาร์</span>
+  </div>
+
+  <!-- Table container -->
+  <div class="table-wrap">
+    <table id="main-table">
+      <colgroup id="colgroup"></colgroup>
+      <thead id="thead"></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+
+  <!-- Notes -->
+  <div class="notes-wrap">
+    <div class="notes-lbl">หมายเหตุ / Notes</div>
+    <div class="notes-box" contenteditable="true">กรอกหมายเหตุเพิ่มเติม...</div>
+  </div>
+</div>
+
+<!-- Preview modal -->
+<div class="preview-overlay" id="preview-overlay">
+  <div class="preview-bar">
+    <div class="preview-bar-title">👁 พรีวิวเอกสาร — Implementation Timeline</div>
+    <div class="preview-bar-actions">
+      <button class="btn-preview-print" onclick="printFromPreview()">🖨️ พิมพ์ / Export PDF</button>
+      <button class="btn-preview-close" onclick="closePreview()">✕ ปิด</button>
+    </div>
+  </div>
+  <div class="preview-content" id="preview-content"></div>
+</div>
+
+<!-- Toast -->
+<div class="toast-notif" id="toast"></div>
+
+<script>
+/* ═══════════════════════════════════════════
+   DATA
+═══════════════════════════════════════════ */
+const MONTH_TH = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.',
+                  'ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+const Q_TH = ['Q1','Q2','Q3','Q4'];
+
+// Default tasks (index, resp, taskName, status, indent, isSection)
+let tasks = [
+  { id:t(), resp:'both', name:'นำเสนอและเจรจาราคา (Presentation & Negotiate Price)', status:'ns', indent:0, section:false },
+  { id:t(), resp:'cl',   name:'ชำระเงิน (Payment)', status:'ns', indent:0, section:false },
+  { id:t(), resp:'',     name:'การเตรียมข้อมูลสำหรับขึ้นระบบ', status:'', indent:0, section:true },
+  { id:t(), resp:'cl',   name:'▸ ข้อมูลพนักงาน', status:'ns', indent:1, section:false },
+  { id:t(), resp:'cl',   name:'▸ เงินโอการคำนวณเงินเดือน', status:'ns', indent:1, section:false },
+  { id:t(), resp:'cl',   name:'▸ รายรับรายจ่าย', status:'ns', indent:1, section:false },
+  { id:t(), resp:'cl',   name:'ส่งข้อมูลพนักงาน และข้อมูลตั้งค่า', status:'ns', indent:0, section:false },
+  { id:t(), resp:'hs',   name:'ดำเนินการนำเข้าข้อมูล (ขึ้นระบบ)', status:'ns', indent:0, section:false },
+  { id:t(), resp:'cl',   name:'ตรวจสอบความถูกต้องของข้อมูล', status:'ns', indent:0, section:false },
+  { id:t(), resp:'',     name:'นัดการสอนใช้งาน Application / Website', status:'', indent:0, section:true },
+  { id:t(), resp:'hs',   name:'▸ สำหรับ HR และผู้เกี่ยวข้อง', status:'ns', indent:1, section:false },
+  { id:t(), resp:'',     name:'Internal Training (ด้วยตัวเอง)', status:'', indent:0, section:true },
+  { id:t(), resp:'cl',   name:'▸ HumanSoft มีผู้สอนการใช้งาน Application', status:'ns', indent:1, section:false },
+  { id:t(), resp:'',     name:'เริ่มการใช้งาน (Parallel Run)', status:'', indent:0, section:true },
+  { id:t(), resp:'',     name:'▸ ลงเวลาการทำงาน (Time Attendance)', status:'ns', indent:1, section:false },
+  { id:t(), resp:'',     name:'▸ ยืนยันเอกสาร (Document Approval)', status:'ns', indent:1, section:false },
+  { id:t(), resp:'cl',   name:'ตรวจสอบเวลาการทำงาน', status:'ns', indent:0, section:false },
+  { id:t(), resp:'cl',   name:'เริ่มการใช้งานจริง (Go Live) 🟢', status:'ns', indent:0, section:false },
+  { id:t(), resp:'',     name:'เตรียมข้อมูลเงินเดือน (ย้อนหลัง)', status:'', indent:0, section:true },
+  { id:t(), resp:'cl',   name:'▸ ส่งรายงานสรุปผลคำนวณเงินเดือน (Excel) ย้อนหลัง', status:'ns', indent:1, section:false },
+  { id:t(), resp:'hs',   name:'ดำเนินการนำเข้าข้อมูลคำนวณเงินเดือน (ย้อนหลัง)', status:'ns', indent:0, section:false },
+  { id:t(), resp:'cl',   name:'ตรวจสอบความถูกต้องของข้อมูล', status:'ns', indent:0, section:false },
+];
+
+// Gantt bar state: Map<taskId, Map<absWeekKey, barClass>>
+// absWeekKey = year*100 + month (0-indexed) * 4 + week (0-3)
+const ganttState = new Map();
+
+function t() { return '_' + Math.random().toString(36).slice(2,8); }
+
+function getBar(taskId, absKey) {
+  if (!ganttState.has(taskId)) return '';
+  return ganttState.get(taskId).get(absKey) || '';
+}
+function setBar(taskId, absKey, cls) {
+  if (!ganttState.has(taskId)) ganttState.set(taskId, new Map());
+  if (cls === '') ganttState.get(taskId).delete(absKey);
+  else ganttState.get(taskId).set(absKey, cls);
+}
+
+const BAR_CYCLE = ['bar-hs','bar-cl','bar-gl','bar-gr',''];
+
+/* ═══════════════════════════════════════════
+   MONTH RANGE
+═══════════════════════════════════════════ */
+// Initialised in INIT section below after helpers are defined
+let startYear = 2026, startMonth = 0;
+let endYear   = 2026, endMonth   = 2;
+
+function absMonth(y, m) { return y * 12 + m; }
+function fromAbs(abs) { return { y: Math.floor(abs/12), m: abs%12 }; }
+
+function initSelectors() {
+  const smEl = document.getElementById('sel-sm');
+  const emEl = document.getElementById('sel-em');
+  MONTH_TH.forEach((mn, i) => {
+    smEl.innerHTML += `<option value="${i}">${mn}</option>`;
+    emEl.innerHTML += `<option value="${i}">${mn}</option>`;
+  });
+  const syEl = document.getElementById('sel-sy');
+  const eyEl = document.getElementById('sel-ey');
+  for (let y = 2024; y <= 2032; y++) {
+    syEl.innerHTML += `<option value="${y}">${y} (${y+543})</option>`;
+    eyEl.innerHTML += `<option value="${y}">${y} (${y+543})</option>`;
+  }
+  syncSelectors();
+}
+
+function syncSelectors() {
+  document.getElementById('sel-sm').value = startMonth;
+  document.getElementById('sel-sy').value = startYear;
+  document.getElementById('sel-em').value = endMonth;
+  document.getElementById('sel-ey').value = endYear;
+}
+
+function readSelectors() {
+  startMonth = +document.getElementById('sel-sm').value;
+  startYear  = +document.getElementById('sel-sy').value;
+  endMonth   = +document.getElementById('sel-em').value;
+  endYear    = +document.getElementById('sel-ey').value;
+  // enforce min 1 month
+  if (absMonth(endYear,endMonth) < absMonth(startYear,startMonth)) {
+    endYear = startYear; endMonth = startMonth;
+    syncSelectors();
+  }
+}
+
+function shiftStart(delta) {
+  const abs = absMonth(startYear,startMonth) + delta;
+  const r = fromAbs(abs);
+  if (r.y < 2024 || r.y > 2032) return;
+  if (absMonth(r.y,r.m) > absMonth(endYear,endMonth)) return;
+  startYear = r.y; startMonth = r.m;
+  syncSelectors(); rebuildTable();
+}
+function shiftEnd(delta) {
+  const abs = absMonth(endYear,endMonth) + delta;
+  const r = fromAbs(abs);
+  if (r.y < 2024 || r.y > 2032) return;
+  if (absMonth(r.y,r.m) < absMonth(startYear,startMonth)) return;
+  endYear = r.y; endMonth = r.m;
+  syncSelectors(); rebuildTable();
+}
+
+function getVisibleMonths() {
+  const months = [];
+  let abs = absMonth(startYear, startMonth);
+  const endAbs = absMonth(endYear, endMonth);
+  while (abs <= endAbs) {
+    const r = fromAbs(abs);
+    months.push({ y: r.y, m: r.m });
+    abs++;
+  }
+  return months;
+}
+
+/* ═══════════════════════════════════════════
+   BUILD TABLE
+═══════════════════════════════════════════ */
+function rebuildTable() {
+  readSelectors();
+  const months = getVisibleMonths();
+  const totalWeeks = months.length * 4;
+
+  buildColgroup(totalWeeks);
+  buildThead(months);
+  buildTbody(months);
+  attachGanttEvents();
+}
+
+function buildColgroup(totalWeeks) {
+  const cg = document.getElementById('colgroup');
+  cg.innerHTML = `
+    <col class="c-no">
+    <col class="c-resp">
+    <col class="c-task">
+    <col class="c-stat">
+    ${'<col class="c-wk">'.repeat(totalWeeks)}
+    <col style="width:20px">
+  `;
+}
+
+function buildThead(months) {
+  // Group months into quarters
+  // Build quarter spans
+  const qSpans = []; // [{label, span}]
+  let currentQ = -1, currentSpan = 0;
+  months.forEach(({y, m}) => {
+    const q = Math.floor(m / 3);
+    if (q !== currentQ) {
+      if (currentSpan > 0) qSpans.push({ label: `${Q_TH[currentQ]} — ${y-( q<currentQ?0:0)}`, span: currentSpan });
+      currentQ = q; currentSpan = 4;
+    } else { currentSpan += 4; }
+  });
+  if (currentSpan > 0) qSpans.push({ label: Q_TH[currentQ], span: currentSpan });
+
+  // Quarter row
+  let rQ = `<tr class="row-q">
+    <th class="hdr-fixed" colspan="4">ผู้รับผิดชอบ / ขั้นตอน</th>`;
+  months.forEach(({y, m}) => {
+    const q = Math.floor(m / 3);
+    const label = `${Q_TH[q]} — ${y} (${y+543})`;
+    rQ += `<th colspan="4">${label}</th>`;
+  });
+  rQ += '<th></th></tr>';
+
+  // Month row
+  let rM = `<tr class="row-m"><th class="hdr-fixed" colspan="4"></th>`;
+  months.forEach(({y, m}) => {
+    rM += `<th colspan="4">${MONTH_TH[m]} ${y+543}</th>`;
+  });
+  rM += '<th></th></tr>';
+
+  // Week row
+  let rW = `<tr class="row-w"><th class="hdr-fixed" colspan="4"></th>`;
+  months.forEach(() => {
+    rW += '<th>1</th><th>2</th><th>3</th><th>4</th>';
+  });
+  rW += '<th></th></tr>';
+
+  // Column headers
+  let rCH = `<tr class="row-ch">
+    <th>No.</th>
+    <th>ผู้รับผิดชอบ</th>
+    <th class="th-task">Timeline / ขั้นตอนการดำเนินงาน</th>
+    <th>Status</th>`;
+  months.forEach(() => { rCH += '<th></th><th></th><th></th><th></th>'; });
+  rCH += '<th></th></tr>';
+
+  document.getElementById('thead').innerHTML = rQ + rM + rW + rCH;
+}
+
+function buildTbody(months) {
+  const tbody = document.getElementById('tbody');
+  let html = '';
+  let taskNo = 1;
+
+  tasks.forEach((task, idx) => {
+    const alt = idx % 2 === 1 ? ' alt' : '';
+
+    if (task.section) {
+      // Section row
+      const cols = months.length * 4;
+      html += `<tr class="row-section" data-id="${task.id}">
+        <td colspan="4" contenteditable="true">${task.name}</td>
+        ${'<td class="gantt"></td>'.repeat(cols)}
+        <td class="td-del"><button class="btn-del" onclick="deleteRow('${task.id}')">✕</button></td>
+      </tr>`;
+      return;
+    }
+
+    // Resp dropdown
+    const respOpts = [
+      ['','—'],['hs','HumanSoft'],['cl','Client'],['both','HumanSoft / Client']
+    ].map(([v,l]) => `<option value="${v}"${task.resp===v?' selected':''}>${l}</option>`).join('');
+
+    // Status dropdown
+    const statOpts = [
+      ['','—'],['ns','Not Started'],['ip','In Progress'],['dn','Done']
+    ].map(([v,l]) => `<option value="${v}"${task.status===v?' selected':''}>${l}</option>`).join('');
+
+    const indentCls = task.indent === 1 ? ' indent1' : task.indent === 2 ? ' indent2' : '';
+
+    // Gantt cells
+    let ganttCells = '';
+    months.forEach(({y, m}, mi) => {
+      const isFirst = mi > 0;
+      for (let w = 0; w < 4; w++) {
+        const absKey = y * 10000 + m * 10 + w;
+        const bar = getBar(task.id, absKey);
+        const sep = (w === 0 && isFirst) ? ' month-sep-l' : '';
+        ganttCells += `<td class="gantt${sep}${bar ? ' '+bar : ''}" data-id="${task.id}" data-abs="${absKey}"></td>`;
+      }
+    });
+
+    html += `<tr class="row-data${alt}" data-id="${task.id}">
+      <td class="td-no">${taskNo}</td>
+      <td class="td-resp">
+        <select class="sel-resp" data-v="${task.resp}" data-id="${task.id}" onchange="onRespChange(this)">
+          ${respOpts}
+        </select>
+      </td>
+      <td class="td-task${indentCls}" contenteditable="true" data-id="${task.id}"
+          onblur="onNameChange(this)">${task.name}</td>
+      <td class="td-stat">
+        <select class="sel-status" data-v="${task.status}" data-id="${task.id}" onchange="onStatusChange(this)">
+          ${statOpts}
+        </select>
+      </td>
+      ${ganttCells}
+      <td class="td-del"><button class="btn-del" onclick="deleteRow('${task.id}')">✕</button></td>
+    </tr>`;
+
+    taskNo++;
+  });
+
+  tbody.innerHTML = html;
+}
+
+/* ═══════════════════════════════════════════
+   DROPDOWN HANDLERS
+═══════════════════════════════════════════ */
+function onRespChange(sel) {
+  const v = sel.value;
+  sel.dataset.v = v;
+  const task = tasks.find(t => t.id === sel.dataset.id);
+  if (task) task.resp = v;
+  // re-style immediately
+  sel.className = 'sel-resp';
+}
+
+function onStatusChange(sel) {
+  const v = sel.value;
+  sel.dataset.v = v;
+  const task = tasks.find(t => t.id === sel.dataset.id);
+  if (task) task.status = v;
+  sel.className = 'sel-status';
+}
+
+function onNameChange(td) {
+  const task = tasks.find(t => t.id === td.dataset.id);
+  if (task) task.name = td.innerText.trim();
+}
+
+/* ═══════════════════════════════════════════
+   GANTT INTERACTION
+═══════════════════════════════════════════ */
+let dragging = false;
+let dragNextBar = '';
+
+function attachGanttEvents() {
+  document.querySelectorAll('td.gantt[data-id]').forEach(cell => {
+    cell.addEventListener('mousedown', e => {
+      e.preventDefault();
+      const curr = BAR_CYCLE.find(b => b && cell.classList.contains(b)) || '';
+      const nextIdx = (BAR_CYCLE.indexOf(curr) + 1) % BAR_CYCLE.length;
+      dragNextBar = BAR_CYCLE[nextIdx];
+      applyBar(cell, dragNextBar);
+      dragging = true;
+    });
+    cell.addEventListener('mouseenter', () => {
+      if (!dragging) return;
+      applyBar(cell, dragNextBar);
+    });
+  });
+  document.addEventListener('mouseup', () => { dragging = false; });
+}
+
+function applyBar(cell, barCls) {
+  BAR_CYCLE.forEach(b => { if (b) cell.classList.remove(b); });
+  if (barCls) cell.classList.add(barCls);
+  const taskId = cell.dataset.id;
+  const absKey = +cell.dataset.abs;
+  setBar(taskId, absKey, barCls);
+}
+
+/* ═══════════════════════════════════════════
+   ADD / DELETE ROW
+═══════════════════════════════════════════ */
+function addSection() {
+  tasks.push({ id: t(), resp:'', name:'(ชื่อกลุ่ม...)', status:'', indent:0, section:true });
+  rebuildTable();
+}
+
+function addRow() {
+  tasks.push({ id: t(), resp:'', name:'(กรอกขั้นตอน...)', status:'ns', indent:0, section:false });
+  rebuildTable();
+}
+
+function deleteRow(id) {
+  tasks = tasks.filter(t => t.id !== id);
+  ganttState.delete(id);
+  rebuildTable();
+}
+
+/* ═══════════════════════════════════════════
+   TOAST
+═══════════════════════════════════════════ */
+function showToast(msg, duration=3000) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), duration);
+}
+
+/* ═══════════════════════════════════════════
+   PREVIEW
+═══════════════════════════════════════════ */
+function openPreview() {
+  const src = document.querySelector('.page').cloneNode(true);
+  // strip delete buttons & contenteditable from clone
+  src.querySelectorAll('.td-del, .btn-del').forEach(el => el.remove());
+  src.querySelectorAll('[contenteditable]').forEach(el => el.removeAttribute('contenteditable'));
+  // apply extra print-like padding
+  src.style.margin = '0';
+  src.style.boxShadow = 'none';
+  src.style.minWidth = '0';
+  src.style.width = '100%';
+  document.getElementById('preview-content').innerHTML = '';
+  document.getElementById('preview-content').appendChild(src);
+  document.getElementById('preview-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closePreview() {
+  document.getElementById('preview-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function printFromPreview() {
+  closePreview();
+  setTimeout(() => window.print(), 200);
+}
+
+/* ═══════════════════════════════════════════
+   EXPORT PDF
+═══════════════════════════════════════════ */
+function exportPDF() {
+  showToast('🖨️ กำลังเปิดหน้าต่างพิมพ์...');
+  setTimeout(() => window.print(), 300);
+}
+
+/* ═══════════════════════════════════════════
+   EXPORT XLSX
+═══════════════════════════════════════════ */
+function getDocMeta() {
+  const metas = document.querySelectorAll('.meta-val');
+  return {
+    domain:  metas[0]?.textContent.trim() || '',
+    company: metas[1]?.textContent.trim() || '',
+    date:    metas[2]?.textContent.trim() || '',
+    sale:    metas[3]?.textContent.trim() || '',
+  };
+}
+
+function exportXLSX() {
+  if (!window.XLSX) { showToast('❌ SheetJS ยังโหลดไม่เสร็จ'); return; }
+  const XL = window.XLSX;
+  const wb = XL.utils.book_new();
+  const months = getVisibleMonths();
+  const meta = getDocMeta();
+
+  /* ── Sheet 1: Visual table ── */
+  const aoa = [];
+  // Title row
+  aoa.push(['Implementation Timeline', '', '', '',
+    ...months.map(({y,m}) => `${MONTH_TH[m]} ${y+543}`)
+      .flatMap(ml => [ml,'','','']),
+  ]);
+  // Sub-header: week numbers
+  const wkHdr = ['No.','ผู้รับผิดชอบ','Timeline / ขั้นตอน','Status'];
+  months.forEach(() => wkHdr.push('W1','W2','W3','W4'));
+  aoa.push(wkHdr);
+  // Meta
+  aoa.push([`Domain: ${meta.domain}`, `บริษัท: ${meta.company}`, `วันที่: ${meta.date}`, `Sale: ${meta.sale}`]);
+  aoa.push([]); // spacer
+
+  // Tasks
+  let taskNo = 1;
+  tasks.forEach(task => {
+    if (task.section) {
+      aoa.push(['', task.name, '', '', ...Array(months.length*4).fill('')]);
+      return;
+    }
+    const respLabel = {hs:'HumanSoft',cl:'Client',both:'HumanSoft/Client','':''}[task.resp] || task.resp;
+    const statLabel = {ns:'Not Started',ip:'In Progress',dn:'Done','':''}[task.status] || task.status;
+    const row = [taskNo, respLabel, task.name, statLabel];
+    months.forEach(({y,m}) => {
+      for (let w=0; w<4; w++) {
+        const absKey = y*10000 + m*10 + w;
+        const bar = getBar(task.id, absKey);
+        row.push(bar === 'bar-hs' ? '■' : bar === 'bar-cl' ? '▲' : bar === 'bar-gl' ? '●' : bar === 'bar-gr' ? '▪' : '');
+      }
+    });
+    aoa.push(row);
+    taskNo++;
+  });
+
+  const ws = XL.utils.aoa_to_sheet(aoa);
+  ws['!cols'] = [{wch:6},{wch:14},{wch:32},{wch:12},...Array(months.length*4).fill({wch:4})];
+  XL.utils.book_append_sheet(wb, ws, 'Timeline');
+
+  /* ── Sheet 2: _data (JSON for re-import) ── */
+  const stateObj = {};
+  ganttState.forEach((wkMap, tid) => {
+    stateObj[tid] = {};
+    wkMap.forEach((bar, absKey) => { stateObj[tid][absKey] = bar; });
+  });
+  const json = JSON.stringify({
+    tasks,
+    ganttState: stateObj,
+    startYear, startMonth, endYear, endMonth,
+    meta,
+  });
+  const ds = XL.utils.aoa_to_sheet([['_json'], [json]]);
+  XL.utils.book_append_sheet(wb, ds, '_data');
+
+  const fname = `Timeline_${meta.domain || 'HumanSoft'}_${meta.date || new Date().toLocaleDateString('th-TH')}.xlsx`
+    .replace(/[/\\?%*:|"<>]/g,'_');
+  XL.writeFile(wb, fname);
+  showToast(`📊 บันทึก "${fname}" แล้ว`);
+}
+
+/* ═══════════════════════════════════════════
+   IMPORT XLSX
+═══════════════════════════════════════════ */
+function triggerImport() {
+  document.getElementById('import-input').value = '';
+  document.getElementById('import-input').click();
+}
+
+function handleImport(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  if (!window.XLSX) { showToast('❌ SheetJS ยังโหลดไม่เสร็จ'); return; }
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = new Uint8Array(e.target.result);
+      const wb = window.XLSX.read(data, {type:'array'});
+      // Try _data sheet first (our own format)
+      const ds = wb.Sheets['_data'];
+      if (ds) {
+        const rows = window.XLSX.utils.sheet_to_json(ds, {header:1});
+        const json = rows[1]?.[0];
+        if (json) {
+          const saved = JSON.parse(json);
+          // Restore tasks
+          tasks = saved.tasks || tasks;
+          // Restore gantt state
+          ganttState.clear();
+          if (saved.ganttState) {
+            Object.entries(saved.ganttState).forEach(([tid, wkMap]) => {
+              const m = new Map();
+              Object.entries(wkMap).forEach(([k,v]) => m.set(+k, v));
+              ganttState.set(tid, m);
+            });
+          }
+          // Restore month range
+          if (saved.startYear) { startYear=saved.startYear; startMonth=saved.startMonth; endYear=saved.endYear; endMonth=saved.endMonth; }
+          // Restore meta
+          if (saved.meta) {
+            const metas = document.querySelectorAll('.meta-val');
+            if (metas[0]) metas[0].textContent = saved.meta.domain || '';
+            if (metas[1]) metas[1].textContent = saved.meta.company || '';
+            if (metas[2]) metas[2].textContent = saved.meta.date || '';
+            if (metas[3]) metas[3].textContent = saved.meta.sale || '';
+          }
+          syncSelectors();
+          rebuildTable();
+          showToast(`✅ นำเข้า "${file.name}" สำเร็จ`);
+          return;
+        }
+      }
+      showToast('⚠️ ไม่พบข้อมูล _data ในไฟล์นี้');
+    } catch(err) {
+      showToast('❌ เกิดข้อผิดพลาด: ' + err.message);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+/* ═══════════════════════════════════════════
+   SAVE TO DRIVE
+═══════════════════════════════════════════ */
+function saveToDrive() {
+  // 1. Export the xlsx locally
+  exportXLSX();
+  // 2. Open the Drive folder
+  setTimeout(() => {
+    window.open('https://drive.google.com/drive/folders/1esS0rCtDFgK71UzRAZ36kGrRYchetsKN', '_blank');
+    showToast('☁️ ดาวน์โหลดแล้ว — อัปโหลดไฟล์ไปยัง Drive ที่เปิดขึ้น', 5000);
+  }, 800);
+}
+
+/* ═══════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════ */
+// Default = current month → +2 (3 months total)
+const _now = new Date();
+startYear  = _now.getFullYear();
+startMonth = _now.getMonth();
+const _ea = absMonth(startYear, startMonth) + 2;
+const _er = fromAbs(_ea);
+endYear  = _er.y;
+endMonth = _er.m;
+
+// set today's date
+document.getElementById('f-date').textContent =
+  _now.toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'numeric'});
+
+initSelectors();
+rebuildTable();
+</script>
+</body>
+</html>
