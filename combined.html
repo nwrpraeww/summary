@@ -262,7 +262,7 @@ body {
       📂 นำเข้า XLSX
       <input type="file" id="masterImport" accept=".xlsx" style="display:none" onchange="onMasterImport(this)">
     </label>
-    <button class="btn-action btn-act-drive"   id="btnDrive"   onclick="doSaveDrive()">☁️ บันทึก Drive</button>
+    <button class="btn-action btn-act-drive"   id="btnDrive"   onclick="doSaveDrive()" style="display:none">☁️ บันทึก Drive</button>
     <div class="nav-sep"></div>
     <div class="nav-page-info">หน้า <span id="pageNum">1</span> / 3</div>
     <button class="btn-nav btn-prev" id="btnPrev" onclick="goPage(currentPage-1)" disabled>
@@ -391,10 +391,11 @@ function updateNav() {
   const pct = (currentPage / TOTAL) * 100;
   document.getElementById('progressFill').style.width = pct + '%';
 
-  // Context-aware: preview & import only for page 1 (Customer Report) and page 3 (Timeline)
+  // Context-aware: preview & import only for page 1 and 3; Drive save only on last page
   const hasCtx = currentPage !== 2;
   document.getElementById('btnPreview').style.display = hasCtx ? '' : 'none';
   document.getElementById('btnImport').style.display  = hasCtx ? '' : 'none';
+  document.getElementById('btnDrive').style.display   = currentPage === TOTAL ? '' : 'none';
 }
 
 // Keyboard navigation
@@ -483,6 +484,74 @@ function applySheetStyles(ws, headerRgb) {
   }
 }
 
+/* ── Value-based cell color coding (priority / status / responsible / checkmark) ── */
+function valueStyle(fill, txtRgb, bold, center) {
+  return {
+    fill: { patternType:'solid', fgColor:{ rgb: fill } },
+    font: { bold: !!bold, color:{ rgb: txtRgb }, name:'Anuphan', sz:11 },
+    alignment: { horizontal: center ? 'center' : 'left', vertical:'center', wrapText:true },
+    border: {
+      top:   { style:'thin', color:{ rgb:'D1D5DB' } },
+      bottom:{ style:'thin', color:{ rgb:'D1D5DB' } },
+      left:  { style:'thin', color:{ rgb:'D1D5DB' } },
+      right: { style:'thin', color:{ rgb:'D1D5DB' } }
+    }
+  };
+}
+
+// แมปค่าใน cell → สีพื้นหลัง/สีตัวอักษร
+const CELL_VALUE_MAP = {
+  // ── Priority ──────────────────────────────────────────
+  'must':        { fill:'FEE2E2', txt:'991B1B', bold:true,  center:true },
+  'should':      { fill:'FEF9C3', txt:'854D0E', bold:true,  center:true },
+  'nice':        { fill:'D1FAE5', txt:'065F46', bold:true,  center:true },
+  // ── Status ────────────────────────────────────────────
+  'not started': { fill:'FEF9C3', txt:'92400E', bold:false, center:true },
+  'pending':     { fill:'FFF4ED', txt:'C85E0F', bold:false, center:true },
+  'in progress': { fill:'DBEAFE', txt:'1E40AF', bold:true,  center:true },
+  'done':        { fill:'D1FAE5', txt:'065F46', bold:true,  center:true },
+  'completed':   { fill:'D1FAE5', txt:'065F46', bold:true,  center:true },
+  'on hold':     { fill:'FEE2E2', txt:'991B1B', bold:false, center:true },
+  'cancelled':   { fill:'F3F4F6', txt:'6B7280', bold:false, center:true },
+  // ── Responsible ────────────────────────────────────────
+  'humansoft':   { fill:'EEF2FF', txt:'1240B0', bold:false, center:true },
+  'client':      { fill:'ECFDF5', txt:'065F46', bold:false, center:true },
+  'hs + client': { fill:'FFF4ED', txt:'C85E0F', bold:false, center:true },
+};
+
+function applyValueStyles(ws, sheetIdx) {
+  // sheetIdx: 0 = Customer Report, 1 = Requirement Tracker, 2 = Timeline
+  if (!ws['!ref']) return;
+  const range = XLSX.utils.decode_range(ws['!ref']);
+
+  for (let R = range.s.r; R <= range.e.r; R++) {
+    for (let C = range.s.c; C <= range.e.c; C++) {
+      const addr = XLSX.utils.encode_cell({r:R, c:C});
+      const cell = ws[addr];
+      if (!cell || cell.v == null) continue;
+
+      const raw = cell.v.toString().trim();
+      const key = raw.toLowerCase();
+
+      // checkmark '✓' — สีขึ้นอยู่กับ column
+      if (raw === '✓') {
+        // Customer Report: col 3 = ยังไม่รองรับ → สีส้ม, col 2 = รองรับ → สีเขียว
+        if (sheetIdx === 0 && C === 3) {
+          cell.s = valueStyle('FFF4ED', 'C85E0F', true, true);
+        } else {
+          cell.s = valueStyle('D1FAE5', '065F46', true, true);
+        }
+        continue;
+      }
+
+      const map = CELL_VALUE_MAP[key];
+      if (map) {
+        cell.s = valueStyle(map.fill, map.txt, map.bold, map.center);
+      }
+    }
+  }
+}
+
 /* ── Build XLSX Blob (shared by Drive upload) ──────────────── */
 async function buildXlsxBlob() {
   const frameIds  = ['frame-1', 'frame-2', 'frame-3'];
@@ -502,6 +571,7 @@ async function buildXlsxBlob() {
       const ws = XLSX.utils.aoa_to_sheet(result.data);
       ws['!cols'] = colWidths[i] || Array(8).fill({wch:20});
       applySheetStyles(ws, hdrColors[i]);
+      applyValueStyles(ws, i);   // เพิ่มสีตาม value (priority/status/responsible/checkmark)
       XLSX.utils.book_append_sheet(wb, ws, result.sheetName);
     } catch(e) {}
   });
@@ -607,7 +677,25 @@ async function doSaveDrive() {
     const xlsxName = await _cwNextName(baseName, '.xlsx', fId);
 
     cToast('📄 กำลังสร้าง PDF…');
-    const pdfBlob  = await document.getElementById('frame-1').contentWindow.makePDFBlob();
+    // frame-1 อาจ display:none ถ้าอยู่หน้า 2/3 — ต้องทำให้ render ได้ก่อน (visibility:hidden = มองไม่เห็นแต่ render ได้)
+    const f1 = document.getElementById('frame-1');
+    const f1WasHidden = !f1.classList.contains('active');
+    if (f1WasHidden) {
+      f1.style.display    = 'block';
+      f1.style.visibility = 'hidden';
+      f1.style.pointerEvents = 'none';
+      await new Promise(r => setTimeout(r, 80)); // รอ browser layout pass
+    }
+    let pdfBlob;
+    try {
+      pdfBlob = await f1.contentWindow.makePDFBlob();
+    } finally {
+      if (f1WasHidden) {
+        f1.style.display    = '';
+        f1.style.visibility = '';
+        f1.style.pointerEvents = '';
+      }
+    }
     const pdfName  = await _cwNextName(baseName, '.pdf',  fId);
 
     cToast('⬆️ กำลังอัพโหลด…');

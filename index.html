@@ -2232,28 +2232,44 @@ async function makePDFBlob() {
   const html = buildPrintHTML(data, false);
   return new Promise(function(resolve, reject) {
     const iframe = document.createElement('iframe');
-    iframe.style.cssText = 'position:fixed;top:0;left:-9999px;width:794px;height:5000px;border:none;opacity:0;pointer-events:none;z-index:-1;';
+    // ไม่ใช้ opacity:0 เพราะ html2canvas render ไม่ครบ — ซ่อนด้วยการเลื่อนออกนอกหน้าจอแทน
+    iframe.style.cssText = 'position:fixed;top:-9999px;left:0;width:794px;height:5000px;border:none;pointer-events:none;z-index:-1;';
     document.body.appendChild(iframe);
     iframe.onload = async function() {
       try {
-        await new Promise(function(r){ setTimeout(r, 2500); }); // wait for fonts + render
+        // รอให้ Google Fonts โหลดครบก่อน — ใช้ fonts.ready แทน setTimeout เพื่อความแม่นยำ
+        await Promise.race([
+          iframe.contentDocument.fonts.ready,
+          new Promise(function(r){ setTimeout(r, 6000); }) // fallback สูงสุด 6 วินาที
+        ]);
+        await new Promise(function(r){ setTimeout(r, 400); }); // buffer หลัง font ready
+
         const el = iframe.contentDocument.querySelector('.page') || iframe.contentDocument.body;
-        const canvas = await html2canvas(el, {scale:2, useCORS:true, allowTaint:true, windowWidth:794, logging:false});
+        const canvas = await html2canvas(el, {
+          scale: 3,                // เพิ่มจาก 2 → 3 เพื่อความคมชัด (~300 DPI)
+          useCORS: true,
+          allowTaint: true,
+          windowWidth: 794,
+          logging: false,
+          imageTimeout: 0,
+          backgroundColor: '#ffffff'
+        });
         if (document.body.contains(iframe)) document.body.removeChild(iframe);
         const {jsPDF} = window.jspdf;
         const W=210, H=297;
         const iH = canvas.height * W / canvas.width;
-        const img = canvas.toDataURL('image/jpeg', 0.95);
+        // ใช้ PNG แทน JPEG เพื่อให้ข้อความคมชัดไม่มี artifact
+        const img = canvas.toDataURL('image/png');
         const pdf = new jsPDF('p','mm','a4');
         // หน้าแรก: A4 เต็ม หรือสั้นกว่า (กรณีเนื้อหาน้อย)
-        pdf.addImage(img,'JPEG',0,0,W,Math.min(iH,H));
+        pdf.addImage(img,'PNG',0,0,W,Math.min(iH,H));
         let rem = iH - H, yp = 0;
         // หน้าถัดไป: ใช้ความสูงพอดี (ไม่มีช่องว่างท้ายหน้าสุดท้าย)
         while (rem > 2) {
           yp -= H;
           const pageH = Math.min(rem, H);
           pdf.addPage([W, pageH]);
-          pdf.addImage(img,'JPEG',0,yp,W,iH);
+          pdf.addImage(img,'PNG',0,yp,W,iH);
           rem -= H;
         }
         resolve(pdf.output('blob'));

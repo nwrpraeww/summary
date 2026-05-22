@@ -186,18 +186,23 @@
     /* ── Dropdowns ────────────────────────────────────────── */
     .type-sel {
       width: 100%;
-      border: 1px solid var(--blue-mid);
       border-radius: 14px;
-      background: var(--blue-lt);
-      color: var(--blue-dk);
       font-family: 'Anuphan', sans-serif;
       font-size: 10.5px; font-weight: 700;
       padding: 3px 8px;
       outline: none; cursor: pointer;
       -webkit-appearance: none; appearance: none;
       text-align: center;
+      transition: background .15s, color .15s, border-color .15s;
     }
-    .type-sel:focus { box-shadow: 0 0 0 2px var(--blue-mid); }
+    .type-sel:focus { box-shadow: 0 0 0 2px rgba(0,0,0,.15); }
+
+    /* ── Type badge colors ── */
+    .t-extracode   { background: #16A34A; color: #fff; border: 1px solid #15803D; }
+    .t-customize   { background: #7C3AED; color: #fff; border: 1px solid #6D28D9; }
+    .t-fasttrack   { background: #78350F; color: #fff; border: 1px solid #5C2706; }
+    .t-requirement { background: #1A56DB; color: #fff; border: 1px solid #1240B0; }
+    .t-default     { background: var(--blue-lt); color: var(--blue-dk); border: 1px solid var(--blue-mid); }
 
     .stat-sel {
       width: 100%;
@@ -347,7 +352,7 @@
 
 <script>
 /* ─── Options ─────────────────────────────────────────────── */
-const TYPE_OPTS = ['Requirement','Bug','Enhancement','Change Request','Other'];
+const TYPE_OPTS = ['Extra Code','Customize','Fasttrack','Requirement'];
 const STATUS_OPTS = [
   { v:'Done',        cls:'s-done'       },
   { v:'In Progress', cls:'s-inprogress' },
@@ -357,12 +362,17 @@ const STATUS_OPTS = [
 ];
 function sCls(v) { return (STATUS_OPTS.find(s=>s.v===v)||{cls:'s-pending'}).cls; }
 
+const TYPE_CLS = { 'Extra Code':'t-extracode', 'Customize':'t-customize', 'Fasttrack':'t-fasttrack', 'Requirement':'t-requirement' };
+function tCls(v) { return TYPE_CLS[v] || 't-requirement'; }
+function updType(sel) { sel.className = 'type-sel ' + tCls(sel.value); }
+
 /* ─── Add Row ─────────────────────────────────────────────── */
 function addRow(d={}) {
   const tbody = document.getElementById('tbody');
   const n = tbody.children.length + 1;
 
-  const typeOpts   = TYPE_OPTS.map(t=>`<option${d.type===t?' selected':''}>${t}</option>`).join('');
+  const defType    = TYPE_OPTS.includes(d.type) ? d.type : 'Requirement';
+  const typeOpts   = TYPE_OPTS.map(t=>`<option${defType===t?' selected':''}>${t}</option>`).join('');
   const defSt      = d.status||'Pending';
   const statusOpts = STATUS_OPTS.map(s=>`<option${defSt===s.v?' selected':''}>${s.v}</option>`).join('');
 
@@ -378,7 +388,7 @@ function addRow(d={}) {
       <textarea rows="2" placeholder="หัวข้อ…">${d.topic||''}</textarea>
     </td>
     <td class="c-type" style="padding:7px;">
-      <select class="type-sel">${typeOpts}</select>
+      <select class="type-sel ${tCls(defType)}" onchange="updType(this)">${typeOpts}</select>
     </td>
     <td class="c-price">
       <input class="price-input" type="text" value="${d.price||'฿0.00'}" />
