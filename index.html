@@ -308,7 +308,10 @@ select.pri-sel.p-low      { background:#D1FAE5; color:#065F46; }
 .g-cl  {background:#059669;color:#fff;}
 .g-both{background:#F47B20;color:#fff;}
 .gtbl tr:nth-child(even) td:not(.g-hs):not(.g-cl):not(.g-both){background:#F8FAFF;}
-.go-live-row td{background:#FFF4ED !important;font-weight:700;}
+.go-live-row td{background:#FFF4ED;font-weight:700;}
+.go-live-row td.g-hs{background:#1A56DB !important;color:#fff !important;}
+.go-live-row td.g-cl{background:#F47B20 !important;color:#fff !important;}
+.go-live-row td.g-pend{background:#FEF3C7 !important;}
 
 /* ── Features ── */
 .feat-group-hd{background:var(--navy);color:#fff;font-size:12px;font-weight:700;padding:6px 14px;border-radius:6px;margin:12px 0 5px;border-left:3px solid var(--primary);}
@@ -321,7 +324,7 @@ select.pri-sel.p-low      { background:#D1FAE5; color:#065F46; }
 .feat-item .fi{line-height:1.4;}
 
 /* ── Week select in TL ── */
-.col-wk{width:108px;}
+.col-wk{width:155px;}
 input.date-sel{font-size:11px;padding:3px 5px;border:1.5px solid var(--border);border-radius:5px;font-family:inherit;width:106px;color:var(--body);background:#fff;}
 
 </style>
@@ -477,24 +480,26 @@ input.date-sel{font-size:11px;padding:3px 5px;border:1.5px solid var(--border);b
       <div class="card-title">📅 Timeline <span class="badge b-blue no-print">ส่วนที่ 3</span></div>
     </div>
     <div class="card-body" style="padding-bottom:14px">
-      <div class="tbl-wrap">
-        <table class="dtbl">
-          <thead><tr>
-            <th class="col-no">No.</th>
-            <th style="min-width:120px">ผู้รับผิดชอบ</th>
-            <th style="min-width:200px">Task / กระบวนการ</th>
-            <th style="min-width:160px">รายละเอียด</th>
-            <th style="min-width:100px">Status</th>
-            <th class="col-wk no-print">วันที่เริ่ม</th>
-            <th class="col-wk no-print">วันที่สิ้นสุด</th>
-            <th class="col-act no-print"></th>
-          </tr></thead>
-          <tbody id="tlBody"></tbody>
-        </table>
+      <!-- Month toolbar -->
+      <div class="no-print" style="display:flex;align-items:center;gap:6px;margin-bottom:8px">
+        <span style="font-size:12px;color:var(--muted)">จำนวนเดือน:</span>
+        <button class="add-row" style="border-color:#059669;color:#059669;padding:2px 10px" onclick="gnChangeMonths(-1)">−</button>
+        <span id="gnMonLabel" style="font-size:12px;color:var(--muted);min-width:50px;text-align:center"></span>
+        <button class="add-row" style="border-color:#059669;color:#059669;padding:2px 10px" onclick="gnChangeMonths(1)">+</button>
       </div>
-      <button class="add-row no-print" onclick="addTL()">＋ เพิ่มรายการ</button>
-      <button class="add-row no-print" style="margin-top:6px;border-color:var(--navy);color:var(--navy)" onclick="renderGantt()">📅 แสดง Timeline</button>
-      <div id="ganttWrap" class="no-print" style="margin-top:6px"></div>
+      <!-- Gantt table -->
+      <div id="ganttWrap" style="margin-bottom:10px"></div>
+      <!-- Help note -->
+      <div class="no-print" style="background:#F8FAFF;border:1px solid #DBEAFE;border-radius:8px;padding:10px 14px;font-size:12px;color:#374151;line-height:1.8">
+        <strong style="color:#1A56DB">วิธีใช้ Timeline</strong><br>
+        🖱️ <strong>คลิกเซลล์ครั้งที่ 1</strong> = เลือกจุดเริ่มต้น (เซลล์เปลี่ยนเป็นสีเหลือง) &nbsp;|&nbsp;
+        <strong>คลิกครั้งที่ 2</strong> = กำหนดจุดสิ้นสุด สร้างแถบ<br>
+        🗑️ <strong>คลิกแถบที่มีอยู่แล้ว</strong> = ลบแถบนั้นออก<br>
+        ✏️ <strong>คลิกชื่อรายการ</strong> = พิมพ์แก้ไขชื่อได้โดยตรง &nbsp;|&nbsp;
+        🎨 <strong>ปุ่มสี</strong> = สลับระหว่าง HumanSoft (น้ำเงิน) / Client (ส้ม)<br>
+        🟡 <strong>แถวสีเหลือง</strong> = แถวที่ชื่อมีคำว่า <em>Go live</em> หรือ <em>Paid</em> จะเปลี่ยนสีอัตโนมัติ<br>
+        ➕ <strong>＋ รายการ / ＋ กลุ่ม</strong> = ปุ่มอยู่ที่แถบหัวข้อกลุ่ม (แถบสีเข้ม) กดเพื่อเพิ่มรายการหรือกลุ่มใหม่ต่อจากกลุ่มนั้น
+      </div>
     </div>
   </div>
 
@@ -668,7 +673,28 @@ const DEF_SO = [
   { item:'ข้อเสนอพิเศษ', det:'สำหรับการสมัครใช้งานแพ็กเกจ (สัญญา 1 ปี) — 10 ฟรี 2 เมื่อชำระภายในเดือน' },
   { item:'บริการ', det:'• ไม่มีค่า MA\n• ขึ้นระบบให้ฟรี\n• ไม่มีค่าเช่า Cloud\n• Support ทุกวัน 08.30–17.30 น.\n• รองรับ Multi Company\n• Training ฟรี 3 ครั้ง' },
 ];
-const DEF_TL = [];
+const DEF_TL = [
+  { type:'group', label:'Demo' },
+  { type:'task', task:'Demo',                                   det:'นำเสนอระบบ HumanSoft',                            color:'hs', sc:0,  ec:3  },
+  { type:'task', task:'พิจารณา / Consider',                     det:'ลูกค้าพิจารณาข้อเสนอ',                            color:'cl', sc:4,  ec:7  },
+  { type:'task', task:'ชำระเงิน / Paid',                       det:'Go live — ชำระเงินและยืนยันสัญญา',                 color:'cl', sc:7,  ec:7  },
+
+  { type:'group', label:'Implement' },
+  { type:'task', task:'การเตรียมข้อมูลสำหรับการขึ้นระบบ',       det:'เตรียมข้อมูลพนักงาน โครงสร้างองค์กร และสิทธิ์',   color:'hs', sc:8,  ec:11 },
+  { type:'task', task:'นำเข้าข้อมูลพนักงาน',                    det:'Import ข้อมูลพนักงานเข้าระบบ',                    color:'hs', sc:8,  ec:9  },
+  { type:'task', task:'การ Setting ระบบ',                        det:'ตั้งค่าระบบตามความต้องการของลูกค้า',               color:'hs', sc:10, ec:11 },
+  { type:'task', task:'Online Training 3 ครั้ง',                det:'อบรมการใช้งานระบบให้ทีม HR และผู้ดูแลระบบ',       color:'hs', sc:12, ec:13 },
+  { type:'task', task:'ทดสอบทำเงินเดือน',                       det:'ทดสอบการคำนวณเงินเดือนและตรวจสอบความถูกต้อง',    color:'hs', sc:12, ec:15 },
+  { type:'task', task:'การเตรียมนำเข้าข้อมูลย้อนหลัง',          det:'เตรียมข้อมูลประวัติเงินเดือนและการลาย้อนหลัง',   color:'cl', sc:16, ec:18 },
+  { type:'task', task:'การนำเข้าข้อมูลย้อนหลัง / Go live',     det:'Go live — นำเข้าข้อมูลและเปิดใช้งานจริง',         color:'cl', sc:19, ec:19 },
+];
+
+/* ── Global Gantt State ── */
+let ganttData  = [];      // runtime data store
+let gnMonths   = 5;       // จำนวนเดือนที่แสดง (Month 1…N)
+const GN_WPM   = 4;       // สัปดาห์ต่อเดือน
+let gnPendRow  = -1;      // pending first-click row
+let gnPendCol  = -1;      // pending first-click col
 
 /* ══════════════════════════════════════════
    INIT
@@ -679,7 +705,11 @@ document.addEventListener('DOMContentLoaded', () => {
   syncPrint();
   DEF_PP.forEach(d => addPP(d));
   DEF_SO.forEach(d => addSO(d));
-  DEF_TL.forEach(d => addTL(d));
+  ganttData = DEF_TL.map(d => ({...d})); // deep copy
+  // auto-expand months to cover all default bars
+  const maxCol = Math.max(0, ...ganttData.filter(r=>r.type==='task').map(r=>r.ec??0));
+  gnMonths = Math.max(5, Math.ceil((maxCol+1)/GN_WPM));
+  renderGantt();
   renum(); syncPrint(); initPriceUI(); initFeatures();
 });
 
@@ -768,34 +798,59 @@ const RS_CLR = {'Humansoft':'dbeafe;color:#1e40af','Client':'dcfce7;color:#065f4
 
 function mkOpts(arr,val) { return arr.map(o=>`<option${o===val?' selected':''}>${o}</option>`).join(''); }
 
+// สร้าง month+week selector — value เก็บเป็น "2026-05:2"
+function mkMW(val) {
+  const [mon, wk] = (val||'').split(':');
+  const wkN = wk || '1';
+  const wkOpts = [1,2,3,4].map(n => `<option value="${n}"${wkN===String(n)?' selected':''}>W${n}</option>`).join('');
+  return `<div style="display:flex;gap:3px;align-items:center">
+    <input type="month" class="mon-sel fc" style="flex:1;min-width:0;font-size:11px;padding:3px 5px" value="${esc(mon||'')}" onchange="renderGantt()">
+    <select class="wk-sel fc" style="width:46px;font-size:11px;padding:3px 2px" onchange="renderGantt()">${wkOpts}</select>
+  </div>`;
+}
+
+function getMW(td) {
+  const mon = td?.querySelector('.mon-sel')?.value || '';
+  const wk  = td?.querySelector('.wk-sel')?.value  || '1';
+  return mon ? `${mon}:${wk}` : '';
+}
+
 function addTL(d={}) {
-  const st = d.st||'Not started';
-  const rs = d.res||'Humansoft';
-  const rColor = RS_CLR[rs]||'f3f4f6;color:#374151';
+  const clr = d.color || 'hs';
   const tr = document.createElement('tr');
   tr.innerHTML = `
     <td class="col-no rn" style="font-weight:700;color:#9CA3AF"></td>
-    <td>
-      <select class="fc" style="font-size:13px;background:#${rColor}" onchange="updateRsColor(this)">
-        ${mkOpts(RESP,rs)}
-      </select>
+    <td class="no-print" style="text-align:center;vertical-align:middle">
+      <button class="clr-tog tog-${clr}" onclick="toggleTLColor(this)" title="คลิกเพื่อเปลี่ยน: น้ำเงิน=HumanSoft / ส้ม=Client"></button>
     </td>
     <td><textarea class="fc" placeholder="Task">${esc(d.task||'')}</textarea></td>
     <td><textarea class="fc" placeholder="รายละเอียด">${esc(d.det||'')}</textarea></td>
-    <td>
-      <select class="fc ${ST_CLS[st]}" style="font-size:12.5px" onchange="updateStColor(this)">
-        ${mkOpts(STATS,st)}
-      </select>
-    </td>
-    <td class="col-wk">
-      <input type="date" class="date-sel" value="${esc(d.ds||'')}" onchange="renderGantt()">
-    </td>
-    <td class="col-wk">
-      <input type="date" class="date-sel" value="${esc(d.de||'')}" onchange="renderGantt()">
-    </td>
+    <td class="col-wk">${mkMW(d.ds||'')}</td>
+    <td class="col-wk">${mkMW(d.de||'')}</td>
     <td class="col-act no-print"><button class="btn-del" onclick="delRow(this)">✕</button></td>`;
   document.getElementById('tlBody').appendChild(tr);
   ar(tr); renum();
+}
+
+function addTLGroup(d={}) {
+  const tr = document.createElement('tr');
+  tr.className = 'tl-grp';
+  tr.innerHTML = `
+    <td colspan="6"><div class="grp-cell">
+      <span style="color:white;font-size:11px;white-space:nowrap;opacity:0.7">📌 หัวข้อ</span>
+      <input type="text" class="fc grp-name" placeholder="ชื่อขั้นตอน (เช่น Demo / Implement)" value="${esc(d.label||'')}">
+    </div></td>
+    <td class="col-act no-print" style="background:transparent"><button class="btn-del" onclick="delRow(this)">✕</button></td>`;
+  document.getElementById('tlBody').appendChild(tr);
+}
+
+function toggleTLColor(btn) {
+  if (btn.classList.contains('tog-hs')) {
+    btn.classList.remove('tog-hs'); btn.classList.add('tog-cl');
+  } else {
+    btn.classList.remove('tog-cl'); btn.classList.add('tog-hs');
+  }
+  renderGantt();
 }
 
 function updateRsColor(sel) {
@@ -828,6 +883,29 @@ stCSS.textContent = `
   .st-prog { background:#DBEAFE !important; color:#1E3A8A !important; font-weight:600; }
   .st-done { background:#D1FAE5 !important; color:#065F46 !important; font-weight:600; }
   .st-hold { background:#FEE2E2 !important; color:#991B1B !important; font-weight:600; }
+  /* Timeline group rows */
+  .tl-grp td { padding:0 !important; }
+  .tl-grp .grp-cell { background:var(--navy);display:flex;align-items:center;gap:8px;padding:5px 10px;border-radius:4px;margin:2px 0; }
+  .tl-grp .grp-name { background:transparent;color:white;font-weight:700;font-size:13px;border:none;box-shadow:none;flex:1;padding:0; }
+  .tl-grp .grp-name::placeholder { color:rgba(255,255,255,0.5); }
+  /* Color toggle */
+  .clr-tog { cursor:pointer;border:none;border-radius:50%;width:20px;height:20px;display:inline-block;vertical-align:middle;outline:2px solid rgba(0,0,0,0.15); }
+  .tog-hs { background:#1A56DB; }
+  .tog-cl { background:#F47B20; }
+
+  /* Gantt step cells */
+  .g-step { background:var(--navy) !important;color:white !important;font-size:18px;font-weight:900;text-align:center;vertical-align:middle;min-width:38px;border:.5px solid rgba(255,255,255,0.2) !important; }
+  .g-grp-name { color:var(--navy) !important;font-weight:700;font-size:12px;vertical-align:middle;min-width:90px;padding:4px 8px !important;border-right:2px solid var(--navy) !important; }
+  /* Gantt bar colors */
+  .g-cl { background:#F47B20 !important;color:white !important; }
+  .g-hs { background:#1A56DB !important;color:white !important; }
+  /* Interactive Gantt editable cells */
+  .gn-edit-task { display:block;min-width:60px;outline:none;padding:2px 4px;border-radius:3px;cursor:text; }
+  .gn-edit-task:hover { background:#F8FAFF; }
+  .gn-edit-grp { color:white;font-weight:700;font-size:13px;outline:none;flex:1;min-width:60px;cursor:text; }
+  .gn-edit-grp:hover { opacity:.85; }
+  .gn-wk-hd { min-width:28px;font-size:9px;color:#9CA3AF;font-weight:500; }
+  .g-week:hover:not(.g-hs):not(.g-cl) { background:#DBEAFE !important;opacity:.6; }
 `;
 document.head.appendChild(stCSS);
 
@@ -852,13 +930,17 @@ function collect() {
     const t = tr.querySelectorAll('td');
     return { no:+t[0].textContent, item:t[1].querySelector('input').value, det:t[2].querySelector('textarea').value };
   });
-  const tl = [...document.querySelectorAll('#tlBody tr')].map(tr => {
-    const t = tr.querySelectorAll('td');
-    return { no:+t[0].textContent, res:t[1].querySelector('select').value,
-             task:t[2].querySelector('textarea').value, det:t[3].querySelector('textarea').value,
-             st:t[4].querySelector('select').value,
-             ds:t[5]?.querySelector('input.date-sel')?.value||'',
-             de:t[6]?.querySelector('input.date-sel')?.value||'' };
+  function gnColLabel(c) {
+    if (c == null || c < 0) return '';
+    return 'Month '+(Math.floor(c/GN_WPM)+1)+' W'+((c%GN_WPM)+1);
+  }
+  let tlNo = 0;
+  const tl = ganttData.map(row => {
+    if (row.type === 'group') return { type:'group', label: row.label||'' };
+    tlNo++;
+    return { type:'task', no: tlNo, color: row.color||'hs',
+             task: row.task||'', det: row.det||'',
+             ds: gnColLabel(row.sc??null), de: gnColLabel(row.ec??null) };
   });
   // Price data
   const rIdx = _selRangeIdx;
@@ -1097,35 +1179,46 @@ function buildXLSX(data) {
 
   // ── TIMELINE ──
   sectionHd('📅  Timeline');
-  tblHd([{label:'No.'},{label:'ผู้รับผิดชอบ'},{label:'Task / กระบวนการ',span:2},{label:'รายละเอียด',span:2},{label:'Status'}]);
+  tblHd([{label:'No.'},{label:'ผู้ดำเนินการ'},{label:'Task / กระบวนการ',span:2},{label:'รายละเอียด',span:2},{label:'เดือนเริ่มต้น'},{label:'เดือนสิ้นสุด'}]);
 
-  const ST  = {'Not started':'FEF9C3','In progress':'DBEAFE','Done':'D1FAE5','On hold':'FEE2E2'};
-  const ST_TXT = {'Not started':'854D0E','In progress':'1E3A8A','Done':'065F46','On hold':'991B1B'};
-  const RS  = {'Humansoft':'DBEAFE','Client':'D1FAE5','Humansoft / Client':'EDE9FE'};
-  const RS_TXT = {'Humansoft':'1E40AF','Client':'065F46','Humansoft / Client':'5B21B6'};
+  const fmtMonXl = val => {
+    if (!val) return '—';
+    const M = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+    const [mon, wk] = val.split(':');
+    const [y, m] = mon.split('-').map(Number);
+    return 'W'+(wk||'1')+' '+M[m-1]+' '+(y+543);
+  };
 
-  data.tl.forEach((tl,i) => {
-    const fill = i%2===1 ? C.rowAlt : C.white;
+  let tlTaskIdx = 0;
+  data.tl.forEach((tl) => {
+    if (tl.type === 'group') {
+      rh(r,20); mg(r,1,r,8);
+      sc(r,1,tl.label,{font:bold(10,'FFFFFF'),fill:solid(C.navy),alignment:al('left','center'),border:bdrMed()});
+      for(let c=2;c<=8;c++) sc(r,c,'',{fill:solid(C.navy),border:bdrMed()});
+      r++; return;
+    }
+    const fill = tlTaskIdx%2===1 ? C.rowAlt : C.white;
     rh(r, Math.max(22, 14*(tl.task.split('\n').length)));
+    const RS_BG = tl.color==='cl' ? 'FFF4ED' : 'EEF2FF';
+    const RS_TXT = tl.color==='cl' ? 'C85E0F' : '1E40AF';
     sc(r,1,tl.no,{font:reg(10,C.gray),fill:solid(fill),alignment:al('center','center'),border:bdr()});
-    const rb=RS[tl.res]||'F3F4F6', rt=RS_TXT[tl.res]||'374151';
-    sc(r,2,tl.res,{font:bold(9.5,rt),fill:solid(rb),alignment:al('center','center',true),border:bdr()});
+    sc(r,2,tl.color==='cl'?'Client':'HumanSoft',{font:bold(8.5,RS_TXT),fill:solid(RS_BG),alignment:al('center','center'),border:bdr()});
     mg(r,3,r,4); sc(r,3,tl.task,{font:bold(10,'111827'),fill:solid(fill),alignment:al('left','center',true),border:bdr()});
     sc(r,4,'',{fill:solid(fill),border:bdr()});
     mg(r,5,r,6); sc(r,5,tl.det,{font:reg(10,C.bodyTxt),fill:solid(fill),alignment:al('left','center',true),border:bdr()});
     sc(r,6,'',{fill:solid(fill),border:bdr()});
-    const sb=ST[tl.st]||'FFFFFF', st2=ST_TXT[tl.st]||'374151';
-    sc(r,7,tl.st,{font:bold(9.5,st2),fill:solid(sb),alignment:al('center','center'),border:bdr()});
-    r++;
+    sc(r,7,fmtMonXl(tl.ds),{font:reg(10,C.bodyTxt),fill:solid(fill),alignment:al('center','center'),border:bdr()});
+    sc(r,8,fmtMonXl(tl.de),{font:reg(10,C.bodyTxt),fill:solid(fill),alignment:al('center','center'),border:bdr()});
+    r++; tlTaskIdx++;
   });
 
   // Orange bottom bar
-  rh(r,4); for(let c=1;c<=7;c++) sc(r,c,'',{fill:solid(C.orange)});
+  rh(r,4); for(let c=1;c<=8;c++) sc(r,c,'',{fill:solid(C.orange)});
 
-  ws['!ref'] = XLSX.utils.encode_range({s:{r:0,c:0},e:{r:r,c:6}});
+  ws['!ref'] = XLSX.utils.encode_range({s:{r:0,c:0},e:{r:r,c:7}});
   ws['!merges'] = merges;
   ws['!rows'] = rowHts;
-  ws['!cols'] = [{wch:5.5},{wch:46},{wch:2},{wch:2},{wch:11},{wch:13},{wch:52}];
+  ws['!cols'] = [{wch:5.5},{wch:32},{wch:2},{wch:2},{wch:28},{wch:13},{wch:14},{wch:14}];
 
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Summary');
@@ -1378,77 +1471,102 @@ function thb(n){ return Math.round(n).toLocaleString('th-TH'); }
 function buildGanttPDF(tl) {
   if (!tl || !tl.length) return '';
 
-  // Convert date strings → Date objects
-  const taskData = tl.map(t => ({
-    no: t.no, res: t.res, task: t.task,
-    ds: t.ds ? new Date(t.ds) : null,
-    de: t.de ? new Date(t.de) : null
-  }));
+  // Parse "2026-05:2" format
+  const splitMW2  = v => { const [mon,wk]=(v||'').split(':'); return {mon, wk:parseInt(wk||'1')}; };
+  const parseYM2  = v => { if(!v)return 0; const [y,m]=v.split('-').map(Number); return y*12+m; };
+  const ymStr2    = ym => { const m=((ym-1)%12)+1; const y=Math.floor((ym-m)/12); return `${y}-${String(m).padStart(2,'0')}`; };
 
-  const allDates = taskData.flatMap(t => [t.ds, t.de]).filter(Boolean);
-  if (!allDates.length) return '';
+  const taskMV2 = tl.filter(r=>r.type!=='group').flatMap(r=>[r.ds,r.de]).filter(Boolean);
+  if (!taskMV2.length) return '';
 
-  const minDate = startOfWeek(new Date(Math.min(...allDates)));
-  const maxDate = startOfWeek(new Date(Math.max(...allDates)));
+  const minYM2 = Math.min(...taskMV2.map(v=>parseYM2(splitMW2(v).mon)));
+  const maxYM2 = Math.max(...taskMV2.map(v=>parseYM2(splitMW2(v).mon)));
+  const months2 = []; for (let ym=minYM2; ym<=maxYM2; ym++) months2.push(ymStr2(ym));
+  const WPM2=4, totalCols2=months2.length*WPM2;
+  const M_TH2=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  const fmtHdr2 = s=>{ const [y,m]=s.split('-').map(Number); return M_TH2[m-1]+' '+(y+543); };
 
-  // Build week slots
-  const weeks = [];
-  let cur = new Date(minDate);
-  while (cur <= addDays(maxDate, 6)) {
-    weeks.push(new Date(cur));
-    cur = addDays(cur, 7);
+  function mwToCol2(v) {
+    if(!v) return null;
+    const {mon,wk} = splitMW2(v);
+    if(!mon) return null;
+    return Math.max(0, Math.min(totalCols2-1, (parseYM2(mon)-minYM2)*WPM2+(wk-1)));
   }
 
-  // Group weeks by month for header
-  const monthGroups = [];
-  weeks.forEach(wk => {
-    const mk = fmtMonth(wk);
-    if (!monthGroups.length || monthGroups[monthGroups.length-1].label !== mk) {
-      monthGroups.push({ label: mk, count: 1 });
-    } else {
-      monthGroups[monthGroups.length-1].count++;
-    }
+  function getBar2(ds,de){
+    const s=mwToCol2(ds); const e=mwToCol2(de);
+    if(s===null&&e===null) return null;
+    return [s??0, e??totalCols2-1];
+  }
+
+  // Assign groups
+  let stepNo2=0, curGrp2=null;
+  const processed2=[];
+  tl.forEach(row=>{
+    if(row.type==='group'){ stepNo2++; curGrp2={stepNo:stepNo2,label:row.label}; return; }
+    processed2.push({...row, group:curGrp2});
   });
+  const grpCount2={};
+  processed2.forEach(r=>{ if(r.group){ const k=r.group.stepNo; grpCount2[k]=(grpCount2[k]||0)+1; }});
+  const grpDone2={};
+  const hasGroups2=processed2.some(r=>r.group);
 
-  const ro = r => (r||'').toLowerCase();
-  const barCls = r => (ro(r).includes('humansoft') && ro(r).includes('client')) ? 'bar-both'
-                    : ro(r).includes('humansoft') ? 'bar-hs' : 'bar-cl';
+  if (!processed2.length) return '';
 
-  let h = '<div class="section-block" style="margin-top:12px">\n'+
-    '<div class="sec-title" style="margin-bottom:6px">📅 Timeline</div>\n'+
-    '<div style="overflow-x:auto">\n'+
-    '<table class="gtbl"><thead><tr>\n'+
-    '<th rowspan="2">No.</th>\n'+
-    '<th rowspan="2">ผู้รับผิดชอบ</th>\n'+
-    '<th rowspan="2" style="min-width:100px">Task</th>\n'+
-    monthGroups.map(g => '<th class="mth-hd" colspan="'+g.count+'">'+esc(g.label)+'</th>').join('')+
-    '\n</tr><tr>\n'+
-    weeks.map((wk,wi) => '<th style="min-width:26px;font-size:7px">W'+(wi+1)+'</th>').join('')+
-    '\n</tr></thead><tbody>\n';
+  // Build PDF Gantt HTML
+  let h = '<div class="section-block" style="margin-top:12px">'+
+    '<div class="sec-title" style="margin-bottom:4px">📅 Timeline</div>'+
+    '<div style="font-size:7.5px;margin-bottom:4px">'+
+    '<span style="display:inline-flex;align-items:center;gap:3px;margin-right:10px"><span style="background:#1A56DB;width:10px;height:10px;border-radius:2px;display:inline-block"></span>HumanSoft</span>'+
+    '<span style="display:inline-flex;align-items:center;gap:3px;margin-right:10px"><span style="background:#F47B20;width:10px;height:10px;border-radius:2px;display:inline-block"></span>Client</span>'+
+    '<span>⭐ Go live</span></div>'+
+    '<div style="overflow-x:auto"><table class="gtbl"><thead><tr>';
 
-  taskData.forEach(t => {
-    const isGoLive = t.task && (t.task.toLowerCase().includes('go live') || t.task.includes('🚀'));
-    const bc = barCls(t.res);
-    h += '<tr'+(isGoLive ? ' class="go-live-row"' : '')+'>\n'+
-      '<td class="g-no">'+esc(t.no)+'</td>\n'+
-      '<td class="g-own">'+esc(t.res)+'</td>\n'+
-      '<td class="g-task">'+esc(t.task)+'</td>\n';
-    weeks.forEach((wkStart, wi) => {
-      const wkEnd = addDays(wkStart, 6);
-      const inRange = t.ds && t.de && t.ds <= wkEnd && t.de >= wkStart;
-      if (inRange) {
-        const isFirst = wi === 0 || !(t.ds <= addDays(wkStart,-1) && t.de >= wkStart);
-        const isLast  = wi === weeks.length-1 || !(t.ds <= addDays(wkStart,6) && t.de >= addDays(wkStart,7));
-        const mk = (isFirst && isLast) ? (isGoLive?'🚀':'◆') : isFirst ? '▶' : isLast ? '◀' : '';
-        h += '<td class="g-bar '+bc+'">'+mk+'</td>\n';
-      } else {
-        h += '<td class="g-bar"></td>\n';
+  if (hasGroups2) {
+    h += '<th rowspan="2" style="background:#1e3a5f;color:white;width:28px;font-size:9px">Step</th>'+
+         '<th rowspan="2" style="min-width:70px;font-size:9px"></th>';
+  } else {
+    h += '<th rowspan="2" style="width:22px;font-size:9px">No.</th>';
+  }
+  h += '<th rowspan="2" style="min-width:100px;font-size:9px">Process</th>';
+  h += months2.map(function(m){ return '<th class="mth-hd" colspan="'+WPM2+'">'+fmtHdr2(m)+'</th>'; }).join('');
+  h += '</tr><tr>';
+  months2.forEach(function(){ for(var w=1;w<=WPM2;w++) h+='<th style="min-width:22px;font-size:7px">W'+w+'</th>'; });
+  h += '</tr></thead><tbody>';
+
+  processed2.forEach(function(t) {
+    var isGoLive = t.task && (t.task.toLowerCase().includes('go live')||t.task.includes('🚀'));
+    var barClr = t.color==='cl' ? '#F47B20' : '#1A56DB';
+    var bar = getBar2(t.ds, t.de);
+    h += '<tr'+(isGoLive?' class="go-live-row"':'')+'>';
+
+    if (hasGroups2 && t.group) {
+      var k = t.group.stepNo;
+      if (!grpDone2[k]) {
+        grpDone2[k]=true;
+        var rs = grpCount2[k]||1;
+        h += '<td class="g-step" rowspan="'+rs+'" style="background:#1e3a5f;color:white;text-align:center;font-weight:900;font-size:14px;vertical-align:middle">'+k+'</td>';
+        h += '<td rowspan="'+rs+'" style="color:#1e3a5f;font-weight:700;font-size:9px;vertical-align:middle;padding:3px 5px;border-right:2px solid #1e3a5f">'+esc(t.group.label)+'</td>';
       }
-    });
-    h += '</tr>\n';
+    } else if (!hasGroups2) {
+      h += '<td class="g-no">'+esc(t.no)+'</td>';
+    } else {
+      h += '<td class="g-no">'+esc(t.no)+'</td><td></td>';
+    }
+
+    h += '<td class="g-task">'+esc(t.task)+'</td>';
+    for (var c=0; c<totalCols2; c++) {
+      if (bar && c>=bar[0] && c<=bar[1]) {
+        var mk2 = isGoLive&&c===bar[0] ? '⭐' : c===bar[0]&&c===bar[1] ? '◆' : c===bar[0] ? '▶' : c===bar[1] ? '◀' : '';
+        h += '<td class="g-bar" style="background:'+barClr+';color:white;text-align:center;font-size:7px">'+mk2+'</td>';
+      } else {
+        h += '<td class="g-bar"></td>';
+      }
+    }
+    h += '</tr>';
   });
 
-  h += '</tbody></table>\n</div>\n</div>\n';
+  h += '</tbody></table></div></div>';
   return h;
 }
 
@@ -1595,8 +1713,13 @@ function buildFeatsPDF(feats) {
 }
 
 function buildPrintHTML(data, autoPrint) {
-  const respBadge = {'Humansoft':'r-hs','Client':'r-cl','Humansoft / Client':'r-both'};
-  const statBadge = {'Not started':'s-ns','In progress':'s-prog','Done':'s-done','On hold':'s-hold'};
+  const fmtMon = val => {
+    if (!val) return '—';
+    const M = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+    const [mon, wk] = val.split(':');
+    const [y, m] = mon.split('-').map(Number);
+    return 'W'+(wk||'1')+' '+M[m-1]+' '+(y+543);
+  };
   function e(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
   function nl(s){ return e(s).replace(/\n/g,'<br>'); }
   function fd(s){ if(!s)return '—'; const d=new Date(s); return d.getDate()+'/'+(d.getMonth()+1)+'/'+d.getFullYear(); }
@@ -1623,14 +1746,16 @@ function buildPrintHTML(data, autoPrint) {
       '<td>'+nl(s.det)+'</td></tr>';
   }).join('');
 
-  function fmtD(s){ if(!s)return '—'; const d=new Date(s); return d.getDate()+'/'+(d.getMonth()+1)+'/'+(d.getFullYear()+543); }
   const tlRows = data.tl.map(function(t){
+    if (t.type==='group') {
+      return '<tr><td colspan="5" style="background:#1e3a5f;color:white;font-weight:700;font-size:9px;padding:4px 8px">📌 '+e(t.label)+'</td></tr>';
+    }
+    const badgeClr = t.color==='cl' ? 'background:#FFF4ED;color:#C85E0F;border:.5px solid #FDE8D0' : 'background:#EEF2FF;color:#1E40AF;border:.5px solid #BFDBFE';
+    const badge = '<span style="font-size:7.5px;border-radius:3px;padding:1px 5px;'+badgeClr+'">'+(t.color==='cl'?'Client':'HumanSoft')+'</span>';
     return '<tr><td class="no">'+t.no+'</td>'+
-      '<td><span class="badge '+(respBadge[t.res]||'r-hs')+'">'+e(t.res)+'</span></td>'+
-      '<td>'+nl(t.task)+'</td><td>'+nl(t.det)+'</td>'+
-      '<td><span class="badge '+(statBadge[t.st]||'s-ns')+'">'+e(t.st)+'</span></td>'+
-      '<td style="white-space:nowrap;font-size:8.5px">'+fmtD(t.ds)+'</td>'+
-      '<td style="white-space:nowrap;font-size:8.5px">'+fmtD(t.de)+'</td></tr>';
+      '<td>'+badge+' '+nl(t.task)+'</td><td>'+nl(t.det)+'</td>'+
+      '<td style="white-space:nowrap;font-size:8.5px;text-align:center">'+fmtMon(t.ds)+'</td>'+
+      '<td style="white-space:nowrap;font-size:8.5px;text-align:center">'+fmtMon(t.de)+'</td></tr>';
   }).join('');
 
   const ap = autoPrint !== false
@@ -1741,12 +1866,10 @@ function buildPrintHTML(data, autoPrint) {
     '    <div class="section-hd">📅 Timeline</div>\n'+
     '    <table class="tbl"><thead><tr>\n'+
     '      <th style="width:24px" class="c">No.</th>\n'+
-    '      <th style="width:15%">ผู้รับผิดชอบ</th>\n'+
-    '      <th style="width:16%">Task / กระบวนการ</th>\n'+
-    '      <th style="width:28%">รายละเอียด</th>\n'+
-    '      <th style="width:11%">Status</th>\n'+
-    '      <th style="width:10%" class="c">วันที่เริ่ม</th>\n'+
-    '      <th style="width:10%" class="c">วันที่สิ้นสุด</th>\n'+
+    '      <th style="width:30%">Task / กระบวนการ</th>\n'+
+    '      <th>รายละเอียด</th>\n'+
+    '      <th style="width:12%" class="c">เดือนเริ่มต้น</th>\n'+
+    '      <th style="width:12%" class="c">เดือนสิ้นสุด</th>\n'+
     '    </tr></thead><tbody>'+tlRows+'</tbody></table>\n'+
     buildGanttPDF(data.tl)+
     (data.price ? buildPricePDF(data.price, data.price2) : '')+
@@ -2096,93 +2219,186 @@ function fmtMonth(d) {
   return M[d.getMonth()] + ' ' + (d.getFullYear()+543).toString().slice(-2);
 }
 
+/* ════════════════════════════════════════
+   INTERACTIVE GANTT — primary timeline UI
+════════════════════════════════════════ */
+function gnChangeMonths(delta) {
+  gnMonths = Math.max(2, Math.min(12, gnMonths + delta));
+  renderGantt();
+}
+function gnAddTask(afterIdx) {
+  const pos = (afterIdx != null) ? afterIdx + 1 : ganttData.length;
+  ganttData.splice(pos, 0, {type:'task', task:'Task ใหม่', det:'', color:'hs', sc:null, ec:null});
+  renderGantt();
+}
+function gnAddGroup(afterIdx) {
+  const pos = (afterIdx != null) ? afterIdx + 1 : ganttData.length;
+  ganttData.splice(pos, 0, {type:'group', label:'หัวข้อใหม่'});
+  renderGantt();
+}
+function gnDelete(idx) {
+  ganttData.splice(idx, 1);
+  if (gnPendRow === idx) { gnPendRow=-1; gnPendCol=-1; }
+  renderGantt();
+}
+function gnEdit(idx, field, val) {
+  if (ganttData[idx]) { ganttData[idx][field] = val; }
+}
+function gnToggleColor(idx) {
+  const r = ganttData[idx];
+  if (!r || r.type !== 'task') return;
+  r.color = r.color === 'cl' ? 'hs' : 'cl';
+  renderGantt();
+}
+
+function gnClick(idx, col) {
+  const r = ganttData[idx];
+  if (!r || r.type !== 'task') return;
+  const sc = r.sc, ec = r.ec;
+  // Click on existing bar → clear it
+  if (gnPendRow < 0 && sc != null && ec != null && col >= sc && col <= ec) {
+    r.sc = null; r.ec = null; renderGantt(); return;
+  }
+  // First click → set pending
+  if (gnPendRow < 0 || gnPendRow !== idx) {
+    gnPendRow = idx; gnPendCol = col; renderGantt(); return;
+  }
+  // Second click same row → complete bar
+  r.sc = Math.min(gnPendCol, col);
+  r.ec = Math.max(gnPendCol, col);
+  gnPendRow = -1; gnPendCol = -1;
+  renderGantt();
+}
+
 function renderGantt() {
-  const rows = [...document.querySelectorAll('#tlBody tr')];
   const wrap = document.getElementById('ganttWrap');
   if (!wrap) return;
-  if (!rows.length) { wrap.innerHTML=''; return; }
+  const lbl = document.getElementById('gnMonLabel');
+  if (lbl) lbl.textContent = gnMonths + ' เดือน';
 
-  // Collect all valid dates
-  const taskData = rows.map(tr => {
-    const tds  = tr.querySelectorAll('td');
-    const no   = tds[0]?.textContent.trim() || '';
-    const res  = tds[1]?.querySelector('select')?.value || '';
-    const task = tds[2]?.querySelector('textarea')?.value || '';
-    const ds   = tds[5]?.querySelector('input.date-sel')?.value || '';
-    const de   = tds[6]?.querySelector('input.date-sel')?.value || '';
-    return { no, res, task, ds: ds ? new Date(ds) : null, de: de ? new Date(de) : null };
+  const totalCols = gnMonths * GN_WPM;
+
+  // Pre-compute step groups
+  let stepNo=0, curGrp=null;
+  const processed=[];
+  ganttData.forEach((row,origIdx) => {
+    if (row.type==='group') { stepNo++; curGrp={stepNo,label:row.label,idx:origIdx}; return; }
+    processed.push({...row, group:curGrp, origIdx});
   });
+  const grpCount={}, grpDone={};
+  processed.forEach(r => { if(r.group){ const k=r.group.stepNo; grpCount[k]=(grpCount[k]||0)+1; }});
+  const hasGroups = processed.some(r=>r.group);
 
-  const allDates = taskData.flatMap(t => [t.ds, t.de]).filter(Boolean);
-  if (!allDates.length) { wrap.innerHTML='<div style="padding:10px;color:var(--muted);font-size:12px">กรอกวันที่เริ่ม-สิ้นสุดในตาราง Timeline เพื่อแสดง</div>'; return; }
-
-  const minDate = startOfWeek(new Date(Math.min(...allDates)));
-  const maxDate = startOfWeek(new Date(Math.max(...allDates)));
-
-  // Build week slots
-  const weeks = [];
-  let cur = new Date(minDate);
-  while (cur <= addDays(maxDate, 6)) {
-    weeks.push(new Date(cur));
-    cur = addDays(cur, 7);
-  }
-
-  // Group weeks by month for header
-  const monthGroups = [];
-  weeks.forEach((wk, i) => {
-    const mk = fmtMonth(wk);
-    if (!monthGroups.length || monthGroups[monthGroups.length-1].label !== mk) {
-      monthGroups.push({ label: mk, count: 1 });
-    } else {
-      monthGroups[monthGroups.length-1].count++;
-    }
-  });
-
-  const ro = r => r.toLowerCase();
-  const barCls = r => (ro(r).includes('humansoft') && ro(r).includes('client')) ? 'g-both'
-                    : ro(r).includes('humansoft') ? 'g-hs' : 'g-cl';
-
-  let h = `
-  <div class="gantt-section">
-    <div class="g-title">📅 Timeline</div>
-    <div class="gantt-legend">
-      <div class="gl-item"><div class="gl-dot" style="background:#1A56DB"></div>Humansoft</div>
-      <div class="gl-item"><div class="gl-dot" style="background:#059669"></div>Client</div>
-      <div class="gl-item"><div class="gl-dot" style="background:#F47B20"></div>Humansoft / Client</div>
+  // Build table
+  let h = `<div class="gantt-section">
+  <div style="display:flex;align-items:center;gap:14px;margin-bottom:5px">
+    <div class="g-title" style="margin:0">📅 Timeline</div>
+    <div class="gantt-legend no-print">
+      <div class="gl-item"><div class="gl-dot" style="background:#1A56DB"></div>HumanSoft</div>
+      <div class="gl-item"><div class="gl-dot" style="background:#F47B20"></div>Client</div>
+      <div class="gl-item">⭐ Go live</div>
     </div>
-    <div class="gantt-wrap"><table class="gtbl">
-    <thead>
-      <tr>
-        <th rowspan="2">No.</th>
-        <th rowspan="2" style="min-width:90px">ผู้รับผิดชอบ</th>
-        <th rowspan="2" style="min-width:130px">Task</th>
-        ${monthGroups.map(g => `<th class="m-may" colspan="${g.count}">${g.label}</th>`).join('')}
-      </tr>
-      <tr>${weeks.map((wk,wi) => `<th style="min-width:38px;font-size:9px">W${wi+1}</th>`).join('')}</tr>
-    </thead><tbody>`;
+  </div>
+  <div class="gantt-wrap"><table class="gtbl"><thead><tr>`;
 
-  taskData.forEach(t => {
-    const isGoLive = t.task.toLowerCase().includes('go live') || t.task.includes('🚀');
-    const bc = barCls(t.res);
-    h += `<tr class="${isGoLive?'go-live-row':''}">
-      <td class="g-no">${esc(t.no)}</td>
-      <td class="g-own">${esc(t.res)}</td>
-      <td class="g-task">${esc(t.task)}</td>`;
-    weeks.forEach((wkStart, wi) => {
-      const wkEnd = addDays(wkStart, 6);
-      const inRange = t.ds && t.de && t.ds <= wkEnd && t.de >= wkStart;
-      if (inRange) {
-        const isFirst = wi === 0 || !(t.ds <= addDays(wkStart,-1) && t.de >= wkStart);
-        const isLast  = wi === weeks.length-1 || !(t.ds <= addDays(wkStart,6) && t.de >= addDays(wkStart,7));
-        const mk = (isFirst && isLast) ? (isGoLive?'🚀':'◆') : isFirst ? '▶' : isLast ? '◀' : '';
-        h += `<td class="g-week ${bc}">${mk}</td>`;
-      } else {
-        h += `<td class="g-week"></td>`;
+  if (hasGroups) {
+    h += `<th rowspan="2" class="no-print" style="background:var(--navy);color:white;width:36px">Step</th>
+          <th rowspan="2" class="no-print" style="min-width:88px"></th>`;
+  }
+  h += `<th rowspan="2" class="no-print" style="width:34px">🎨</th>`;
+  h += `<th rowspan="2" style="min-width:130px">รายการ</th>`;
+  for (let m=1; m<=gnMonths; m++) h += `<th class="m-may" colspan="${GN_WPM}">Month ${m}</th>`;
+  h += `<th rowspan="2" class="no-print" style="width:28px"></th></tr><tr>`;
+  for (let m=0; m<gnMonths; m++) for (let w=1; w<=GN_WPM; w++) h += `<th class="gn-wk-hd">W${w}</th>`;
+  h += `</tr></thead><tbody>`;
+
+  ganttData.forEach((row, origIdx) => {
+    if (row.type === 'group') {
+      const colspan = totalCols + (hasGroups ? 4 : 2);
+      h += `<tr>`;
+      if (hasGroups) h += `<td class="no-print"></td><td class="no-print"></td>`;
+      h += `<td class="no-print"></td>
+        <td colspan="${totalCols+1}" style="padding:0;background:var(--navy)">
+          <div style="display:flex;align-items:center;gap:8px;padding:5px 10px">
+            <span style="color:rgba(255,255,255,.5);font-size:10px">📌</span>
+            <span contenteditable="true" class="gn-edit-grp"
+              onblur="gnEdit(${origIdx},'label',this.textContent.trim())"
+              onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}"
+              >${esc(row.label||'หัวข้อ')}</span>
+            <span style="margin-left:auto;display:flex;gap:4px">
+              <button onclick="gnAddTask(${origIdx})" title="เพิ่มรายการในกลุ่มนี้"
+                style="font-size:10px;padding:1px 7px;border:1px solid rgba(255,255,255,.4);border-radius:4px;background:rgba(255,255,255,.12);color:white;cursor:pointer;white-space:nowrap">＋ รายการ</button>
+              <button onclick="gnAddGroup(${origIdx})" title="เพิ่มกลุ่มใหม่ต่อจากกลุ่มนี้"
+                style="font-size:10px;padding:1px 7px;border:1px solid rgba(180,160,255,.5);border-radius:4px;background:rgba(124,58,237,.25);color:#DDD6FE;cursor:pointer;white-space:nowrap">＋ กลุ่ม</button>
+            </span>
+          </div>
+        </td>
+        <td class="no-print" style="background:var(--navy);text-align:center;vertical-align:middle">
+          <button class="btn-del" onclick="gnDelete(${origIdx})" style="color:white">✕</button>
+        </td></tr>`;
+      return;
+    }
+
+    const pRow = processed.find(p=>p.origIdx===origIdx);
+    const grp  = pRow?.group;
+    const t = (row.task||'').toLowerCase();
+    const isGoLive = t.includes('go live') || t.includes('paid');
+    const barCls = row.color==='cl' ? 'g-cl' : 'g-hs';
+    const isPend = gnPendRow===origIdx;
+    h += `<tr class="${isGoLive?'go-live-row':''}">`;
+
+    if (hasGroups && grp) {
+      const k=grp.stepNo;
+      if (!grpDone[k]) {
+        grpDone[k]=true; const rs=grpCount[k]||1;
+        h += `<td class="g-step no-print" rowspan="${rs}">${k}</td>`;
+        h += `<td class="g-grp-name no-print" rowspan="${rs}">${esc(grp.label)}</td>`;
       }
-    });
-    h += '</tr>';
+    } else if (hasGroups) {
+      h += `<td class="no-print"></td><td class="no-print"></td>`;
+    }
+
+    // Color toggle
+    h += `<td class="no-print" style="text-align:center;vertical-align:middle;padding:2px">
+      <button class="clr-tog tog-${row.color||'hs'}" onclick="gnToggleColor(${origIdx})" title="HumanSoft / Client"></button>
+    </td>`;
+
+    // Editable task name
+    h += `<td style="vertical-align:middle;min-width:130px">
+      <span contenteditable="true" class="gn-edit-task"
+        onblur="gnEdit(${origIdx},'task',this.textContent.trim())"
+        onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}"
+        onfocus="this.style.background='#EEF2FF'"
+        onfocusout="this.style.background=''"
+        >${esc(row.task||'')}</span>
+    </td>`;
+
+    // Gantt cells
+    const sc=row.sc??null, ec=row.ec??null;
+    for (let c=0; c<totalCols; c++) {
+      const inBar = sc!==null && ec!==null && c>=sc && c<=ec;
+      const isPendCell = isPend && c===gnPendCol;
+      let cls='g-week', sty='cursor:pointer';
+      let mk='';
+      if (inBar) {
+        cls+=' '+barCls; sty='cursor:pointer';
+        if (isGoLive&&c===sc) mk='⭐';
+        else if (c===sc&&c===ec) mk='◆';
+        else if (c===sc) mk='▶';
+        else if (c===ec) mk='◀';
+      } else if (isPendCell) {
+        sty='background:#FEF3C7;cursor:crosshair';
+      }
+      h += `<td class="${cls}" style="${sty}" onclick="gnClick(${origIdx},${c})">${mk}</td>`;
+    }
+
+    // Delete
+    h += `<td class="no-print" style="text-align:center;vertical-align:middle;padding:2px">
+      <button class="btn-del" onclick="gnDelete(${origIdx})">✕</button>
+    </td></tr>`;
   });
-  h += '</tbody></table></div></div>';
+
+  h += `</tbody></table></div></div>`;
   wrap.innerHTML = h;
 }
 
@@ -2282,46 +2498,46 @@ function calcPrice2() {
 ══════════════════════════════════════════ */
 const FEAT_LIST = [
   {cat:'Channel'},
-  {label:'Web Browser', on:false},{label:'Mobile Application / Line OA', on:false},
+  {label:'Web Browser', on:true},{label:'Mobile Application / Line OA', on:true},
   {cat:'โครงสร้างทั่วไป'},
-  {label:'รองรับหลายนิติบุคคล', on:false},{label:'รองรับหลายสาขา', on:false},
-  {label:'รองรับ 3 ภาษา (ไทย/อังกฤษ/พม่า)', on:false},
+  {label:'รองรับหลายนิติบุคคล', on:true},{label:'รองรับหลายสาขา', on:true},
+  {label:'รองรับ 3 ภาษา (ไทย/อังกฤษ/พม่า)', on:true},
   {cat:'โครงสร้างองค์กร'},
-  {label:'โครงสร้างองค์กร / โครงสร้างตำแหน่ง', on:false},
-  {label:'เก็บประวัติข้อมูลพนักงาน', on:false},
-  {label:'รองรับการเก็บไฟล์ไม่จำกัดพื้นที่', on:false},
+  {label:'โครงสร้างองค์กร / โครงสร้างตำแหน่ง', on:true},
+  {label:'เก็บประวัติข้อมูลพนักงาน', on:true},
+  {label:'รองรับการเก็บไฟล์ไม่จำกัดพื้นที่', on:true},
   {cat:'จัดการสิทธิ์การเข้าถึงข้อมูล'},
-  {label:'กำหนดสิทธิ์ผู้ดูแลระบบ (ไม่จำกัด User)', on:false},
-  {label:'กำหนดสิทธิ์มองเห็น/แก้ไขของแต่ละ User', on:false},
-  {label:'จัดกลุ่มผู้ใช้ได้', on:false},
+  {label:'กำหนดสิทธิ์ผู้ดูแลระบบ (ไม่จำกัด User)', on:true},
+  {label:'กำหนดสิทธิ์มองเห็น/แก้ไขของแต่ละ User', on:true},
+  {label:'จัดกลุ่มผู้ใช้ได้', on:true},
   {cat:'ระบบความปลอดภัย'},
-  {label:'Strong Password', on:false},{label:'PDPA Conceal', on:false},
+  {label:'Strong Password', on:true},{label:'PDPA Conceal', on:true},
   {cat:'จัดการกะ'},
-  {label:'กะได้หลายรูปแบบ (Default / หลายกะ / Excel Import)', on:false},
-  {label:'วางแผนกะรายเดือน / รายสัปดาห์', on:false},
-  {label:'สิทธิ์จัดกะแบบยืดหยุ่น (HR / หัวหน้า / พนักงาน)', on:false},
+  {label:'กะได้หลายรูปแบบ (Default / หลายกะ / Excel Import)', on:true},
+  {label:'วางแผนกะรายเดือน / รายสัปดาห์', on:true},
+  {label:'สิทธิ์จัดกะแบบยืดหยุ่น (HR / หัวหน้า / พนักงาน)', on:true},
   {cat:'ลงเวลาการทำงาน'},
-  {label:'Face Scan (Face Recognition)', on:false},{label:'GPS', on:false},
-  {label:'เครื่องสแกนนิ้ว', on:false},{label:'ADMS (Real-Time sync)', on:false},
-  {label:'Beacon / Time App / Member Scan', on:false},
+  {label:'Face Scan (Face Recognition)', on:true},{label:'GPS', on:true},
+  {label:'เครื่องสแกนนิ้ว', on:true},{label:'ADMS (Real-Time sync)', on:true},
+  {label:'Beacon / Time App / Member Scan', on:true},
   {cat:'เอกสารและการอนุมัติ'},
-  {label:'เอกสารพื้นฐาน (ลา / OT / สลับกะ / ขอเพิ่มเวลา)', on:false},
-  {label:'เบิกเงินล่วงหน้า', on:false},{label:'หนังสือรับรองเงินเดือน', on:false},
-  {label:'อนุมัติผ่าน Website', on:false},{label:'อนุมัติผ่าน App', on:false},
-  {label:'สายการอนุมัติ 3-5 ขั้น', on:false},
+  {label:'เอกสารพื้นฐาน (ลา / OT / สลับกะ / ขอเพิ่มเวลา)', on:true},
+  {label:'เบิกเงินล่วงหน้า', on:true},{label:'หนังสือรับรองเงินเดือน', on:true},
+  {label:'อนุมัติผ่าน Website', on:true},{label:'อนุมัติผ่าน App', on:true},
+  {label:'สายการอนุมัติ 3-5 ขั้น', on:true},
   {cat:'การคำนวณเงินเดือน'},
-  {label:'รายรับ/รายจ่าย (อัตโนมัติ / Manual)', on:false},
-  {label:'งวดเงินเดือน สูงสุด 4 งวด', on:false},{label:'สลิปเงินเดือน', on:false},
-  {label:'Text File นำส่งธนาคาร', on:false},
-  {label:'ภาษี / ประกันสังคม / กองทุน', on:false},{label:'เบี้ยเลี้ยง / เบี้ยขยัน', on:false},
+  {label:'รายรับ/รายจ่าย (อัตโนมัติ / Manual)', on:true},
+  {label:'งวดเงินเดือน สูงสุด 4 งวด', on:true},{label:'สลิปเงินเดือน', on:true},
+  {label:'Text File นำส่งธนาคาร', on:true},
+  {label:'ภาษี / ประกันสังคม / กองทุน', on:true},{label:'เบี้ยเลี้ยง / เบี้ยขยัน', on:true},
   {cat:'รายงาน'},
-  {label:'รายงานมากกว่า 50 แบบ (.pdf / .xlsx / .txt / .dat)', on:false},
+  {label:'รายงานมากกว่า 50 แบบ (.pdf / .xlsx / .txt / .dat)', on:true},
   {cat:'การเรียนรู้และพัฒนาองค์กร (HRD)'},
-  {label:'E-Library / E-Learning', on:false},{label:'ประเมินพนักงาน (ไม่จำกัดรอบ)', on:false},
-  {label:'KPI Profile', on:false},{label:'บันทึกการฝึกอบรม', on:false},
+  {label:'E-Library / E-Learning', on:true},{label:'ประเมินพนักงาน (ไม่จำกัดรอบ)', on:true},
+  {label:'KPI Profile', on:true},{label:'บันทึกการฝึกอบรม', on:true},
   {cat:'ระบบรับสมัครพนักงาน'},
-  {label:'ใบสมัครงานออนไลน์', on:false},{label:'ระบบติดตามผู้สมัคร', on:false},
-  {label:'เอกสารสัญญาจ้าง (ทดลองงาน/บรรจุ)', on:false},
+  {label:'ใบสมัครงานออนไลน์', on:true},{label:'ระบบติดตามผู้สมัคร', on:true},
+  {label:'เอกสารสัญญาจ้าง (ทดลองงาน/บรรจุ)', on:true},
 ];
 
 function initFeatures() {
@@ -2423,18 +2639,22 @@ function onXlsxImport(input) {
       }
 
       // 5. Parse Timeline
-      // โครงสร้าง: col1=No, col2=ผู้รับผิดชอบ, col3=Task(merged 3-4), col5=รายละเอียด(merged 5-6), col7=Status
+      // โครงสร้าง: col1=No, col2=ผู้ดำเนินการ, col3=Task(merged 3-4), col5=รายละเอียด(merged 5-6), col7=เดือนเริ่มต้น, col8=เดือนสิ้นสุด
       const tlRows = [];
       if (tlHdr > 0) {
         for (let row = tlHdr + 2; row <= maxRow; row++) {
           const no = gc(row, 1).trim();
-          if (!no || isNaN(Number(no))) continue;
-          tlRows.push({
-            res: gc(row, 2),
-            task: gc(row, 3),
-            det: gc(row, 5),
-            st: gc(row, 7)
-          });
+          const responsible = gc(row, 2);
+          // ถ้าไม่มีเลขแต่มีข้อความในคอลัมน์ No. = group header
+          if (!no || isNaN(Number(no))) {
+            const maybeGroup = gc(row, 1);
+            if (maybeGroup && !isNaN(Number(maybeGroup)===false)) {
+              // check if it's actually a group label stored in col1
+            }
+            continue;
+          }
+          const color = responsible.toLowerCase().includes('client') ? 'cl' : 'hs';
+          tlRows.push({ type:'task', task: gc(row, 3), det: gc(row, 5), color, ds: '', de: '' });
         }
       }
 
