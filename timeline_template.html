@@ -199,6 +199,7 @@ body { font-family: 'Anuphan', sans-serif; background: #E8EDF8; color: #1A1F2E; 
   min-width: 110px; padding-bottom: 1px; outline: none;
 }
 .meta-val:focus { border-color: var(--blue); background: #F0F8FF; }
+.meta-val:empty:before { content: attr(placeholder); color: #9CA3AF; font-weight: 400; }
 
 /* ── LEGEND ── */
 .legend {
@@ -397,19 +398,19 @@ td.td-del {
   <div class="meta-strip">
     <div class="meta-item">
       <span class="meta-lbl">Domain</span>
-      <span class="meta-val">&nbsp;</span>
+      <span class="meta-val" contenteditable="true" data-meta="domain" placeholder="กรอก Domain"></span>
     </div>
     <div class="meta-item">
       <span class="meta-lbl">บริษัท (Company)</span>
-      <span class="meta-val">&nbsp;</span>
+      <span class="meta-val" contenteditable="true" data-meta="company" placeholder="ชื่อบริษัท"></span>
     </div>
     <div class="meta-item">
       <span class="meta-lbl">วันที่อัปเดต</span>
-      <span class="meta-val" id="f-date">&nbsp;</span>
+      <span class="meta-val" id="f-date"></span>
     </div>
     <div class="meta-item">
       <span class="meta-lbl">Sale / ผู้รับผิดชอบ</span>
-      <span class="meta-val">&nbsp;</span>
+      <span class="meta-val" contenteditable="true" data-meta="sale" placeholder="ชื่อทีม / Sale"></span>
     </div>
   </div>
 
@@ -1054,7 +1055,7 @@ function loadDraft() {
     rebuildTable();
     // restore meta
     const metas = document.querySelectorAll('.meta-val');
-    (d.meta || []).forEach((v, i) => { if (metas[i]) metas[i].textContent = v || ' '; });
+    (d.meta || []).forEach((v, i) => { if (metas[i]) metas[i].textContent = v || ''; });
     // restore notes
     const nb = document.querySelector('.notes-box');
     if (nb && d.notes) nb.innerText = d.notes;
