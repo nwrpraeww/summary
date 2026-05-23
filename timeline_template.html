@@ -211,7 +211,7 @@ body { font-family: 'Anuphan', sans-serif; background: #E8EDF8; color: #1A1F2E; 
 
 /* ── TABLE ── */
 .table-wrap { overflow-x: auto; }
-table { border-collapse: collapse; font-size: 10px; }
+table { border-collapse: collapse; font-size: 10px; user-select: none; -webkit-user-select: none; }
 
 /* col widths */
 .c-no   { width: 28px; min-width: 28px; }
@@ -239,8 +239,7 @@ tr.row-data td {
   height: 26px; padding: 2px 4px;
   vertical-align: middle;
 }
-tr.row-data.alt td { background: var(--row-alt); }
-tr.row-data.alt td.gantt { background: #F5F8FF; }
+/* alt rows removed — section headers only */
 
 tr.row-section td {
   background: var(--blue-lt); color: var(--blue-dk);
@@ -281,14 +280,14 @@ td.td-task[contenteditable="true"]:focus { outline: 1px solid var(--blue); backg
 /* gantt cells */
 td.gantt {
   border: 0.5px solid #E5E7EB; padding: 0;
-  height: 26px; cursor: pointer;
+  height: 26px; cursor: pointer; touch-action: none;
 }
 td.gantt.month-sep-l { border-left: 1.5px solid #9CA3AF !important; }
 td.gantt.bar-hs { background: var(--blue); }
 td.gantt.bar-cl { background: var(--orange); }
 td.gantt.bar-gl { background: var(--green); }
 td.gantt.bar-gr { background: #9CA3AF; }
-tr.row-section td.gantt { background: var(--blue-lt); cursor: pointer; }
+tr.row-section td.gantt { background: var(--blue-lt); cursor: default; pointer-events: none; }
 
 /* delete row button */
 td.td-del {
@@ -656,7 +655,7 @@ function buildTbody(months) {
   let taskNo = 1;
 
   tasks.forEach((task, idx) => {
-    const alt = idx % 2 === 1 ? ' alt' : '';
+    const alt = '';
 
     if (task.section) {
       // Section row — สร้าง gantt cells พร้อม data-id/data-abs เพื่อให้ลากได้เหมือนแถวปกติ
@@ -757,22 +756,36 @@ function onNameChange(td) {
 let dragging = false;
 let dragNextBar = '';
 
-function attachGanttEvents() {
-  document.querySelectorAll('td.gantt[data-id]').forEach(cell => {
-    cell.addEventListener('mousedown', e => {
-      e.preventDefault();
-      const curr = BAR_CYCLE.find(b => b && cell.classList.contains(b)) || '';
-      const nextIdx = (BAR_CYCLE.indexOf(curr) + 1) % BAR_CYCLE.length;
-      dragNextBar = BAR_CYCLE[nextIdx];
-      applyBar(cell, dragNextBar);
-      dragging = true;
-    });
-    cell.addEventListener('mouseenter', () => {
-      if (!dragging) return;
-      applyBar(cell, dragNextBar);
-    });
-  });
-  document.addEventListener('mouseup', () => { dragging = false; });
+// no-op: listeners are set up once in initGanttInteraction()
+function attachGanttEvents() {}
+
+function initGanttInteraction() {
+  function validCell(el) {
+    return el && el.classList && el.classList.contains('gantt')
+        && el.dataset && el.dataset.id
+        && el.closest('tr.row-data');
+  }
+
+  // pointerdown on document — no setPointerCapture (breaks elementFromPoint)
+  document.addEventListener('pointerdown', e => {
+    if (!validCell(e.target)) return;
+    e.preventDefault();
+    const curr = BAR_CYCLE.find(b => b && e.target.classList.contains(b)) || '';
+    dragNextBar = BAR_CYCLE[(BAR_CYCLE.indexOf(curr) + 1) % BAR_CYCLE.length];
+    applyBar(e.target, dragNextBar);
+    dragging = true;
+  }, { passive: false });
+
+  // pointermove — passive:false lets us preventDefault to stop scroll container stealing events
+  document.addEventListener('pointermove', e => {
+    if (!dragging) return;
+    e.preventDefault();
+    const el = document.elementFromPoint(e.clientX, e.clientY);
+    if (validCell(el)) applyBar(el, dragNextBar);
+  }, { passive: false });
+
+  document.addEventListener('pointerup',     () => { dragging = false; });
+  document.addEventListener('pointercancel', () => { dragging = false; });
 }
 
 function applyBar(cell, barCls) {
@@ -1020,6 +1033,7 @@ document.getElementById('f-date').textContent =
 
 initSelectors();
 rebuildTable();
+initGanttInteraction();   // set up drag-paint once — not per rebuild
 
 /* ── setSharedData : receive all project info from combined.html ── */
 window.setSharedData = function(domain, company, date, team) {
