@@ -513,10 +513,11 @@ function applySheetStyles(ws, headerRgb) {
 /* ── Value-based cell color coding (priority / status / responsible / checkmark) ── */
 function valueStyle(fill, txtRgb, bold, center) {
   return {
-    fill: { patternType:'solid', fgColor:{ rgb: fill } },
-    font: { bold: !!bold, color:{ rgb: txtRgb }, name:'Anuphan', sz:11 },
-    alignment: { horizontal: center ? 'center' : 'left', vertical:'center', wrapText:true },
-    border: {
+    if (tlWs) {
+    // applySheetStyles(tlWs, '1E40AF');
+    // applyValueStyles(tlWs, 2);
+    appendSheet(tlWs, 'Timeline');
+}
       top:   { style:'thin', color:{ rgb:'D1D5DB' } },
       bottom:{ style:'thin', color:{ rgb:'D1D5DB' } },
       left:  { style:'thin', color:{ rgb:'D1D5DB' } },
