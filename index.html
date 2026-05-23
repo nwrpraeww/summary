@@ -608,17 +608,15 @@ async function buildXlsxBlob() {
   } catch(e) { console.error(e); }
 
   // 3) Timeline — rich Gantt sheet (matches design)
-try {
+  try {
     const tlWs = (typeof f3.makeTimelineWs === 'function') ? f3.makeTimelineWs() : null;
     if (tlWs) {
         // applySheetStyles(tlWs, '1E40AF');
         // applyValueStyles(tlWs, 2);
         appendSheet(tlWs, 'Timeline');
     }
-} catch(e) { console.error(e); }
   } catch(e) { console.error(e); }
-
-  if (!wb.SheetNames.length) throw new Error('ไม่มีข้อมูลในเอกสาร');
+if (!wb.SheetNames.length) throw new Error('ไม่มีข้อมูลในเอกสาร');
   const arr = XLSX.write(wb, { bookType:'xlsx', type:'array' });
   return new Blob([arr], { type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
 }
