@@ -114,6 +114,10 @@ body { font-family: 'Anuphan', sans-serif; background: #E8EDF8; color: #1A1F2E; 
 .btn-add-section:hover { background: var(--blue-mid); }
 .btn-add-row  { background: var(--green-lt); color: #065F46; border-color: #A7F3D0; }
 .btn-add-row:hover  { background: #A7F3D0; }
+.btn-draft    { background: #FEF9C3; color: #713F12; border-color: #FDE68A; }
+.btn-draft:hover    { background: #FDE68A; }
+.btn-load-draft { background: #F0FDF4; color: #14532D; border-color: #BBF7D0; }
+.btn-load-draft:hover { background: #BBF7D0; }
 
 /* ── PREVIEW MODAL ── */
 .preview-overlay {
@@ -362,6 +366,9 @@ td.td-del {
       <button class="btn-act btn-add-row" onclick="addRow()">＋ แถว</button>
       <div class="ctrl-divider"></div>
       <!-- View / Export -->
+      <button class="btn-act btn-draft" onclick="saveDraft()">💾 บันทึกร่าง</button>
+      <button class="btn-act btn-load-draft" id="btn-load-draft" onclick="loadDraft()" style="display:none">📂 โหลดร่าง</button>
+      <div class="ctrl-divider"></div>
       <button class="btn-act btn-preview" onclick="openPreview()">👁 พรีวิว</button>
       <button class="btn-act btn-import" onclick="triggerImport()">📥 นำเข้า XLSX</button>
       <button class="btn-act btn-xlsx" onclick="exportXLSX()">📊 บันทึก XLSX</button>
@@ -1003,6 +1010,76 @@ function handleImport(event) {
 }
 
 /* ═══════════════════════════════════════════
+   DRAFT (localStorage)
+═══════════════════════════════════════════ */
+const DRAFT_KEY = 'hs_timeline_draft';
+
+function collectMeta() {
+  return [...document.querySelectorAll('.meta-val')].map(e => e.textContent.trim().replace(/ /g,''));
+}
+
+function saveDraft() {
+  const stateObj = {};
+  ganttState.forEach((wkMap, tid) => {
+    stateObj[tid] = {};
+    wkMap.forEach((bar, k) => { stateObj[tid][k] = bar; });
+  });
+  const draft = {
+    tasks,
+    ganttState: stateObj,
+    startYear, startMonth, endYear, endMonth,
+    meta: collectMeta(),
+    notes: document.querySelector('.notes-box')?.innerText.trim() || '',
+    savedAt: new Date().toLocaleString('th-TH'),
+  };
+  localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+  showToast(`💾 บันทึกร่างแล้ว — ${draft.savedAt}`);
+  checkDraftButton();
+}
+
+function loadDraft() {
+  const raw = localStorage.getItem(DRAFT_KEY);
+  if (!raw) { showToast('⚠️ ไม่พบร่างที่บันทึกไว้'); return; }
+  try {
+    const d = JSON.parse(raw);
+    tasks = d.tasks || tasks;
+    ganttState.clear();
+    Object.entries(d.ganttState || {}).forEach(([tid, wkMap]) => {
+      const m = new Map();
+      Object.entries(wkMap).forEach(([k,v]) => m.set(+k, v));
+      ganttState.set(tid, m);
+    });
+    if (d.startYear != null) { startYear=d.startYear; startMonth=d.startMonth; endYear=d.endYear; endMonth=d.endMonth; }
+    syncSelectors();
+    rebuildTable();
+    // restore meta
+    const metas = document.querySelectorAll('.meta-val');
+    (d.meta || []).forEach((v, i) => { if (metas[i]) metas[i].textContent = v || ' '; });
+    // restore notes
+    const nb = document.querySelector('.notes-box');
+    if (nb && d.notes) nb.innerText = d.notes;
+    showToast(`📂 โหลดร่างแล้ว — บันทึกเมื่อ ${d.savedAt || ''}`);
+  } catch(err) {
+    showToast('❌ โหลดร่างไม่สำเร็จ: ' + err.message);
+  }
+}
+
+function checkDraftButton() {
+  const btn = document.getElementById('btn-load-draft');
+  if (!btn) return;
+  const raw = localStorage.getItem(DRAFT_KEY);
+  if (raw) {
+    try {
+      const d = JSON.parse(raw);
+      btn.style.display = '';
+      btn.title = `บันทึกเมื่อ ${d.savedAt || ''}`;
+    } catch { btn.style.display = 'none'; }
+  } else {
+    btn.style.display = 'none';
+  }
+}
+
+/* ═══════════════════════════════════════════
    SAVE TO DRIVE
 ═══════════════════════════════════════════ */
 function saveToDrive() {
@@ -1034,6 +1111,7 @@ document.getElementById('f-date').textContent =
 initSelectors();
 rebuildTable();
 initGanttInteraction();   // set up drag-paint once — not per rebuild
+checkDraftButton();       // show "โหลดร่าง" button if draft exists
 
 /* ── setSharedData : receive all project info from combined.html ── */
 window.setSharedData = function(domain, company, date, team) {
