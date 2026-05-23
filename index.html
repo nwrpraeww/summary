@@ -1587,6 +1587,11 @@ function exportXLSX() {
   }
 }
 
+/* ── expose rich workbook builder for combined.html (Summary/Price/Features) ── */
+window.makeReportWb = function() {
+  try { return buildXLSX(collect()); } catch(e) { console.error('makeReportWb', e); return null; }
+};
+
 /* ══════════════════════════════════════════
    BUILD CLEAN PRINT HTML  — HumanSoft CI
 ══════════════════════════════════════════ */

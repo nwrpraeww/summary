@@ -883,14 +883,11 @@ function getDocMeta() {
   };
 }
 
-function exportXLSX() {
-  if (!window.XLSX) { showToast('❌ SheetJS ยังโหลดไม่เสร็จ'); return; }
+/* Build the rich visual Timeline worksheet (reused by export + combined.html) */
+function buildTimelineWs() {
   const XL = window.XLSX;
-  const wb = XL.utils.book_new();
   const months = getVisibleMonths();
   const meta = getDocMeta();
-
-  /* ── Sheet 1: Visual table ── */
   const aoa = [];
   // Title row
   aoa.push(['Implementation Timeline', '', '', '',
@@ -904,15 +901,14 @@ function exportXLSX() {
   // Meta
   aoa.push([`Domain: ${meta.domain}`, `บริษัท: ${meta.company}`, `วันที่: ${meta.date}`, `Sale: ${meta.sale}`]);
   aoa.push([]); // spacer
-
   // Tasks
   let taskNo = 1;
   tasks.forEach(task => {
     if (task.section) {
-      aoa.push(['', task.name, '', '', ...Array(months.length*4).fill('')]);
+      aoa.push(['', '── ' + task.name + ' ──', '', '', ...Array(months.length*4).fill('')]);
       return;
     }
-    const respLabel = {hs:'HumanSoft',cl:'Client',both:'HumanSoft/Client','':''}[task.resp] || task.resp;
+    const respLabel = {hs:'HumanSoft',cl:'Client',both:'HS + Client','':''}[task.resp] || task.resp;
     const statLabel = {ns:'Not Started',ip:'In Progress',dn:'Done','':''}[task.status] || task.status;
     const row = [taskNo, respLabel, task.name, statLabel];
     months.forEach(({y,m}) => {
@@ -925,9 +921,21 @@ function exportXLSX() {
     aoa.push(row);
     taskNo++;
   });
-
   const ws = XL.utils.aoa_to_sheet(aoa);
   ws['!cols'] = [{wch:6},{wch:14},{wch:32},{wch:12},...Array(months.length*4).fill({wch:4})];
+  return ws;
+}
+// expose for combined.html
+window.makeTimelineWs = buildTimelineWs;
+
+function exportXLSX() {
+  if (!window.XLSX) { showToast('❌ SheetJS ยังโหลดไม่เสร็จ'); return; }
+  const XL = window.XLSX;
+  const wb = XL.utils.book_new();
+  const meta = getDocMeta();
+
+  /* ── Sheet 1: Visual table ── */
+  const ws = buildTimelineWs();
   XL.utils.book_append_sheet(wb, ws, 'Timeline');
 
   /* ── Sheet 2: _data (JSON for re-import) ── */

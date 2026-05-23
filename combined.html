@@ -580,27 +580,43 @@ function applyValueStyles(ws, sheetIdx) {
 
 /* ── Build XLSX Blob (shared by Drive upload) ──────────────── */
 async function buildXlsxBlob() {
-  const frameIds  = ['frame-1', 'frame-2', 'frame-3'];
-  const hdrColors = ['1A56DB', '059669', '1E40AF'];
-  const colWidths = [
-    [{wch:8},{wch:20},{wch:25},{wch:14},{wch:14},{wch:50},{wch:16},{wch:30}],
-    [{wch:8},{wch:16},{wch:22},{wch:16},{wch:12},{wch:50},{wch:14},{wch:30}],
-    [{wch:6},{wch:18},{wch:50},{wch:16}],
-  ];
-  const wb = XLSX.utils.book_new();
-  frameIds.forEach((fid, i) => {
-    try {
-      const fn = document.getElementById(fid).contentWindow.getSheetData;
-      if (typeof fn !== 'function') return;
-      const result = fn();
-      if (!result || !result.data) return;
-      const ws = XLSX.utils.aoa_to_sheet(result.data);
-      ws['!cols'] = colWidths[i] || Array(8).fill({wch:20});
-      applySheetStyles(ws, hdrColors[i]);
-      applyValueStyles(ws, i);   // เพิ่มสีตาม value (priority/status/responsible/checkmark)
-      XLSX.utils.book_append_sheet(wb, ws, result.sheetName);
-    } catch(e) {}
-  });
+  const f1 = document.getElementById('frame-1').contentWindow;
+  const f2 = document.getElementById('frame-2').contentWindow;
+  const f3 = document.getElementById('frame-3').contentWindow;
+
+  // 1) Rich "Customer Report" workbook (Summary / Price / Features) — already fully styled
+  let wb = null;
+  try { if (typeof f1.makeReportWb === 'function') wb = f1.makeReportWb(); } catch(e) { console.error(e); }
+  if (!wb || !wb.SheetNames || !wb.SheetNames.length) wb = XLSX.utils.book_new();
+
+  // helper: append a sheet, replacing any existing one with the same name
+  const appendSheet = (ws, name) => {
+    if (wb.SheetNames.includes(name)) { delete wb.Sheets[name]; wb.SheetNames = wb.SheetNames.filter(n => n !== name); }
+    XLSX.utils.book_append_sheet(wb, ws, name);
+  };
+
+  // 2) Requirement Tracker — separate styled sheet
+  try {
+    const r2 = (typeof f2.getSheetData === 'function') ? f2.getSheetData() : null;
+    if (r2 && r2.data && r2.data.length) {
+      const tw = XLSX.utils.aoa_to_sheet(r2.data);
+      tw['!cols'] = [{wch:8},{wch:16},{wch:24},{wch:16},{wch:12},{wch:50},{wch:14},{wch:30}];
+      applySheetStyles(tw, '059669');
+      applyValueStyles(tw, 1);
+      appendSheet(tw, 'Requirement Tracker');
+    }
+  } catch(e) { console.error(e); }
+
+  // 3) Timeline — rich Gantt sheet (matches design)
+  try {
+    const tlWs = (typeof f3.makeTimelineWs === 'function') ? f3.makeTimelineWs() : null;
+    if (tlWs) {
+      applySheetStyles(tlWs, '1E40AF');
+      applyValueStyles(tlWs, 2);
+      appendSheet(tlWs, 'Timeline');
+    }
+  } catch(e) { console.error(e); }
+
   if (!wb.SheetNames.length) throw new Error('ไม่มีข้อมูลในเอกสาร');
   const arr = XLSX.write(wb, { bookType:'xlsx', type:'array' });
   return new Blob([arr], { type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
