@@ -1080,6 +1080,46 @@ function checkDraftButton() {
   }
 }
 
+/* ── AUTOSAVE (อัตโนมัติ) — แยกคีย์จากปุ่ม "บันทึกร่าง" กันข้อมูลหายเมื่อรีโหลด ── */
+const TL_AUTO_KEY = 'hs_timeline_autosave_v1';
+function tlBuildDraft() {
+  const stateObj = {};
+  ganttState.forEach((wkMap, tid) => { stateObj[tid] = {}; wkMap.forEach((bar,k)=>{ stateObj[tid][k]=bar; }); });
+  return { tasks, ganttState: stateObj, startYear, startMonth, endYear, endMonth,
+           meta: collectMeta(), notes: document.querySelector('.notes-box')?.innerText.trim() || '',
+           savedAt: new Date().toLocaleString('th-TH') };
+}
+function tlAutoSave() { try { localStorage.setItem(TL_AUTO_KEY, JSON.stringify(tlBuildDraft())); } catch(e){} }
+let _tlAutoT = 0;
+function tlAutoSaveDebounced() { clearTimeout(_tlAutoT); _tlAutoT = setTimeout(tlAutoSave, 400); }
+function tlAutoRestore() {
+  let raw; try { raw = localStorage.getItem(TL_AUTO_KEY); } catch(e){ return false; }
+  if (!raw) return false;
+  let d; try { d = JSON.parse(raw); } catch(e){ return false; }
+  if (!d) return false;
+  try {
+    if (Array.isArray(d.tasks)) tasks = d.tasks;
+    ganttState.clear();
+    Object.entries(d.ganttState || {}).forEach(([tid, wkMap]) => {
+      const m = new Map(); Object.entries(wkMap).forEach(([k,v]) => m.set(+k, v)); ganttState.set(tid, m);
+    });
+    if (d.startYear != null) { startYear=d.startYear; startMonth=d.startMonth; endYear=d.endYear; endMonth=d.endMonth; }
+    syncSelectors();
+    rebuildTable();
+    const metas = document.querySelectorAll('.meta-val');
+    (d.meta || []).forEach((v, i) => { if (metas[i]) metas[i].textContent = v || ''; });
+    const nb = document.querySelector('.notes-box');
+    if (nb && d.notes) nb.innerText = d.notes;
+    return true;
+  } catch(e){ return false; }
+}
+function tlInitAutosave() {
+  document.addEventListener('input',  tlAutoSaveDebounced, true);
+  document.addEventListener('change', tlAutoSaveDebounced, true);
+  window.addEventListener('beforeunload', tlAutoSave);
+  setInterval(tlAutoSave, 2500);  // จับการลากแถบ Gantt ที่ไม่ผ่าน input event
+}
+
 /* ═══════════════════════════════════════════
    SAVE TO DRIVE
 ═══════════════════════════════════════════ */
@@ -1113,6 +1153,8 @@ initSelectors();
 rebuildTable();
 initGanttInteraction();   // set up drag-paint once — not per rebuild
 checkDraftButton();       // show "โหลดร่าง" button if draft exists
+tlAutoRestore();          // กู้ข้อมูลอัตโนมัติที่บันทึกไว้ (ถ้ามี)
+tlInitAutosave();         // เริ่มบันทึกอัตโนมัติทุกครั้งที่แก้ไข
 
 /* ── setSharedData : receive all project info from combined.html ── */
 window.setSharedData = function(domain, company, date, team) {

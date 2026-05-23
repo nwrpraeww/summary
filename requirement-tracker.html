@@ -499,8 +499,54 @@ function toast(msg){
   toastTimer=setTimeout(()=>el.classList.remove('show'),4500);
 }
 
+/* ══════════════════════════════════════════
+   AUTOSAVE (localStorage) — กันข้อมูลหายเมื่อรีโหลด/เปิดใหม่
+══════════════════════════════════════════ */
+const RT_DRAFT_KEY = 'hs_requirement_tracker_draft_v1';
+
+function rtSnapshot() {
+  const rows = [...document.querySelectorAll('#tbody tr')].map(tr => {
+    const td = tr.querySelectorAll('td');
+    return {
+      no:       td[0].querySelector('input')?.value    || '',
+      code:     td[1].querySelector('input')?.value    || '',
+      topic:    td[2].querySelector('textarea')?.value || '',
+      type:     td[3].querySelector('select')?.value   || 'Requirement',
+      price:    td[4].querySelector('input')?.value    || '฿0.00',
+      solution: td[5].querySelector('textarea')?.value || '',
+      status:   td[6].querySelector('select')?.value   || 'Pending',
+      remark:   td[7].querySelector('textarea')?.value || ''
+    };
+  });
+  return { v:1, ts:Date.now(), rows, domain: document.getElementById('domainName')?.value || '' };
+}
+
+function rtSave() {
+  try { localStorage.setItem(RT_DRAFT_KEY, JSON.stringify(rtSnapshot())); } catch(e){}
+}
+let _rtSaveT = 0;
+function rtSaveDebounced() { clearTimeout(_rtSaveT); _rtSaveT = setTimeout(rtSave, 400); }
+
+function rtRestore() {
+  let raw; try { raw = localStorage.getItem(RT_DRAFT_KEY); } catch(e){ return false; }
+  if (!raw) return false;
+  let s; try { s = JSON.parse(raw); } catch(e){ return false; }
+  if (!s || !Array.isArray(s.rows) || !s.rows.length) return false;
+  document.getElementById('tbody').innerHTML = '';
+  s.rows.forEach(d => addRow(d));
+  renumber(); updateBadge();
+  return true;
+}
+
+function rtInitAutosave() {
+  document.addEventListener('input',  rtSaveDebounced, true);
+  document.addEventListener('change', rtSaveDebounced, true);
+  window.addEventListener('beforeunload', rtSave);
+}
+
 /* ─── Init ────────────────────────────────────────────────── */
-addRow();
+if (!rtRestore()) addRow();   // กู้ร่างที่บันทึกไว้ ถ้าไม่มีค่อยเพิ่มแถวเปล่า
+rtInitAutosave();
 
 /* ── setSharedData : receive project info from combined.html ── */
 window.setSharedData = function(domain, company, date, team) {
@@ -521,8 +567,9 @@ window.getSheetData = function() {
     const type  = gcv(td[3],'select');
     const stat  = gcv(td[6],'select');
     const rem   = gcv(td[7],'textarea');
-    // Skip row if all meaningful fields are empty
-    if (!code && !topic && !price && !sol && !type && !stat && !rem) return;
+    // Skip row if no real user content. Type/Status/Price always carry defaults
+    // (Requirement / Pending / ฿0.00), so they don't count as "filled in".
+    if (!code && !topic && !sol && !rem && (!price || price === '฿0.00')) return;
     dataRows.push([
       gcv(td[0],'input'),
       code, topic, type, price, sol, stat, rem

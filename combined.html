@@ -337,9 +337,35 @@ function pushSharedData() {
       if (typeof win.setSharedData === 'function') win.setSharedData(domain, company, date, team);
     } catch(e) {}
   });
+  cbMetaSave();
 }
+
+/* ── Persist meta bar (localStorage) — กันข้อมูลโครงการหายเมื่อรีโหลด ── */
+const CB_META_KEY = 'hs_combined_meta_v1';
+function cbMetaSave() {
+  try {
+    localStorage.setItem(CB_META_KEY, JSON.stringify({
+      domain:  document.getElementById('sharedDomain').value,
+      company: document.getElementById('sharedCompany').value,
+      date:    document.getElementById('sharedDate').value,
+      team:    document.getElementById('sharedTeam').value
+    }));
+  } catch(e){}
+}
+function cbMetaRestore() {
+  let raw; try { raw = localStorage.getItem(CB_META_KEY); } catch(e){ return; }
+  if (!raw) return;
+  let s; try { s = JSON.parse(raw); } catch(e){ return; }
+  if (!s) return;
+  const set = (id,v) => { const el = document.getElementById(id); if (el && v != null && v !== '') el.value = v; };
+  set('sharedDomain', s.domain); set('sharedCompany', s.company);
+  set('sharedDate', s.date);     set('sharedTeam', s.team);
+}
+
 // Set today's date as default
 document.getElementById('sharedDate').value = new Date().toISOString().split('T')[0];
+// Restore saved meta (overrides default date if present)
+cbMetaRestore();
 
 // Push shared data each time an iframe loads
 ['frame-1','frame-2','frame-3'].forEach(fid => {
