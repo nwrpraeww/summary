@@ -512,18 +512,17 @@ function applySheetStyles(ws, headerRgb) {
 
 /* ── Value-based cell color coding (priority / status / responsible / checkmark) ── */
 function valueStyle(fill, txtRgb, bold, center) {
-  return {
-    if (tlWs) {
-    // applySheetStyles(tlWs, '1E40AF');
-    // applyValueStyles(tlWs, 2);
-    appendSheet(tlWs, 'Timeline');
-}
-      top:   { style:'thin', color:{ rgb:'D1D5DB' } },
-      bottom:{ style:'thin', color:{ rgb:'D1D5DB' } },
-      left:  { style:'thin', color:{ rgb:'D1D5DB' } },
-      right: { style:'thin', color:{ rgb:'D1D5DB' } }
-    }
-  };
+    return {
+        fill: { patternType:'solid', fgColor:{ rgb: fill } },
+        font: { bold: bold, color:{ rgb: txtRgb }, name:'Anuphan', sz:11 },
+        alignment: { horizontal: center ? 'center' : 'left', vertical:'top', wrapText:true },
+        border: {
+            top:   { style:'thin', color:{ rgb:'D1D5DB' } },
+            bottom:{ style:'thin', color:{ rgb:'D1D5DB' } },
+            left:  { style:'thin', color:{ rgb:'D1D5DB' } },
+            right: { style:'thin', color:{ rgb:'D1D5DB' } }
+        }
+    };
 }
 
 // แมปค่าใน cell → สีพื้นหลัง/สีตัวอักษร
@@ -609,13 +608,14 @@ async function buildXlsxBlob() {
   } catch(e) { console.error(e); }
 
   // 3) Timeline — rich Gantt sheet (matches design)
-  try {
+try {
     const tlWs = (typeof f3.makeTimelineWs === 'function') ? f3.makeTimelineWs() : null;
     if (tlWs) {
-      applySheetStyles(tlWs, '1E40AF');
-      applyValueStyles(tlWs, 2);
-      appendSheet(tlWs, 'Timeline');
+        // applySheetStyles(tlWs, '1E40AF');
+        // applyValueStyles(tlWs, 2);
+        appendSheet(tlWs, 'Timeline');
     }
+} catch(e) { console.error(e); }
   } catch(e) { console.error(e); }
 
   if (!wb.SheetNames.length) throw new Error('ไม่มีข้อมูลในเอกสาร');
