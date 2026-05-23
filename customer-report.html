@@ -2009,7 +2009,7 @@ function buildPrintHTML(data, autoPrint) {
     '.content{padding:0 10mm;}\n'+
     '.section-hd{background:var(--blue);color:white;font-size:11px;font-weight:700;'+
     'padding:6px 10mm;margin:10px -10mm 0;border-left:4px solid var(--orange);display:flex;align-items:center;gap:6px;}\n'+
-    '.tbl{width:100%;border-collapse:collapse;font-size:9.5px;}\n'+
+    '.tbl{width:100%;border-collapse:collapse;font-size:9.5px;table-layout:fixed;word-wrap:break-word;}\n'+
     '.tbl th{background:var(--blue-lt);color:#1E3A8A;font-weight:700;font-size:8.5px;'+
     'padding:5px 6px;text-align:left;border:0.5px solid var(--blue-md);}\n'+
     '.tbl th.c{text-align:center;}\n'+
@@ -2036,7 +2036,7 @@ function buildPrintHTML(data, autoPrint) {
     '.bottom-bar{display:flex;height:5px;margin-top:10px;}\n'+
     '.bb-blue{flex:2;background:var(--blue);}\n'+
     '.bb-orange{flex:1;background:var(--orange);}\n'+
-    '.gtbl{width:100%;border-collapse:collapse;font-size:8px;margin-top:6px;}\n'+
+    '.gtbl{width:100%;border-collapse:collapse;font-size:8px;margin-top:6px;table-layout:fixed;word-wrap:break-word;}\n'+
     '.gtbl th,.gtbl td{border:0.5px solid #DBEAFE;padding:2px 3px;}\n'+
     '.gtbl th{background:var(--blue-lt);color:var(--blue-dk);font-weight:700;text-align:center;}\n'+
     '.gtbl td.g-no{width:22px;text-align:center;color:var(--gray);}\n'+
@@ -2238,21 +2238,26 @@ async function makePDFBlob() {
   const html = buildPrintHTML(data, false);
   return new Promise(function(resolve, reject) {
     const iframe = document.createElement('iframe');
-    // ไม่ใช้ opacity:0 เพราะ html2canvas render ไม่ครบ — ซ่อนด้วยการเลื่อนออกนอกหน้าจอแทน
+    // บังคับความกว้างหน้าจอจำลองให้อยู่ที่ 794px (เท่ากับ A4 แนวตั้งพอดี)
     iframe.style.cssText = 'position:fixed;top:-9999px;left:0;width:794px;height:5000px;border:none;pointer-events:none;z-index:-1;';
     document.body.appendChild(iframe);
     iframe.onload = async function() {
       try {
-        // รอให้ Google Fonts โหลดครบก่อน — ใช้ fonts.ready แทน setTimeout เพื่อความแม่นยำ
         await Promise.race([
           iframe.contentDocument.fonts.ready,
-          new Promise(function(r){ setTimeout(r, 6000); }) // fallback สูงสุด 6 วินาที
+          new Promise(function(r){ setTimeout(r, 6000); })
         ]);
-        await new Promise(function(r){ setTimeout(r, 400); }); // buffer หลัง font ready
+        await new Promise(function(r){ setTimeout(r, 400); }); 
 
         const el = iframe.contentDocument.querySelector('.page') || iframe.contentDocument.body;
+        
+        // ล็อกความกว้างไม่ให้ตารางถ่างออกเกินกระดาษ
+        el.style.width = '794px';
+        el.style.maxWidth = '794px';
+        el.style.overflow = 'hidden';
+
         const canvas = await html2canvas(el, {
-          scale: 3,                // เพิ่มจาก 2 → 3 เพื่อความคมชัด (~300 DPI)
+          scale: 3, 
           useCORS: true,
           allowTaint: true,
           windowWidth: 794,
@@ -2260,24 +2265,35 @@ async function makePDFBlob() {
           imageTimeout: 0,
           backgroundColor: '#ffffff'
         });
+        
         if (document.body.contains(iframe)) document.body.removeChild(iframe);
+        
         const {jsPDF} = window.jspdf;
-        const W=210, H=297;
-        const iH = canvas.height * W / canvas.width;
-        // ใช้ PNG แทน JPEG เพื่อให้ข้อความคมชัดไม่มี artifact
+        // บังคับสร้าง PDF เป็นไซส์ A4 เสมอ
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const A4_WIDTH = 210;
+        const A4_HEIGHT = 297;
+
+        // คำนวณความสูงของภาพให้สัมพันธ์กับความกว้าง A4
+        const imgWidth = A4_WIDTH;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        
         const img = canvas.toDataURL('image/png');
-        const pdf = new jsPDF('p','mm','a4');
-        // หน้าแรก: A4 เต็ม หรือสั้นกว่า (กรณีเนื้อหาน้อย)
-        pdf.addImage(img,'PNG',0,0,W,Math.min(iH,H));
-        let rem = iH - H, yp = 0;
-        // หน้าถัดไป: ใช้ความสูงพอดี (ไม่มีช่องว่างท้ายหน้าสุดท้าย)
-        while (rem > 2) {
-          yp -= H;
-          const pageH = Math.min(rem, H);
-          pdf.addPage([W, pageH]);
-          pdf.addImage(img,'PNG',0,yp,W,iH);
-          rem -= H;
+        let heightLeft = imgHeight;
+        let position = 0;
+
+        // วางภาพหน้าแรก
+        pdf.addImage(img, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= A4_HEIGHT;
+
+        // วางภาพหน้าถัดๆ ไป (ถ้ามีเนื้อหาเหลือ) แบบเต็มแผ่น A4
+        while (heightLeft > 0) {
+          position -= A4_HEIGHT; 
+          pdf.addPage('a4');     
+          pdf.addImage(img, 'PNG', 0, position, imgWidth, imgHeight);
+          heightLeft -= A4_HEIGHT;
         }
+
         resolve(pdf.output('blob'));
       } catch(err) {
         if (document.body.contains(iframe)) document.body.removeChild(iframe);
@@ -2289,7 +2305,6 @@ async function makePDFBlob() {
     iframe.contentDocument.close();
   });
 }
-
 
 /* ══════════════════════════════════════════
    PRICE TABLE & CALCULATOR
