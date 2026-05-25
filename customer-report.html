@@ -808,8 +808,6 @@ document.addEventListener('DOMContentLoaded', () => {
   ganttData = DEF_TL.map(d => ({...d})); // deep copy
   renderGantt();
   renum(); syncPrint(); initPriceUI(); initFeatures();
-  crRestore();        // กู้ข้อมูลร่างที่บันทึกไว้ (ถ้ามี) — ทับค่าเริ่มต้น
-  crInitAutosave();   // เริ่มบันทึกอัตโนมัติทุกครั้งที่แก้ไข
 });
 
 function syncPrint() {
@@ -3082,99 +3080,6 @@ window.setSharedData = function(domain, company, date, team) {
   set('fDate',    date);
   set('fTeam',    team);
 };
-
-/* ══════════════════════════════════════════
-   AUTOSAVE (localStorage) — กันข้อมูลหายเมื่อรีโหลด/เปิดใหม่
-══════════════════════════════════════════ */
-const CR_DRAFT_KEY = 'hs_customer_report_draft_v1';
-
-function crSnapshot() {
-  const pp = [...document.querySelectorAll('#ppBody tr')].map(tr => {
-    const t = tr.querySelectorAll('td');
-    return { req: t[1].querySelector('textarea').value,
-             sup: t[2].querySelector('input').checked,
-             not: t[3].querySelector('input').checked,
-             sol: t[4].querySelector('textarea').value,
-             priority: t[5]?.querySelector('select')?.value || 'should' };
-  });
-  const so = [...document.querySelectorAll('#soBody tr')].map(tr => {
-    const t = tr.querySelectorAll('td');
-    return { item: t[1].querySelector('input').value, det: t[2].querySelector('textarea').value };
-  });
-  const tl = [...document.querySelectorAll('#tlBody tr')].map(tr => {
-    if (tr.classList.contains('tl-grp')) return { type:'group', label: tr.querySelector('.grp-name')?.value || '' };
-    const t = tr.querySelectorAll('td');
-    const clrBtn = tr.querySelector('.clr-tog');
-    const color = (clrBtn && clrBtn.classList.contains('tog-cl')) ? 'cl' : 'hs';
-    return { type:'task', color,
-             task: t[2].querySelector('textarea').value,
-             det:  t[3].querySelector('textarea').value,
-             ds: getMW(t[4]), de: getMW(t[5]) };
-  });
-  const ctrl = {};
-  document.querySelectorAll('input[id],select[id],textarea[id]').forEach(el => {
-    if (el.closest('#ppBody') || el.closest('#soBody') || el.closest('#tlBody')) return;
-    ctrl[el.id] = (el.type === 'checkbox' || el.type === 'radio') ? el.checked : el.value;
-  });
-  const feats = {};
-  document.querySelectorAll('#featBody .feat-item').forEach(l => {
-    const cb = l.querySelector('input'); if (cb) feats[l.dataset.label] = cb.checked;
-  });
-  return { v:1, ts:Date.now(), pp, so, tl, gantt: ganttData,
-           sel: { _selPkg, _selRangeIdx, _selPkg2, _selRangeIdx2 }, ctrl, feats };
-}
-
-function crSave() {
-  try { localStorage.setItem(CR_DRAFT_KEY, JSON.stringify(crSnapshot())); } catch(e){}
-}
-let _crSaveT = 0;
-function crSaveDebounced() { clearTimeout(_crSaveT); _crSaveT = setTimeout(crSave, 400); }
-
-function crRestore() {
-  let raw; try { raw = localStorage.getItem(CR_DRAFT_KEY); } catch(e){ return false; }
-  if (!raw) return false;
-  let s; try { s = JSON.parse(raw); } catch(e){ return false; }
-  if (!s) return false;
-  if (Array.isArray(s.pp)) { document.getElementById('ppBody').innerHTML=''; s.pp.forEach(d=>addPP(d)); }
-  if (Array.isArray(s.so)) { document.getElementById('soBody').innerHTML=''; s.so.forEach(d=>addSO(d)); }
-  if (Array.isArray(s.tl)) {
-    document.getElementById('tlBody').innerHTML='';
-    s.tl.forEach(d => d.type === 'group' ? addTLGroup(d) : addTL(d));
-  }
-  if (s.ctrl) Object.entries(s.ctrl).forEach(([id,val]) => {
-    const el = document.getElementById(id); if (!el) return;
-    if (el.type === 'checkbox' || el.type === 'radio') el.checked = val; else el.value = val;
-  });
-  if (s.feats) document.querySelectorAll('#featBody .feat-item').forEach(l => {
-    const cb = l.querySelector('input');
-    if (cb && l.dataset.label in s.feats) {
-      cb.checked = s.feats[l.dataset.label];
-      l.className = 'feat-item ' + (cb.checked ? 'is-on' : 'is-off');
-    }
-  });
-  if (Array.isArray(s.gantt)) ganttData = s.gantt.map(d => ({...d}));
-  if (s.sel) {
-    _selPkg = s.sel._selPkg ?? _selPkg;
-    _selRangeIdx = s.sel._selRangeIdx ?? _selRangeIdx;
-    _selPkg2 = s.sel._selPkg2 ?? _selPkg2;
-    _selRangeIdx2 = s.sel._selRangeIdx2 ?? _selRangeIdx2;
-  }
-  document.querySelectorAll('.pkg-btn[data-pkg]').forEach(b => b.classList.toggle('active', b.dataset.pkg === _selPkg));
-  document.querySelectorAll('#comparePanelB .pkg-btn').forEach(b => b.classList.toggle('active', b.dataset.pkg2 === _selPkg2));
-  try { renderGantt(); } catch(e){}
-  try { toggleComparePanel(); } catch(e){}
-  try { calcPrice(); } catch(e){}
-  try { syncPrint(); } catch(e){}
-  try { renum(); } catch(e){}
-  return true;
-}
-
-function crInitAutosave() {
-  document.addEventListener('input',  crSaveDebounced, true);
-  document.addEventListener('change', crSaveDebounced, true);
-  window.addEventListener('beforeunload', crSave);
-  setInterval(crSave, 2500);  // จับการแก้ไขที่ไม่ผ่าน input event (เช่น ลาก Gantt)
-}
 
 /* ── getSheetData : expose data to combined.html parent ── */
 window.getSheetData = function() {
