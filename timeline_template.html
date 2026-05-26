@@ -922,20 +922,87 @@ function buildTimelineWs() {
     taskNo++;
   });
   const ws = XL.utils.aoa_to_sheet(aoa);
-  ws['!cols'] = [{wch:6},{wch:14},{wch:32},{wch:12},...Array(months.length*4).fill({wch:4})];
-  // ensure every cell uses the Anuphan font (aoa_to_sheet leaves cells unstyled → Calibri)
-  if (ws['!ref']) {
-    const rng = XL.utils.decode_range(ws['!ref']);
-    for (let R = rng.s.r; R <= rng.e.r; R++) {
-      for (let C = rng.s.c; C <= rng.e.c; C++) {
-        const addr = XL.utils.encode_cell({r:R, c:C});
-        if (!ws[addr]) continue;
-        ws[addr].s = Object.assign({}, ws[addr].s, {
-          font: Object.assign({ name:'Anuphan', sz:11 }, (ws[addr].s && ws[addr].s.font) || {}, { name:'Anuphan' })
-        });
-      }
+  const NCOL  = 4 + months.length * 4;
+  const lastC = NCOL - 1;
+  ws['!cols'] = [{wch:6},{wch:16},{wch:40},{wch:13},...Array(months.length*4).fill({wch:4.5})];
+
+  /* ── styled Gantt rendering (matches the design example) ── */
+  const FONT = 'Anuphan';
+  const SOLID = rgb => ({ patternType:'solid', fgColor:{ rgb } });
+  const FN = (sz, bold, color) => ({ name:FONT, sz:sz||10, bold:!!bold, color:{ rgb: color||'374151' } });
+  const AL = (h, v, wrap, indent) => ({ horizontal:h||'left', vertical:v||'center', wrapText:!!wrap, ...(indent?{indent}:{}) });
+  const BD = (rgb='E5E7EB') => ({ top:{style:'thin',color:{rgb}}, bottom:{style:'thin',color:{rgb}}, left:{style:'thin',color:{rgb}}, right:{style:'thin',color:{rgb}} });
+  const setS = (r, c, s) => { const a = XL.utils.encode_cell({r,c}); if (!ws[a]) ws[a] = { t:'s', v:'' }; ws[a].s = s; };
+  const fillRange = (r, c0, c1, s) => { for (let c=c0;c<=c1;c++) setS(r,c,s); };
+
+  const merges = ws['!merges'] || [];
+  const rowsH  = [];
+  const BANDS  = ['1A56DB','5B21B6','F47B20'];   // month band colours (cycle)
+  const NAVY   = '1E3A8A';
+  const LBLUE  = 'EEF2FF';
+  const PURPLE = '5B21B6';
+  const MARKER = { '■':'1A56DB', '▲':'F47B20', '●':'10B981', '▪':'9CA3AF' };
+  const STATUS = { 'Not Started':['F3F4F6','6B7280'], 'In Progress':['DBEAFE','1E40AF'], 'Done':['D1FAE5','065F46'] };
+
+  // Row 0 — title + month bands
+  rowsH[0] = { hpx:24 };
+  merges.push({ s:{r:0,c:0}, e:{r:0,c:3} });
+  fillRange(0, 0, 3, { fill:SOLID('1A56DB'), font:FN(14,true,'FFFFFF'), alignment:AL('left','center',false,1) });
+  ws[XL.utils.encode_cell({r:0,c:0})].v = 'Implementation Timeline';
+  months.forEach((_, i) => {
+    const c0 = 4 + i*4, c1 = c0 + 3, col = BANDS[i % BANDS.length];
+    merges.push({ s:{r:0,c:c0}, e:{r:0,c:c1} });
+    fillRange(0, c0, c1, { fill:SOLID(col), font:FN(11,true,'FFFFFF'), alignment:AL('center','center') });
+  });
+
+  // Row 1 — header (No / resp / step / status / weeks)
+  rowsH[1] = { hpx:20 };
+  fillRange(1, 0, lastC, { fill:SOLID(NAVY), font:FN(10,true,'FFFFFF'), alignment:AL('center','center',true), border:BD(NAVY) });
+
+  // Row 2 — meta band (merged)
+  rowsH[2] = { hpx:20 };
+  const metaStr = (aoa[2]||[]).filter(Boolean).join('   |   ');
+  for (let c=1;c<=lastC;c++){ const a=XL.utils.encode_cell({r:2,c}); if(ws[a]) ws[a].v=''; }
+  merges.push({ s:{r:2,c:0}, e:{r:2,c:lastC} });
+  fillRange(2, 0, lastC, { fill:SOLID(LBLUE), font:FN(10,true,NAVY), alignment:AL('left','center',false,1) });
+  ws[XL.utils.encode_cell({r:2,c:0})].v = metaStr;
+
+  // Row 3 — spacer
+  rowsH[3] = { hpx:6 };
+
+  // Rows 4+ — sections & task rows
+  for (let r = 4; r < aoa.length; r++) {
+    const rowArr = aoa[r] || [];
+    const bVal = (rowArr[1] || '').toString();
+    const aVal = rowArr[0];
+    if (bVal.indexOf('──') !== -1) {                 // section divider
+      rowsH[r] = { hpx:20 };
+      const txt = bVal.replace(/──/g,'').trim();
+      for (let c=1;c<=lastC;c++){ const a=XL.utils.encode_cell({r,c}); if(ws[a]) ws[a].v=''; }
+      merges.push({ s:{r,c:0}, e:{r,c:lastC} });
+      fillRange(r, 0, lastC, { fill:SOLID(LBLUE), font:FN(9,true,PURPLE), alignment:AL('left','center',false,1) });
+      ws[XL.utils.encode_cell({r,c:0})].v = txt;
+      continue;
+    }
+    if (aVal === '' || aVal == null) continue;        // skip blank
+    const bg = (r % 2 === 0) ? 'FFFFFF' : 'F9FAFB';
+    rowsH[r] = { hpx:26 };
+    setS(r, 0, { fill:SOLID(bg), font:FN(10,true,'374151'), alignment:AL('center','center'), border:BD() });
+    setS(r, 1, { fill:SOLID(bg), font:FN(10,false,'374151'), alignment:AL('left','center',false,1), border:BD() });
+    setS(r, 2, { fill:SOLID(bg), font:FN(10,false,'374151'), alignment:AL('left','center',true), border:BD() });
+    const st = (rowArr[3]||'').toString();
+    const sc = STATUS[st] || ['F3F4F6','6B7280'];
+    setS(r, 3, { fill:SOLID(sc[0]), font:FN(9,true,sc[1]), alignment:AL('center','center'), border:BD() });
+    for (let c = 4; c <= lastC; c++) {
+      const mk = (rowArr[c]||'').toString();
+      if (MARKER[mk]) setS(r, c, { fill:SOLID(MARKER[mk]), font:FN(10,true,'FFFFFF'), alignment:AL('center','center'), border:BD() });
+      else            setS(r, c, { fill:SOLID(bg), border:BD(), font:FN(10) });
     }
   }
+
+  ws['!merges'] = merges;
+  ws['!rows']   = rowsH;
+  ws['!freeze'] = { xSplit:4, ySplit:4, topLeftCell:'E5', activePane:'bottomRight', state:'frozen' };
   return ws;
 }
 // expose for combined.html
