@@ -636,9 +636,15 @@ input.date-sel{font-size:11px;padding:3px 5px;border:1.5px solid var(--border);b
           </div>
         </label>
         <div id="scanDeviceInputs" style="display:none;padding:10px 14px;border-top:1px solid #D1FAE5;background:white">
-          <div class="fg" style="max-width:200px">
-            <label class="lbl">จำนวนเครื่อง</label>
-            <input id="fScanDeviceQty" type="number" class="fc" placeholder="1" min="1" value="1" oninput="calcScannerDevice()">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;max-width:320px">
+            <div class="fg">
+              <label class="lbl">จำนวนเครื่อง</label>
+              <input id="fScanDeviceQty" type="number" class="fc" placeholder="1" min="1" value="1" oninput="calcScannerDevice()">
+            </div>
+            <div class="fg">
+              <label class="lbl">ส่วนลด (%)</label>
+              <input id="fScanDeviceDisc" type="number" class="fc" placeholder="0" min="0" max="100" value="" oninput="calcScannerDevice()">
+            </div>
           </div>
           <div id="scanDeviceResult" style="margin-top:10px"></div>
         </div>
@@ -658,9 +664,15 @@ input.date-sel{font-size:11px;padding:3px 5px;border:1.5px solid var(--border);b
             </div>
           </label>
           <div id="scanChInputs" style="display:none;padding:10px 14px;border-top:1px solid #BAE6FD;background:white">
-            <div class="fg" style="max-width:200px">
-              <label class="lbl">จำนวนเครื่องสแกน</label>
-              <input id="fScanChQty" type="number" class="fc" placeholder="1" min="1" value="1" oninput="calcScanner()">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;max-width:320px">
+              <div class="fg">
+                <label class="lbl">จำนวนเครื่องสแกน</label>
+                <input id="fScanChQty" type="number" class="fc" placeholder="1" min="1" value="1" oninput="calcScanner()">
+              </div>
+              <div class="fg">
+                <label class="lbl">ส่วนลด (%)</label>
+                <input id="fScanChDisc" type="number" class="fc" placeholder="0" min="0" max="100" value="" oninput="calcScanner()">
+              </div>
             </div>
           </div>
         </div>
@@ -675,9 +687,15 @@ input.date-sel{font-size:11px;padding:3px 5px;border:1.5px solid var(--border);b
             </div>
           </label>
           <div id="scanDomInputs" style="display:none;padding:10px 14px;border-top:1px solid #BAE6FD;background:white">
-            <div class="fg" style="max-width:200px">
-              <label class="lbl">จำนวนเครื่องสแกน</label>
-              <input id="fScanDomQty" type="number" class="fc" placeholder="1" min="1" value="1" oninput="calcScanner()">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;max-width:320px">
+              <div class="fg">
+                <label class="lbl">จำนวนเครื่องสแกน</label>
+                <input id="fScanDomQty" type="number" class="fc" placeholder="1" min="1" value="1" oninput="calcScanner()">
+              </div>
+              <div class="fg">
+                <label class="lbl">ส่วนลด (%)</label>
+                <input id="fScanDomDisc" type="number" class="fc" placeholder="0" min="0" max="100" value="" oninput="calcScanner()">
+              </div>
             </div>
           </div>
         </div>
@@ -1104,7 +1122,10 @@ function collect() {
   let scannerDevice = null;
   if (document.getElementById('fScanDevice')?.checked) {
     const qty = parseInt(document.getElementById('fScanDeviceQty')?.value) || 1;
-    scannerDevice = { model: 'ZKTeco MB40-VL', qty, unitPrice: 12900, total: qty * 12900 };
+    const discPct = Math.min(100, Math.max(0, parseFloat(document.getElementById('fScanDeviceDisc')?.value) || 0));
+    const gross = qty * 12900;
+    const discAmt = Math.round(gross * discPct / 100);
+    scannerDevice = { model: 'ZKTeco MB40-VL', qty, unitPrice: 12900, gross, discPct, discAmt, total: gross - discAmt };
   }
 
   // Scanner connection data
@@ -1115,10 +1136,19 @@ function collect() {
     const PER = 5350, DOM = 10700;
     const chQty  = parseInt(document.getElementById('fScanChQty')?.value)  || 1;
     const domQty = parseInt(document.getElementById('fScanDomQty')?.value) || 1;
+    const chDisc  = Math.min(100, Math.max(0, parseFloat(document.getElementById('fScanChDisc')?.value)  || 0));
+    const domDisc = Math.min(100, Math.max(0, parseFloat(document.getElementById('fScanDomDisc')?.value) || 0));
     const items = [];
     let total = 0;
-    if (chOn)  { const t = chQty  * PER; total += t; items.push({ type:'By Channel', qty: chQty,  unitPrice: PER, subtotal: t }); }
-    if (domOn) { const t = domQty * DOM; total += t; items.push({ type:'By โดเมน',  qty: domQty, unitPrice: DOM, subtotal: t }); }
+    const addItem = (type, qty, unit, discPct) => {
+      const gross = qty * unit;
+      const discAmt = Math.round(gross * discPct / 100);
+      const net = gross - discAmt;
+      total += net;
+      items.push({ type, qty, unitPrice: unit, gross, discPct, discAmt, subtotal: net });
+    };
+    if (chOn)  addItem('By Channel', chQty,  PER, chDisc);
+    if (domOn) addItem('By โดเมน',   domQty, DOM, domDisc);
     scannerData = { items, total };
   }
 
@@ -1708,12 +1738,17 @@ function buildScannerPDF(sc, dev, scannerTotal) {
   out += '<th style="padding:3px 8px;border:.5px solid #D1FAE5;color:#065F46;font-size:8px;text-align:right">ราคา/เครื่อง</th>';
   out += '<th style="padding:3px 8px;border:.5px solid #D1FAE5;color:#065F46;font-size:8px;text-align:right">รวม</th></tr>';
 
+  const discRow = (pct, amt) => pct > 0
+    ? '<tr style="background:#FFF8F2"><td colspan="3" style="padding:2px 8px 2px 22px;border:.5px solid #D1FAE5;color:#C85E0F;font-size:8px">🏷️ ส่วนลด '+pct+'%</td>'
+      + '<td style="padding:2px 8px;border:.5px solid #D1FAE5;color:#C85E0F;font-weight:700;text-align:right">-'+amt.toLocaleString()+' บาท</td></tr>'
+    : '';
   // Device row
   if (dev) {
     out += '<tr style="background:white"><td style="padding:3px 8px;border:.5px solid #D1FAE5;color:#374151">🖥️ '+dev.model+'</td>';
     out += '<td style="padding:3px 8px;border:.5px solid #D1FAE5;color:#374151;text-align:center">'+dev.qty+' เครื่อง</td>';
     out += '<td style="padding:3px 8px;border:.5px solid #D1FAE5;color:#374151;text-align:right">'+dev.unitPrice.toLocaleString()+' บาท</td>';
-    out += '<td style="padding:3px 8px;border:.5px solid #D1FAE5;color:#059669;font-weight:700;text-align:right">'+dev.total.toLocaleString()+' บาท</td></tr>';
+    out += '<td style="padding:3px 8px;border:.5px solid #D1FAE5;color:#059669;font-weight:700;text-align:right">'+(dev.gross ?? dev.total).toLocaleString()+' บาท</td></tr>';
+    out += discRow(dev.discPct || 0, dev.discAmt || 0);
   }
   // Connection rows
   if (sc && sc.items) {
@@ -1722,7 +1757,8 @@ function buildScannerPDF(sc, dev, scannerTotal) {
       out += '<tr style="background:'+bg+'"><td style="padding:3px 8px;border:.5px solid #D1FAE5;color:#374151">📷 เชื่อมต่อ '+it.type+'</td>';
       out += '<td style="padding:3px 8px;border:.5px solid #D1FAE5;color:#374151;text-align:center">'+it.qty+' เครื่อง</td>';
       out += '<td style="padding:3px 8px;border:.5px solid #D1FAE5;color:#374151;text-align:right">'+it.unitPrice.toLocaleString()+' บาท</td>';
-      out += '<td style="padding:3px 8px;border:.5px solid #D1FAE5;color:#059669;font-weight:700;text-align:right">'+it.subtotal.toLocaleString()+' บาท</td></tr>';
+      out += '<td style="padding:3px 8px;border:.5px solid #D1FAE5;color:#059669;font-weight:700;text-align:right">'+(it.gross ?? it.subtotal).toLocaleString()+' บาท</td></tr>';
+      out += discRow(it.discPct || 0, it.discAmt || 0);
     });
   }
   // Grand total row
@@ -2353,11 +2389,24 @@ function calcScannerDevice() {
   if (wrap) wrap.style.borderColor = on ? '#059669' : '#D1FAE5';
   if (!on) return;
   const qty = parseInt(document.getElementById('fScanDeviceQty')?.value) || 1;
-  const total = qty * 12900;
+  const disc = Math.min(100, Math.max(0, parseFloat(document.getElementById('fScanDeviceDisc')?.value) || 0));
+  const gross = qty * 12900;
+  const discAmt = Math.round(gross * disc / 100);
+  const net = gross - discAmt;
   const res = document.getElementById('scanDeviceResult');
-  if (res) res.innerHTML = `<div style="background:#D1FAE5;border-radius:8px;padding:8px 12px;display:flex;justify-content:space-between;align-items:center">
-    <span style="font-size:12px;color:#374151">${qty} เครื่อง × 12,900 บาท</span>
-    <span style="font-weight:700;font-size:14px;color:#065F46">${total.toLocaleString()} บาท</span>
+  if (res) res.innerHTML = `<div style="background:#D1FAE5;border-radius:8px;padding:8px 12px">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <span style="font-size:12px;color:#374151">${qty} เครื่อง × 12,900 บาท</span>
+      <span style="font-weight:${disc>0?'400':'700'};font-size:${disc>0?'12':'14'}px;color:#065F46${disc>0?';text-decoration:line-through':''}">${gross.toLocaleString()} บาท</span>
+    </div>
+    ${disc>0?`<div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px">
+      <span style="font-size:12px;color:#C85E0F">🏷️ ส่วนลด ${disc}%</span>
+      <span style="font-weight:700;color:#C85E0F">-${discAmt.toLocaleString()} บาท</span>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;border-top:1.5px solid #059669;margin-top:6px;padding-top:6px">
+      <span style="font-weight:700;font-size:13px;color:#065F46">ยอดสุทธิ</span>
+      <span style="font-weight:700;font-size:14px;color:#065F46">${net.toLocaleString()} บาท</span>
+    </div>`:''}
   </div>
   <div style="font-size:11px;color:#6B7280;margin-top:4px">* ยังไม่รวม VAT 7%</div>`;
 }
@@ -2384,26 +2433,31 @@ function calcScanner() {
   const PER = 5350, DOM = 10700;
   const chQty  = parseInt(document.getElementById('fScanChQty')?.value)  || 1;
   const domQty = parseInt(document.getElementById('fScanDomQty')?.value) || 1;
+  const chDisc  = Math.min(100, Math.max(0, parseFloat(document.getElementById('fScanChDisc')?.value)  || 0));
+  const domDisc = Math.min(100, Math.max(0, parseFloat(document.getElementById('fScanDomDisc')?.value) || 0));
 
   const lines = [];
   let grandTotal = 0;
 
-  if (chOn) {
-    const t = chQty * PER;
-    grandTotal += t;
-    lines.push(`<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0">
-      <span style="font-size:12px;color:#374151">📷 By Channel &nbsp;<span style="color:#6B7280">(${chQty} เครื่อง × 5,350)</span></span>
-      <span style="font-weight:700;color:#0369A1">${t.toLocaleString()} บาท</span>
-    </div>`);
-  }
-  if (domOn) {
-    const t = domQty * DOM;
-    grandTotal += t;
-    lines.push(`<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0">
-      <span style="font-size:12px;color:#374151">📷 By โดเมน &nbsp;<span style="color:#6B7280">(${domQty} เครื่อง × 10,700)</span></span>
-      <span style="font-weight:700;color:#0369A1">${t.toLocaleString()} บาท</span>
-    </div>`);
-  }
+  const scanLine = (label, qty, unit, disc) => {
+    const gross = qty * unit;
+    const discAmt = Math.round(gross * disc / 100);
+    const net = gross - discAmt;
+    grandTotal += net;
+    return `<div style="padding:5px 0">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:12px;color:#374151">📷 ${label} &nbsp;<span style="color:#6B7280">(${qty} เครื่อง × ${unit.toLocaleString()})</span></span>
+        <span style="font-weight:${disc>0?'400':'700'};color:#0369A1${disc>0?';text-decoration:line-through':''}">${gross.toLocaleString()} บาท</span>
+      </div>
+      ${disc>0?`<div style="display:flex;justify-content:space-between;align-items:center;margin-top:3px">
+        <span style="font-size:11.5px;color:#C85E0F">🏷️ ส่วนลด ${disc}% &nbsp;<span style="color:#C85E0F">→ สุทธิ</span></span>
+        <span style="font-weight:700;color:#065F46">-${discAmt.toLocaleString()} = ${net.toLocaleString()} บาท</span>
+      </div>`:''}
+    </div>`;
+  };
+
+  if (chOn)  lines.push(scanLine('By Channel', chQty,  PER, chDisc));
+  if (domOn) lines.push(scanLine('By โดเมน',   domQty, DOM, domDisc));
 
   if (!chOn && !domOn) { res.innerHTML = ''; return; }
 
