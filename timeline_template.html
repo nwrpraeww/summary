@@ -923,6 +923,19 @@ function buildTimelineWs() {
   });
   const ws = XL.utils.aoa_to_sheet(aoa);
   ws['!cols'] = [{wch:6},{wch:14},{wch:32},{wch:12},...Array(months.length*4).fill({wch:4})];
+  // ensure every cell uses the Anuphan font (aoa_to_sheet leaves cells unstyled → Calibri)
+  if (ws['!ref']) {
+    const rng = XL.utils.decode_range(ws['!ref']);
+    for (let R = rng.s.r; R <= rng.e.r; R++) {
+      for (let C = rng.s.c; C <= rng.e.c; C++) {
+        const addr = XL.utils.encode_cell({r:R, c:C});
+        if (!ws[addr]) continue;
+        ws[addr].s = Object.assign({}, ws[addr].s, {
+          font: Object.assign({ name:'Anuphan', sz:11 }, (ws[addr].s && ws[addr].s.font) || {}, { name:'Anuphan' })
+        });
+      }
+    }
+  }
   return ws;
 }
 // expose for combined.html

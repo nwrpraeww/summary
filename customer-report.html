@@ -1198,8 +1198,8 @@ function buildXLSX(data) {
     bodyTxt:  '374151',
   };
 
-  const bold   = (sz,color,name='Calibri') => ({bold:true,sz,color:{rgb:color},name});
-  const reg    = (sz,color,name='Calibri') => ({sz,color:{rgb:color},name});
+  const bold   = (sz,color,name='Anuphan') => ({bold:true,sz,color:{rgb:color},name});
+  const reg    = (sz,color,name='Anuphan') => ({sz,color:{rgb:color},name});
   const solid  = (color) => ({patternType:'solid',fgColor:{rgb:color}});
   const bdr    = () => ({
     top:{style:'thin',color:{rgb:C.border}},
@@ -1228,7 +1228,7 @@ function buildXLSX(data) {
 
   // ─ Row 3: subtitle ─
   rh(3,18);
-  mg(3,1,3,4); sc(3,1,'',{font:{sz:11,color:{rgb:'9CA3AF'},italic:true,name:'Calibri'},fill:solid(C.white),alignment:al('left','center')});
+  mg(3,1,3,4); sc(3,1,'',{font:{sz:11,color:{rgb:'9CA3AF'},italic:true,name:'Anuphan'},fill:solid(C.white),alignment:al('left','center')});
   mg(3,5,3,7); sc(3,5,'FM-SE-03',{font:bold(10,C.orange),fill:solid(C.orangeLt),alignment:al('right','center')});
 
   // ─ Row 4: doc date ─
@@ -1300,7 +1300,7 @@ function buildXLSX(data) {
     } else {
       sc(r,6,'',{fill:solid(fill),alignment:al('center','center'),border:bdr()});
     }
-    sc(r,7,pp.sol,{font:{sz:9.5,color:{rgb:'1F2937'},italic:true,name:'Calibri'},fill:solid(fill),alignment:al('left','center',true),border:bdr()});
+    sc(r,7,pp.sol,{font:{sz:9.5,color:{rgb:'1F2937'},italic:true,name:'Anuphan'},fill:solid(fill),alignment:al('left','center',true),border:bdr()});
     r++;
   });
 
