@@ -1778,7 +1778,7 @@ function buildPricePDF(p, p2, scanner, scannerDevice, scannerTotal) {
   const offersLine = p.offers.length
     ? '<div style="background:#FFF4ED;padding:5px 8px;border-top:1px solid #FDE8D0;font-size:8px;color:#C85E0F"><strong>🎁 Ontop:</strong> '+p.offers.join(' &nbsp;|&nbsp; ')+'</div>'
     : '';
-  let out = '<div class="section-hd">💰 ราคา &amp; แพ็กเกจ</div>';
+  let out = '<div class="section-hd pdf-page-break">💰 ราคา &amp; แพ็กเกจ</div>';
   out += '<div style="font-size:8.5px;color:#374151;font-weight:600;padding:4px 0 2px">แพ็กเกจแนะนำสำหรับพนักงาน <strong style="color:'+clr+'">'+p.range+'</strong> คน</div>';
   if (p.compareMode && p2) {
     // Side-by-side: ตัวเลือก A vs ตัวเลือก B
@@ -1836,17 +1836,30 @@ function buildPricePDF(p, p2, scanner, scannerDevice, scannerTotal) {
     out += '<tr style="background:#F0FDF4"><td style="padding:3px 8px;border:.5px solid #E5E7EB;color:#065F46;font-size:8px">💚 ประหยัดรวม (Software)</td>';
     out += '<td style="text-align:center;padding:3px;border:.5px solid #EEF2FF;color:#065F46;font-weight:700">'+thb(saveA)+' บาท ('+Math.round(saveA/p.normalTotal*100)+'%)</td>';
     out += '<td style="text-align:center;padding:3px;border:.5px solid #EEF2FF;color:#065F46;font-weight:700">'+thb(saveB)+' บาท ('+Math.round(saveB/p2.normalTotal*100)+'%)</td></tr>';
-    // ค่าเครื่องสแกน + เชื่อมต่อ (แสดงแยกแถว เหมือนกันทั้ง 2 option แต่ชัดเจนสำหรับเปรียบเทียบ)
+    // ค่าเครื่องสแกน + เชื่อมต่อ — แจงเต็ม (ราคาเต็ม + ส่วนลด + สุทธิ) เหมือนกันทั้ง 2 option
+    const _scanCell = (txt, color) => '<td style="text-align:center;padding:3px;border:.5px solid #EEF2FF;color:'+color+';font-weight:700">'+txt+'</td>';
+    const scanGrossRow = (label, gross) =>
+      '<tr style="background:#F0FDF4"><td style="padding:3px 8px;border:.5px solid #E5E7EB;color:#059669;font-size:8px">'+label+'</td>'+
+      _scanCell(thb(gross)+' บาท','#059669')+_scanCell(thb(gross)+' บาท','#059669')+'</tr>';
+    const scanDiscRow = (pct, amt) =>
+      '<tr style="background:#FFF8F2"><td style="padding:2px 8px 2px 22px;border:.5px solid #E5E7EB;color:#C85E0F;font-size:8px">🏷️ ส่วนลดเครื่องสแกน '+pct+'%</td>'+
+      _scanCell('−'+thb(amt)+' บาท','#C85E0F')+_scanCell('−'+thb(amt)+' บาท','#C85E0F')+'</tr>';
+    const scanNetRow = net =>
+      '<tr style="background:#ECFDF5"><td style="padding:2px 8px 2px 22px;border:.5px solid #E5E7EB;color:#065F46;font-size:8px">↳ ราคาสุทธิหลังหักส่วนลด</td>'+
+      _scanCell(thb(net)+' บาท','#065F46')+_scanCell(thb(net)+' บาท','#065F46')+'</tr>';
+    const scanFull = (label, gross, discPct, discAmt, net) => {
+      let r = scanGrossRow(label, gross);
+      if (discPct > 0) r += scanDiscRow(discPct, discAmt) + scanNetRow(net);
+      return r;
+    };
     if (scannerDevice) {
-      out += '<tr style="background:#F0FDF4"><td style="padding:3px 8px;border:.5px solid #E5E7EB;color:#059669;font-size:8px">🖥️ ค่าเครื่องสแกน ('+scannerDevice.model+')</td>';
-      out += '<td style="text-align:center;padding:3px;border:.5px solid #EEF2FF;color:#059669;font-weight:700">'+thb(scannerDevice.total)+' บาท</td>';
-      out += '<td style="text-align:center;padding:3px;border:.5px solid #EEF2FF;color:#059669;font-weight:700">'+thb(scannerDevice.total)+' บาท</td></tr>';
+      out += scanFull('🖥️ ค่าเครื่องสแกน ('+scannerDevice.model+' × '+scannerDevice.qty+')',
+        (scannerDevice.gross ?? scannerDevice.total), scannerDevice.discPct||0, scannerDevice.discAmt||0, scannerDevice.total);
     }
     if (scanner && scanner.items) {
       scanner.items.forEach(it => {
-        out += '<tr style="background:#F0FDF4"><td style="padding:3px 8px;border:.5px solid #E5E7EB;color:#059669;font-size:8px">📷 ค่าเชื่อมต่อ '+it.type+' ('+it.qty+' เครื่อง)</td>';
-        out += '<td style="text-align:center;padding:3px;border:.5px solid #EEF2FF;color:#059669;font-weight:700">'+thb(it.subtotal)+' บาท</td>';
-        out += '<td style="text-align:center;padding:3px;border:.5px solid #EEF2FF;color:#059669;font-weight:700">'+thb(it.subtotal)+' บาท</td></tr>';
+        out += scanFull('📷 ค่าเชื่อมต่อ '+it.type+' ('+it.qty+' เครื่อง)',
+          (it.gross ?? it.subtotal), it.discPct||0, it.discAmt||0, it.subtotal);
       });
     }
     if (scannerTotal) {
@@ -1954,7 +1967,7 @@ function buildFeatsPDF(feats) {
   const leftHTML  = leftCats.map(c  => catBlock(c, bycat[c])).join('');
   const rightHTML = rightCats.map(c => catBlock(c, bycat[c])).join('');
 
-  return '<div class="section-hd" style="margin-top:10px">✅ Features ที่ต้องการใช้งาน</div>'+
+  return '<div class="section-hd pdf-page-break" style="margin-top:10px">✅ Features ที่ต้องการใช้งาน</div>'+
     '<div style="display:grid;grid-template-columns:1fr 1fr;gap:0 12px;margin-top:6px;align-items:start">'+
     '<div>'+leftHTML+'</div>'+
     '<div>'+rightHTML+'</div>'+
@@ -2027,6 +2040,7 @@ function buildPrintHTML(data, autoPrint) {
     '*{box-sizing:border-box;margin:0;padding:0;}\n'+
     'body{font-family:\'Sarabun\',\'Anuphan\',sans-serif;font-size:12px;color:#1A1F2E;background:#E5E7EB;}\n'+
     '.page{width:210mm;background:white;margin:0 auto;padding-bottom:20px;}\n'+
+    '.pdf-page-break{break-before:page;page-break-before:always;}\n'+
     '.top-bar-blue{height:6px;background:var(--blue);}\n'+
     '.top-bar-orange{height:3px;background:var(--orange);}\n'+
     '.header{display:flex;justify-content:space-between;align-items:flex-end;padding:10px 10mm 9px;border-bottom:2px solid var(--orange);background:white;}\n'+
@@ -2300,33 +2314,55 @@ async function makePDFBlob() {
           backgroundColor: '#ffffff'
         });
         
+        // --- หาตำแหน่งที่ต้องบังคับขึ้นหน้าใหม่ (เช่น ส่วนราคา) ก่อนลบ iframe ---
+        const ratio = canvas.width / el.offsetWidth;          // canvas px ต่อ 1 css px
+        const pageTop = el.getBoundingClientRect().top;
+        const forcedBreaks = [...iframe.contentDocument.querySelectorAll('.pdf-page-break')]
+          .map(b => Math.round((b.getBoundingClientRect().top - pageTop) * ratio))
+          .filter(y => y > 2 && y < canvas.height - 2);
+
         if (document.body.contains(iframe)) document.body.removeChild(iframe);
-        
+
         const {jsPDF} = window.jspdf;
         // บังคับสร้าง PDF เป็นไซส์ A4 เสมอ
         const pdf = new jsPDF('p', 'mm', 'a4');
         const A4_WIDTH = 210;
         const A4_HEIGHT = 297;
+        const pageHeightPx = canvas.width * (A4_HEIGHT / A4_WIDTH);   // ความสูง 1 หน้า A4 (หน่วย canvas px)
 
-        // คำนวณความสูงของภาพให้สัมพันธ์กับความกว้าง A4
-        const imgWidth = A4_WIDTH;
-        const imgHeight = (canvas.height * imgWidth) / canvas.width;
-        
-        const img = canvas.toDataURL('image/png');
-        let heightLeft = imgHeight;
-        let position = 0;
+        // จุดตัด = ขอบบน + จุด page-break + ขอบล่าง
+        const bounds = [0, ...forcedBreaks, canvas.height]
+          .filter((v, i, a) => a.indexOf(v) === i)
+          .sort((a, b) => a - b);
 
-        // วางภาพหน้าแรก
-        pdf.addImage(img, 'PNG', 0, position, imgWidth, imgHeight);
-        heightLeft -= A4_HEIGHT;
-
-        // วางภาพหน้าถัดๆ ไป (ถ้ามีเนื้อหาเหลือ) แบบเต็มแผ่น A4
-        while (heightLeft > 0) {
-          position -= A4_HEIGHT; 
-          pdf.addPage('a4');     
-          pdf.addImage(img, 'PNG', 0, position, imgWidth, imgHeight);
-          heightLeft -= A4_HEIGHT;
+        // สร้าง slice โดยเคารพ page-break แล้วซอยย่อยถ้าบล็อกยาวเกิน 1 หน้า A4
+        const slices = [];
+        for (let i = 0; i < bounds.length - 1; i++) {
+          let start = bounds[i];
+          const blockEnd = bounds[i + 1];
+          while (blockEnd - start > 1) {
+            const end = Math.min(start + pageHeightPx, blockEnd);
+            slices.push([start, end]);
+            start = end;
+          }
         }
+        if (!slices.length) slices.push([0, canvas.height]);
+
+        // วาดแต่ละ slice เป็นหน้า A4 (วางชิดขอบบน ไม่ให้เนื้อหาถูกตัดกลาง)
+        slices.forEach(([s, e], idx) => {
+          const sliceH = Math.round(e - s);
+          const tmp = document.createElement('canvas');
+          tmp.width = canvas.width;
+          tmp.height = sliceH;
+          const ctx = tmp.getContext('2d');
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, tmp.width, tmp.height);
+          ctx.drawImage(canvas, 0, s, canvas.width, sliceH, 0, 0, canvas.width, sliceH);
+          const imgData = tmp.toDataURL('image/png');
+          const imgH_mm = (sliceH * A4_WIDTH) / canvas.width;
+          if (idx > 0) pdf.addPage('a4');
+          pdf.addImage(imgData, 'PNG', 0, 0, A4_WIDTH, imgH_mm);
+        });
 
         resolve(pdf.output('blob'));
       } catch(err) {
