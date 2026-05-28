@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HumanSoft — เปรียบเทียบฟีเจอร์แพ็กเกจ</title>
+<style>
+  :root{
+    --ink:#1a2b3c; --muted:#5a6b7b; --hint:#8a98a6;
+    --line:#e4e9ee; --line2:#cfd7df; --bg:#f4f7fa; --card:#ffffff;
+    --ok:#0f6e56; --okbg:#e1f5ee; --info:#185fa5; --infobg:#e6f1fb;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:"Noto Sans Thai","Sarabun","Segoe UI",system-ui,-apple-system,sans-serif;
+    line-height:1.6; padding:32px 16px;
+  }
+  .wrap{max-width:1040px; margin:0 auto;}
+  header.top{margin-bottom:20px;}
+  header.top h1{font-size:26px; font-weight:700; margin:0 0 6px; color:#0b66c2;}
+  header.top p{margin:0; color:var(--muted); font-size:15px;}
+  .pkgbar{display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin:22px 0 18px;}
+  .pkgcard{border-radius:14px; padding:14px; cursor:pointer; transition:all .12s; border:2px solid transparent; user-select:none;}
+  .pkgcard .nm{font-size:16px; font-weight:700; display:flex; justify-content:space-between; align-items:center;}
+  .pkgcard .tg{font-size:12px; margin-top:8px; opacity:.9; line-height:1.4;}
+  .pkgcard.off{opacity:.45; background:#eef2f6 !important; border-color:transparent !important; color:var(--muted) !important;}
+  .controls{display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:16px;}
+  button.btn{font-family:inherit; font-size:14px; padding:8px 14px; border-radius:9px; border:1px solid var(--line2);
+    background:#fff; cursor:pointer; display:inline-flex; align-items:center; gap:7px; color:var(--ink); transition:all .12s;}
+  button.btn.active{background:var(--infobg); border-color:#9cc1e8; color:var(--info);}
+  .hint{font-size:13px; color:var(--hint);}
+  .matrix{background:var(--card); border:1px solid var(--line); border-radius:14px; overflow:hidden;}
+  .mhead, .mrow{display:grid; align-items:center;}
+  .mhead{padding:12px 14px; border-bottom:2px solid var(--line2); position:sticky; top:0; background:var(--card); z-index:2;}
+  .mhead .ph{text-align:center; font-size:14px; font-weight:700;}
+  .cat{font-size:13px; font-weight:700; color:#fff; padding:8px 14px; background:#2c7fc4;}
+  .mrow{padding:9px 14px; border-bottom:1px solid var(--line);}
+  .mrow:hover{background:#fafcfe;}
+  .fname{font-size:13.5px; padding-right:10px; line-height:1.45;}
+  .val{text-align:center; font-size:14px;}
+  .ok{color:var(--ok); font-weight:700;}
+  .no{color:#c3ccd4;}
+  .pill{display:inline-block; font-size:11.5px; padding:2px 9px; border-radius:8px; background:var(--infobg); color:var(--info); font-weight:600;}
+  footer{margin-top:18px; font-size:12.5px; color:var(--hint);}
+  @media(max-width:720px){ .pkgbar{grid-template-columns:repeat(2,1fr);} header.top h1{font-size:22px;} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>HumanSoft — เปรียบเทียบฟีเจอร์แต่ละแพ็กเกจ</h1>
+    <p>เลือก/ปิดแพ็กเกจที่การ์ดด้านล่างเพื่อเทียบเฉพาะที่ต้องการ และกด "แสดงเฉพาะความต่าง" เพื่อดูเฉพาะจุดที่ไม่เหมือนกัน</p>
+  </header>
+
+  <div class="pkgbar" id="pkgbar"></div>
+
+  <div class="controls">
+    <button class="btn" id="diffBtn"><span>⚲</span><span id="diffLbl">แสดงเฉพาะความต่าง</span></button>
+    <span class="hint">คลิกการ์ดแพ็กเกจเพื่อเลือกหรือปิด</span>
+  </div>
+
+  <div class="matrix" id="matrix"></div>
+
+  <footer>ที่มา: เอกสารแพ็กเกจราคา HumanSoft · ตารางนี้แสดงเฉพาะฟีเจอร์ (ไม่รวมราคา)</footer>
+</div>
+
+<script>
+var PKGS=[
+  {name:'Basic',tag:'HR จัดการคนเดียว · ไม่มีแอป',bg:'#f1efe8',tx:'#2c2c2a',br:'#5f5e5a'},
+  {name:'Standard',tag:'เพิ่มแอป + ลงเวลาหลายช่องทาง',bg:'#e1f5ee',tx:'#04342c',br:'#0f6e56'},
+  {name:'Advanced',tag:'หัวหน้าร่วมอนุมัติ 2 ขั้น',bg:'#e6f1fb',tx:'#042c53',br:'#185fa5'},
+  {name:'Professional',tag:'ครบทุกฟังก์ชันงาน HR',bg:'#eeedfe',tx:'#26215c',br:'#534ab7'}
+];
+var T=true,F=false;
+var DATA=[
+ {cat:'ช่องทางใช้งาน',rows:[
+   {n:'Web Browser',v:[T,T,T,T]},
+   {n:'Mobile Application',v:[F,T,T,T]},
+   {n:'Line OA',v:[F,T,T,T]}]},
+ {cat:'โครงสร้างองค์กร',rows:[
+   {n:'โครงสร้างองค์กร / ตำแหน่ง',v:['5 ชั้น','5 ชั้น','5 ชั้น','5 ชั้น']},
+   {n:'ปรับโครงสร้างองค์กร / ตำแหน่ง',v:[T,T,T,T]},
+   {n:'นโยบายบริษัท',v:[F,T,T,T]},
+   {n:'ข้อมูลผู้ติดต่อภายใน',v:[F,T,T,T]},
+   {n:'ข้อมูลทีมงาน',v:[F,F,F,T]},
+   {n:'เส้นทางการเติบโตในตำแหน่ง',v:[F,F,T,T]}]},
+ {cat:'ข้อมูลพนักงาน',rows:[
+   {n:'ข้อมูลพื้นฐาน (ส่วนตัว/เงินเดือน/กองทุน ฯลฯ)',v:[T,T,T,T]},
+   {n:'ข้อมูลใบหน้า (Face)',v:[F,T,T,T]},
+   {n:'กำหนดผู้อนุมัติเอกสาร',v:['HR อนุมัติ','HR อนุมัติ','2 ขั้น','5 ขั้น']}]},
+ {cat:'สิทธิ์เข้าถึง & ความปลอดภัย',rows:[
+   {n:'ผู้ใช้ / กลุ่มผู้ใช้ / ผู้ดูแล / สิทธิ์เข้าถึง',v:[T,T,T,T]},
+   {n:'Strong Password · PDPA · Back Log',v:[T,T,T,T]}]},
+ {cat:'การจ้างงาน (Hiring)',rows:[
+   {n:'ใบสมัครงานออนไลน์',v:[F,F,F,T]},
+   {n:'ระบบรับสมัครพนักงาน',v:[F,F,F,T]},
+   {n:'ประเมินพนักงานทดลองงาน (Onboarding)',v:[F,F,F,T]}]},
+ {cat:'ลงเวลา & จัดการกำลังพล',rows:[
+   {n:'ข้อมูลกะ / วันหยุด / จัดการกะ-วันหยุด',v:[T,T,T,T]},
+   {n:'จัดการตารางเวลาการทำงาน',v:[T,T,T,T]},
+   {n:'วางแผนกะ-วันหยุด (พนักงานวางเอง)',v:[F,F,T,T]},
+   {n:'จัดการผังกำลังพล',v:[F,F,F,T]}]},
+ {cat:'ช่องทางลงเวลา',rows:[
+   {n:'Finger Scan · Import · Manual',v:[T,T,T,T]},
+   {n:'GPS · WIFI · Beacon · Face · Kiosk · QR · Offline',v:[F,T,T,T]},
+   {n:'สแกนลูกทีม (หัวหน้าสแกนแทน)',v:[F,F,T,T]}]},
+ {cat:'เอกสารและการอนุมัติ',rows:[
+   {n:'ลางาน / โอที / เพิ่มเวลา / เปลี่ยนกะ-วันหยุด',v:[T,T,T,T]},
+   {n:'ขอเบิกล่วงหน้า',v:[F,T,T,T]},
+   {n:'ขอเอกสารรับรองเงินเดือน / การทำงาน',v:[F,F,T,T]},
+   {n:'เอกสารลาออก',v:[F,F,T,T]},
+   {n:'ขอเอกสารวีซ่า',v:[F,F,F,T]},
+   {n:'ขอเบิกเงินสดย่อย',v:[F,F,F,T]},
+   {n:'ขอสวัสดิการ',v:[F,F,F,T]},
+   {n:'ขอร้องเรียน',v:[F,F,F,T]},
+   {n:'เอกสารสัญญาจ้าง',v:[F,F,F,T]}]},
+ {cat:'ระบบจัดการเอกสาร',rows:[
+   {n:'จัดการโควต้าการลา · ตั้งค่าลายเซ็น',v:[T,T,T,T]},
+   {n:'ปฏิทินการทำงาน',v:[F,F,T,T]},
+   {n:'จัดการวันหยุดพิเศษ',v:[F,F,T,T]},
+   {n:'ตั้งค่าลำดับขั้นการอนุมัติ',v:[F,F,T,T]}]},
+ {cat:'คำนวณเงินเดือน (Payroll)',rows:[
+   {n:'การคำนวณ (เงินเดือน/โอที/แยกเวลา/พิเศษ/ภาษี-ปกส-กยศ)',v:[T,T,T,T]},
+   {n:'บันทึกข้อมูล (เบิกล่วงหน้า/นำส่ง/ปรับเงินเดือน/หนี้สิน)',v:[T,T,T,T]},
+   {n:'การตั้งค่า (เวลา/ลา 20 ประเภท/รายรับ-รายจ่าย/ตัวช่วยอัจฉริยะ)',v:[T,T,T,T]}]},
+ {cat:'เรียนรู้ & พัฒนาองค์กร',rows:[
+   {n:'E-Learning',v:[F,T,T,T]},
+   {n:'ฝึกอบรม',v:[F,F,F,T]},
+   {n:'แบบประเมิน / รอบประเมิน / KPI Profile / จดหมายเตือน',v:[F,F,F,T]}]},
+ {cat:'เครื่องมือช่วยทำงาน',rows:[
+   {n:'ประกาศข่าวสาร · News Feed',v:[F,T,T,T]},
+   {n:'Todo-Lists',v:[F,F,F,T]}]},
+ {cat:'AI / Insight & Automation',rows:[
+   {n:'Widget Dashboard on Web',v:[T,T,T,T]},
+   {n:'Automation (รันคำสั่ง · HumanSoft Notify)',v:[F,T,T,T]},
+   {n:'ตั้งค่าค่าแนะนำ (AI)',v:[F,F,F,T]}]}
+];
+
+var selected=[true,true,true,true], diffOnly=false;
+
+function cellHTML(val){
+  if(val===true) return '<span class="ok">✔</span>';
+  if(val===false) return '<span class="no">—</span>';
+  return '<span class="pill">'+val+'</span>';
+}
+function renderBar(){
+  var bar=document.getElementById('pkgbar');
+  bar.innerHTML=PKGS.map(function(p,i){
+    var on=selected[i];
+    return '<div class="pkgcard'+(on?'':' off')+'" data-i="'+i+'" style="background:'+p.bg+'; border-color:'+p.br+'; color:'+p.tx+';">'+
+      '<div class="nm"><span>'+p.name+'</span><span>'+(on?'☑':'☐')+'</span></div>'+
+      '<div class="tg">'+p.tag+'</div></div>';
+  }).join('');
+  Array.prototype.forEach.call(bar.querySelectorAll('.pkgcard'),function(c){
+    c.onclick=function(){
+      var i=+c.getAttribute('data-i');
+      if(selected[i] && selected.filter(Boolean).length<=1) return;
+      selected[i]=!selected[i]; renderBar(); renderMatrix();
+    };
+  });
+}
+function renderMatrix(){
+  var idx=[0,1,2,3].filter(function(i){return selected[i];});
+  var cols='minmax(0,1.8fr) '+idx.map(function(){return 'minmax(0,1fr)';}).join(' ');
+  var h='<div class="mhead" style="grid-template-columns:'+cols+';"><div></div>'+
+    idx.map(function(i){return '<div class="ph" style="color:'+PKGS[i].br+';">'+PKGS[i].name+'</div>';}).join('')+'</div>';
+  DATA.forEach(function(g){
+    var rows=g.rows.filter(function(r){
+      if(!diffOnly) return true;
+      return new Set(idx.map(function(i){return JSON.stringify(r.v[i]);})).size>1;
+    });
+    if(!rows.length) return;
+    h+='<div class="cat">'+g.cat+'</div>';
+    rows.forEach(function(r){
+      h+='<div class="mrow" style="grid-template-columns:'+cols+';"><div class="fname">'+r.n+'</div>'+
+        idx.map(function(i){return '<div class="val">'+cellHTML(r.v[i])+'</div>';}).join('')+'</div>';
+    });
+  });
+  document.getElementById('matrix').innerHTML=h;
+}
+document.getElementById('diffBtn').onclick=function(){
+  diffOnly=!diffOnly;
+  this.classList.toggle('active',diffOnly);
+  document.getElementById('diffLbl').textContent=diffOnly?'แสดงทุกฟีเจอร์':'แสดงเฉพาะความต่าง';
+  renderMatrix();
+};
+renderBar(); renderMatrix();
+</script>
+</body>
+</html>

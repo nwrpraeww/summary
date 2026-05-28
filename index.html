@@ -253,6 +253,10 @@ body {
       <span class="tab-dot"></span>
       📅 Timeline
     </button>
+    <button class="nav-tab" id="tab-4" onclick="goPage(4)">
+      <span class="tab-dot"></span>
+      📊 เปรียบเทียบแพ็กเกจ
+    </button>
   </div>
 
   <!-- Right: action buttons + page info + prev/next -->
@@ -264,7 +268,7 @@ body {
     </label>
     <button class="btn-action btn-act-drive"   id="btnDrive"   onclick="doSaveDrive()" style="display:none">☁️ บันทึก Drive</button>
     <div class="nav-sep"></div>
-    <div class="nav-page-info">หน้า <span id="pageNum">1</span> / 3</div>
+    <div class="nav-page-info">หน้า <span id="pageNum">1</span> / 4</div>
     <button class="btn-nav btn-prev" id="btnPrev" onclick="goPage(currentPage-1)" disabled>
       ← ย้อนกลับ
     </button>
@@ -308,7 +312,7 @@ body {
 
 <!-- Progress strip -->
 <div class="page-strip">
-  <div class="page-strip-fill" id="progressFill" style="width:33.33%"></div>
+  <div class="page-strip-fill" id="progressFill" style="width:25%"></div>
 </div>
 
 <!-- Toast -->
@@ -319,11 +323,12 @@ body {
   <iframe class="doc-frame active" id="frame-1" src="customer-report.html?embedded=1" title="Customer Requirement Report"></iframe>
   <iframe class="doc-frame"        id="frame-2" src="requirement-tracker.html?embedded=1" title="Requirement Tracker"></iframe>
   <iframe class="doc-frame"        id="frame-3" src="timeline_template.html?embedded=1"   title="Implementation Timeline"></iframe>
+  <iframe class="doc-frame"        id="frame-4" src="humansoft-เปรียบเทียบแพ็กเกจ.html?embedded=1" title="เปรียบเทียบแพ็กเกจ"></iframe>
 </div>
 
 <script>
 let currentPage = 1;
-const TOTAL = 3;
+const TOTAL = 4;
 
 /* ── Shared domain/team sync to all iframes ────────────────── */
 function pushSharedData() {
@@ -331,7 +336,7 @@ function pushSharedData() {
   const company = document.getElementById('sharedCompany').value.trim();
   const date    = document.getElementById('sharedDate').value;
   const team    = document.getElementById('sharedTeam').value;
-  ['frame-1','frame-2','frame-3'].forEach(fid => {
+  ['frame-1','frame-2','frame-3','frame-4'].forEach(fid => {
     try {
       const win = document.getElementById(fid).contentWindow;
       if (typeof win.setSharedData === 'function') win.setSharedData(domain, company, date, team);
@@ -368,7 +373,7 @@ document.getElementById('sharedDate').value = new Date().toISOString().split('T'
 cbMetaRestore();
 
 // Push shared data each time an iframe loads
-['frame-1','frame-2','frame-3'].forEach(fid => {
+['frame-1','frame-2','frame-3','frame-4'].forEach(fid => {
   document.getElementById(fid).addEventListener('load', () => {
     setTimeout(pushSharedData, 100);
   });
@@ -417,11 +422,13 @@ function updateNav() {
   const pct = (currentPage / TOTAL) * 100;
   document.getElementById('progressFill').style.width = pct + '%';
 
-  // Context-aware: preview & import only for page 1 and 3; Drive save only on last page
-  const hasCtx = currentPage !== 2;
+  // Context-aware: preview & import only for page 1 and 3 (data pages);
+  // Drive save on the Timeline page (page 3, end of the data-entry flow).
+  // Page 4 (เปรียบเทียบแพ็กเกจ) is a reference view — no action buttons.
+  const hasCtx = currentPage === 1 || currentPage === 3;
   document.getElementById('btnPreview').style.display = hasCtx ? '' : 'none';
   document.getElementById('btnImport').style.display  = hasCtx ? '' : 'none';
-  document.getElementById('btnDrive').style.display   = currentPage === TOTAL ? '' : 'none';
+  document.getElementById('btnDrive').style.display   = currentPage === 3 ? '' : 'none';
 }
 
 // Keyboard navigation

@@ -518,6 +518,8 @@ input.date-sel{font-size:11px;padding:3px 5px;border:1.5px solid var(--border);b
         <button class="pkg-btn pkg-adv"   data-pkg="Advanced"      onclick="selectPkg(this)">Advanced</button>
         <button class="pkg-btn pkg-pro active" data-pkg="Professional" onclick="selectPkg(this)">Professional</button>
       </div>
+      <!-- Package feature detail (auto-updates with selected package / compare A vs B) -->
+      <div id="pkgFeatureBox" style="margin:6px 0 14px"></div>
       <!-- Selectors -->
       <div class="price-inputs">
         <div class="fg">
@@ -825,7 +827,7 @@ document.addEventListener('DOMContentLoaded', () => {
   DEF_SO.forEach(d => addSO(d));
   ganttData = DEF_TL.map(d => ({...d})); // deep copy
   renderGantt();
-  renum(); syncPrint(); initPriceUI(); initFeatures();
+  renum(); syncPrint(); initPriceUI(); initFeatures(); renderPkgFeatures();
 });
 
 function syncPrint() {
@@ -1482,6 +1484,33 @@ function buildXLSX(data) {
         mgp(r,6,r,8); wp[XLSX.utils.encode_cell({r:r-1,c:5})]={v:typeof vB==='number'?Math.abs(vB):vB,t:typeof vB==='number'?'n':'s',s:sB};
         r++;
       });
+      // Scanner device + connection (same cost both options) + grand total
+      const _sd = data.scannerDevice, _scn = data.scanner, _st = data.scannerTotal;
+      const scanRowAB = (label, val, bg, fg, bold) => {
+        rhp(r,22);
+        mgp(r,1,r,2); scp(r,1,label,{fill:solid(bg),font:reg(9,fg,bold),alignment:al('left','center'),border:bdr()});
+        const st={fill:solid(bg),font:reg(10,fg,bold),alignment:al('center','center'),border:bdr(),numFmt:'#,##0'};
+        mgp(r,3,r,5); wp[XLSX.utils.encode_cell({r:r-1,c:2})]={v:val,t:'n',s:st};
+        mgp(r,6,r,8); wp[XLSX.utils.encode_cell({r:r-1,c:5})]={v:val,t:'n',s:st};
+        r++;
+      };
+      const scanFullAB = (label, gross, dPct, dAmt, net) => {
+        scanRowAB('  '+label, gross, C.okBg, C.okTxt, false);
+        if (dPct>0) {
+          scanRowAB('      ส่วนลดเครื่องสแกน '+dPct+'%', -dAmt, C.orangeLt, 'C85E0F', false);
+          scanRowAB('      ↳ ราคาสุทธิหลังหักส่วนลด', net, 'ECFDF5', C.okTxt, true);
+        }
+      };
+      if (_sd) scanFullAB('🖥️ ค่าเครื่องสแกน ('+_sd.model+' × '+_sd.qty+')', (_sd.gross ?? _sd.total), _sd.discPct||0, _sd.discAmt||0, _sd.total);
+      if (_scn && _scn.items) _scn.items.forEach(it => scanFullAB('📷 ค่าเชื่อมต่อ '+it.type+' ('+it.qty+' เครื่อง)', (it.gross ?? it.subtotal), it.discPct||0, it.discAmt||0, it.subtotal));
+      if (_st) {
+        rhp(r,26);
+        mgp(r,1,r,2); scp(r,1,'🏆 ยอดรวมทั้งหมด (Software + Scanner)',{fill:solid(C.navy),font:reg(10,C.white,true),alignment:al('left','center'),border:bdr()});
+        const gst={fill:solid(C.navy),font:reg(12,C.white,true),alignment:al('center','center'),border:bdr(),numFmt:'#,##0'};
+        mgp(r,3,r,5); wp[XLSX.utils.encode_cell({r:r-1,c:2})]={v:p.finalTotal+_st,t:'n',s:gst};
+        mgp(r,6,r,8); wp[XLSX.utils.encode_cell({r:r-1,c:5})]={v:p2.finalTotal+_st,t:'n',s:gst};
+        r++;
+      }
       if (p.offers.length) {
         rhp(r,20); mgp(r,1,r,8);
         scp(r,1,'🎁 Ontop: '+p.offers.join('  |  '),{fill:solid(C.orangeLt),font:reg(9,'C85E0F',false),alignment:al('left','center',true)}); r++;
@@ -1544,6 +1573,56 @@ function buildXLSX(data) {
         scp(r,2,p.offers.join('  |  '),{fill:solid(C.orangeLt),font:reg(9,'C85E0F',false),alignment:al('left','center',true)}); r++;
       }
       rhp(r,6); r++;
+    }
+    // ── Package feature detail (inside Price sheet) ──
+    if (typeof PKG_FEATURES !== 'undefined') {
+      const cmpF = !!(p.compareMode && data.price2);
+      const samePkg = cmpF && p.pkg === data.price2.pkg;
+      const twoCol = cmpF && !samePkg;       // same package → merge into single column
+      const idxA = PKG_ORDER.indexOf(p.pkg);
+      const idxB = twoCol ? PKG_ORDER.indexOf(data.price2.pkg) : -1;
+      if (idxA >= 0 && (!twoCol || idxB >= 0)) {
+        rhp(r,6); r++;
+        rhp(r,22); mgp(r,1,r,8);
+        scp(r,1,'  📋 รายละเอียดฟีเจอร์ตามแพ็กเกจ'+(twoCol?' ('+p.pkg+' vs '+data.price2.pkg+')':(samePkg?' — '+p.pkg+' (เหมือนกันทั้ง 2 Option)':' — '+p.pkg)),
+          {fill:solid(C.tblHdBg),font:reg(11,C.tblHdTxt,true),alignment:al('left','center')}); r++;
+        if (samePkg) {
+          rhp(r,18); mgp(r,1,r,8);
+          scp(r,1,'  ℹ️ ทั้งสอง Option เป็นแพ็กเกจ '+p.pkg+' เหมือนกัน — รวมฟีเจอร์เป็นคอลัมน์เดียว',
+            {fill:solid('FEF9E7'),font:reg(9,'7A5C00',false),alignment:al('left','center',true)}); r++;
+        }
+        // header row
+        rhp(r,20);
+        if (twoCol) {
+          mgp(r,1,r,4); scp(r,1,'ฟีเจอร์',{fill:solid('F3F4F6'),font:reg(9,'374151',true),alignment:al('center','center'),border:bdr()});
+          mgp(r,5,r,6); scp(r,5,p.pkg,{fill:solid(PKG_CLR[p.pkg]||C.navy),font:reg(9,C.white,true),alignment:al('center','center'),border:bdr()});
+          mgp(r,7,r,8); scp(r,7,data.price2.pkg,{fill:solid(PKG_CLR[data.price2.pkg]||C.navy),font:reg(9,C.white,true),alignment:al('center','center'),border:bdr()});
+        } else {
+          mgp(r,1,r,6); scp(r,1,'ฟีเจอร์',{fill:solid('F3F4F6'),font:reg(9,'374151',true),alignment:al('center','center'),border:bdr()});
+          mgp(r,7,r,8); scp(r,7,p.pkg+(samePkg?' (ทั้ง 2 Option)':''),{fill:solid(PKG_CLR[p.pkg]||C.navy),font:reg(9,C.white,true),alignment:al('center','center'),border:bdr()});
+        }
+        r++;
+        const fCell=(row,c1,c2,val)=>{
+          let txt=val, bg=C.white, fg=C.bodyTxt, bold=false;
+          if (val===true){ txt='✓'; bg=C.okBg; fg=C.okTxt; bold=true; }
+          else if (val===false){ txt='—'; bg=C.white; fg=C.gray; }
+          else { bg=C.tblHdBg; fg=C.tblHdTxt; bold=true; }
+          mgp(row,c1,row,c2);
+          wp[XLSX.utils.encode_cell({r:row-1,c:c1-1})]={v:txt,t:'s',s:{fill:solid(bg),font:reg(9,fg,bold),alignment:al('center','center'),border:bdr()}};
+        };
+        PKG_FEATURES.forEach(g=>{
+          rhp(r,18); mgp(r,1,r,8);
+          scp(r,1,'  '+g.cat,{fill:solid('6B7A88'),font:reg(9,C.white,true),alignment:al('left','center'),border:bdr()}); r++;
+          g.rows.forEach((fr,i)=>{
+            const bg=i%2===0?C.white:C.rowAlt;
+            rhp(r,20);
+            mgp(r,1,r,twoCol?4:6); scp(r,1,'  '+fr.n,{fill:solid(bg),font:reg(9,C.bodyTxt,false),alignment:al('left','center',true),border:bdr()});
+            if (twoCol){ fCell(r,5,6,fr.v[idxA]); fCell(r,7,8,fr.v[idxB]); }
+            else { fCell(r,7,8,fr.v[idxA]); }
+            r++;
+          });
+        });
+      }
     }
     // bottom bar
     rhp(r,4); for(let c=1;c<=8;c++) scp(r,c,'',{fill:solid(C.orange)});
@@ -1769,6 +1848,41 @@ function buildScannerPDF(sc, dev, scannerTotal) {
   return out;
 }
 
+/* Package feature detail table for the PDF price section (single or A-vs-B) */
+function buildPkgFeaturePDF(p, p2) {
+  if (typeof PKG_FEATURES === 'undefined' || !p) return '';
+  const PKG_CLR={Basic:'#2E7D32',Standard:'#E65100',Advanced:'#1565C0',Professional:'#1A56DB'};
+  const cmp  = !!(p.compareMode && p2);
+  const idxA = PKG_ORDER.indexOf(p.pkg);
+  const idxB = cmp ? PKG_ORDER.indexOf(p2.pkg) : -1;
+  if (idxA < 0 || (cmp && idxB < 0)) return '';
+  const samePkg = cmp && p.pkg === p2.pkg;
+  // same package → merge into a single feature column
+  const cols = (cmp && !samePkg) ? [idxA, idxB] : [idxA];
+  const cell = v => v === true  ? '<span style="color:#059669;font-weight:700">&#10004;</span>'
+                  : v === false ? '<span style="color:#C3CCD4">&mdash;</span>'
+                  : '<span style="color:#1240B0;font-weight:700">'+v+'</span>';
+  const titleSuffix = (cmp && !samePkg) ? ' ('+p.pkg+' vs '+p2.pkg+')'
+                    : samePkg ? ' — '+p.pkg+' (เหมือนกันทั้ง 2 Option)' : ' — '+p.pkg;
+  let o = '<div style="margin-top:8px;border:1px solid #BFDBFE;border-radius:5px;overflow:hidden">';
+  o += '<div style="background:#EEF2FF;color:#1E3A8A;font-size:9px;font-weight:700;padding:4px 8px;-webkit-print-color-adjust:exact">📋 รายละเอียดฟีเจอร์ตามแพ็กเกจ'+titleSuffix+'</div>';
+  if (samePkg) o += '<div style="background:#FEF9E7;color:#7A5C00;font-size:8px;padding:3px 8px;border-bottom:.5px solid #F6E2A0;-webkit-print-color-adjust:exact">&#8505;&#65039; ทั้งสอง Option เป็นแพ็กเกจ '+p.pkg+' เหมือนกัน — รวมฟีเจอร์เป็นคอลัมน์เดียว</div>';
+  o += '<table style="width:100%;border-collapse:collapse;font-size:8px"><thead><tr>';
+  o += '<th style="background:#F3F4F6;color:#374151;padding:2px 8px;border:.5px solid #E5E7EB;text-align:left;width:'+(cols.length>1?'52%':'70%')+'">ฟีเจอร์</th>';
+  cols.forEach(c => { o += '<th style="background:#EEF2FF;color:'+PKG_CLR[PKG_ORDER[c]]+';padding:2px 6px;border:.5px solid #BFDBFE;text-align:center;-webkit-print-color-adjust:exact">'+PKG_ORDER[c]+(samePkg?' (ทั้ง 2 Option)':'')+'</th>'; });
+  o += '</tr></thead><tbody>';
+  PKG_FEATURES.forEach(g => {
+    o += '<tr><td colspan="'+(cols.length+1)+'" style="background:#6B7A88;color:#fff;font-weight:700;padding:2px 8px;border:.5px solid #E5E7EB;-webkit-print-color-adjust:exact">'+g.cat+'</td></tr>';
+    g.rows.forEach((fr,i) => {
+      o += '<tr style="background:'+(i%2===0?'#fff':'#F8FAFF')+'"><td style="padding:2px 8px;border:.5px solid #EEF1F4;color:#374151">'+fr.n+'</td>';
+      cols.forEach(c => { o += '<td style="text-align:center;padding:2px 6px;border:.5px solid #EEF1F4">'+cell(fr.v[c])+'</td>'; });
+      o += '</tr>';
+    });
+  });
+  o += '</tbody></table></div>';
+  return o;
+}
+
 function buildPricePDF(p, p2, scanner, scannerDevice, scannerTotal) {
   const PKG_CLR={Basic:'#2E7D32',Standard:'#E65100',Advanced:'#1565C0',Professional:'#1A56DB'};
   const clr = PKG_CLR[p.pkg]||'#1A56DB';
@@ -1870,7 +1984,7 @@ function buildPricePDF(p, p2, scanner, scannerDevice, scannerTotal) {
     out += '</tbody></table>';
     if (p.offers.length) out += '<div style="background:#FFF4ED;padding:5px 8px;border-top:1px solid #FDE8D0;font-size:8px;color:#C85E0F"><strong>🎁 Ontop:</strong> '+p.offers.join(' &nbsp;|&nbsp; ')+'</div>';
     out += '</div>';
-    return out; // ไม่แสดง scanner table ซ้ำใน compare mode
+    return out + buildPkgFeaturePDF(p, p2); // ไม่แสดง scanner table ซ้ำใน compare mode
   }
   if (p.summaryOnly) {
     // No scenario selected — show condensed price summary only
@@ -1885,7 +1999,7 @@ function buildPricePDF(p, p2, scanner, scannerDevice, scannerTotal) {
     out += '</table>';
     if (p.offers.length) out += '<div style="margin-top:4px;font-size:8px;color:#C85E0F"><strong>🎁 Ontop:</strong> '+p.offers.join(' | ')+'</div>';
     out += '</div>';
-    return out + buildScannerPDF(scanner, scannerDevice, scannerTotal);
+    return out + buildScannerPDF(scanner, scannerDevice, scannerTotal) + buildPkgFeaturePDF(p, p2);
   }
   if (p.sc1) {
     out += '<div style="border:1px solid #BFDBFE;border-radius:5px;overflow:hidden;margin-top:5px">';
@@ -1921,7 +2035,7 @@ function buildPricePDF(p, p2, scanner, scannerDevice, scannerTotal) {
     out += '</tr><tr><td colspan="4" style="background:#D1FAE5;color:#065F46;font-size:8px;padding:3px 6px;font-weight:700">💚 ประหยัดจากราคาปกติ = '+thb(p.normalTotal-p.totalBefore)+' บาท ('+Math.round((p.normalTotal-p.totalBefore)/p.normalTotal*100)+'%)</td></tr>';
     out += '</tbody></table>'+offersLine+'</div>';
   }
-  return out + buildScannerPDF(scanner, scannerDevice, scannerTotal);
+  return out + buildScannerPDF(scanner, scannerDevice, scannerTotal) + buildPkgFeaturePDF(p, p2);
 }
 
 function buildFeatsPDF(feats) {
@@ -2521,11 +2635,112 @@ function initPriceUI() {
   calcPrice();
 }
 
+/* ── Per-package feature matrix (shown in the price/compare selector) ── */
+const PKG_ORDER = ['Basic','Standard','Advanced','Professional'];
+const PKG_HEAD_CLR = {Basic:'#2E7D32',Standard:'#E65100',Advanced:'#1565C0',Professional:'#1A56DB'};
+const T_=true, F_=false;
+const PKG_FEATURES = [
+  {cat:'ช่องทางใช้งาน', rows:[
+    {n:'Web Browser', v:[T_,T_,T_,T_]},
+    {n:'Mobile Application', v:[F_,T_,T_,T_]},
+    {n:'Line OA', v:[F_,T_,T_,T_]}]},
+  {cat:'โครงสร้างองค์กร', rows:[
+    {n:'โครงสร้างองค์กร / ตำแหน่ง', v:['5 ชั้น','5 ชั้น','5 ชั้น','5 ชั้น']},
+    {n:'ปรับโครงสร้างองค์กร / ตำแหน่ง', v:[T_,T_,T_,T_]},
+    {n:'นโยบายบริษัท · ผู้ติดต่อภายใน', v:[F_,T_,T_,T_]},
+    {n:'ข้อมูลทีมงาน', v:[F_,F_,F_,T_]},
+    {n:'เส้นทางการเติบโตในตำแหน่ง', v:[F_,F_,T_,T_]}]},
+  {cat:'ข้อมูลพนักงาน', rows:[
+    {n:'ข้อมูลพื้นฐาน (ส่วนตัว/เงินเดือน/กองทุน ฯลฯ)', v:[T_,T_,T_,T_]},
+    {n:'ข้อมูลใบหน้า (Face)', v:[F_,T_,T_,T_]},
+    {n:'กำหนดผู้อนุมัติเอกสาร', v:['HR อนุมัติ','HR อนุมัติ','2 ขั้น','5 ขั้น']}]},
+  {cat:'สิทธิ์เข้าถึง & ความปลอดภัย', rows:[
+    {n:'ผู้ใช้ / กลุ่มผู้ใช้ / ผู้ดูแล / สิทธิ์เข้าถึง', v:[T_,T_,T_,T_]},
+    {n:'Strong Password · PDPA · Back Log', v:[T_,T_,T_,T_]}]},
+  {cat:'การจ้างงาน (Hiring)', rows:[
+    {n:'ใบสมัครงานออนไลน์ · ระบบรับสมัครพนักงาน', v:[F_,F_,F_,T_]},
+    {n:'ประเมินพนักงานทดลองงาน (Onboarding)', v:[F_,F_,F_,T_]}]},
+  {cat:'ลงเวลา & จัดการกำลังพล', rows:[
+    {n:'ข้อมูลกะ / วันหยุด / จัดการกะ-วันหยุด', v:[T_,T_,T_,T_]},
+    {n:'จัดการตารางเวลาการทำงาน', v:[T_,T_,T_,T_]},
+    {n:'วางแผนกะ-วันหยุด (พนักงานวางเอง)', v:[F_,F_,T_,T_]},
+    {n:'จัดการผังกำลังพล', v:[F_,F_,F_,T_]}]},
+  {cat:'ช่องทางลงเวลา', rows:[
+    {n:'Finger Scan · Import · Manual', v:[T_,T_,T_,T_]},
+    {n:'GPS · WIFI · Beacon · Face · Kiosk · QR · Offline', v:[F_,T_,T_,T_]},
+    {n:'สแกนลูกทีม (หัวหน้าสแกนแทน)', v:[F_,F_,T_,T_]}]},
+  {cat:'เอกสารและการอนุมัติ', rows:[
+    {n:'ลางาน / โอที / เพิ่มเวลา / เปลี่ยนกะ-วันหยุด', v:[T_,T_,T_,T_]},
+    {n:'ขอเบิกล่วงหน้า', v:[F_,T_,T_,T_]},
+    {n:'ขอเอกสารรับรองเงินเดือน / การทำงาน · ลาออก', v:[F_,F_,T_,T_]},
+    {n:'วีซ่า · เบิกเงินสดย่อย · สวัสดิการ · ร้องเรียน · สัญญาจ้าง', v:[F_,F_,F_,T_]}]},
+  {cat:'ระบบจัดการเอกสาร', rows:[
+    {n:'จัดการโควต้าการลา · ตั้งค่าลายเซ็น', v:[T_,T_,T_,T_]},
+    {n:'ปฏิทิน · วันหยุดพิเศษ · ลำดับขั้นอนุมัติ', v:[F_,F_,T_,T_]}]},
+  {cat:'คำนวณเงินเดือน (Payroll)', rows:[
+    {n:'คำนวณ + บันทึก + ตั้งค่า (ครบทุกแพ็กเกจ)', v:[T_,T_,T_,T_]}]},
+  {cat:'เรียนรู้ & พัฒนาองค์กร', rows:[
+    {n:'E-Learning', v:[F_,T_,T_,T_]},
+    {n:'ฝึกอบรม · แบบประเมิน · KPI Profile · จดหมายเตือน', v:[F_,F_,F_,T_]}]},
+  {cat:'เครื่องมือช่วยทำงาน', rows:[
+    {n:'ประกาศข่าวสาร · News Feed', v:[F_,T_,T_,T_]},
+    {n:'Todo-Lists', v:[F_,F_,F_,T_]}]},
+  {cat:'AI / Insight & Automation', rows:[
+    {n:'Widget Dashboard on Web', v:[T_,T_,T_,T_]},
+    {n:'Automation (รันคำสั่ง · HumanSoft Notify)', v:[F_,T_,T_,T_]},
+    {n:'ตั้งค่าค่าแนะนำ (AI)', v:[F_,F_,F_,T_]}]},
+];
+let _featDiffOnly = false;
+function toggleFeatDiff() { _featDiffOnly = !_featDiffOnly; renderPkgFeatures(); }
+function _featCell(val) {
+  if (val === true)  return '<span style="color:#059669;font-weight:700">✔</span>';
+  if (val === false) return '<span style="color:#C3CCD4">—</span>';
+  return '<span style="display:inline-block;font-size:11px;padding:1px 7px;border-radius:7px;background:#EEF2FF;color:#1240B0;font-weight:700">'+val+'</span>';
+}
+function renderPkgFeatures() {
+  const box = document.getElementById('pkgFeatureBox');
+  if (!box) return;
+  const compare = document.getElementById('fCompare')?.checked || false;
+  const samePkg = compare && _selPkg === _selPkg2;
+  // same package → merge into a single column (features are identical)
+  const cols = (compare && !samePkg) ? [PKG_ORDER.indexOf(_selPkg), PKG_ORDER.indexOf(_selPkg2)] : [PKG_ORDER.indexOf(_selPkg)];
+  if (cols.some(c => c < 0)) { box.innerHTML = ''; return; }
+  const twoCol = cols.length === 2;
+  const gridCols = '1.7fr ' + cols.map(()=>'1fr').join(' ');
+  const title = !compare ? '📋 ฟีเจอร์ของแพ็กเกจ ' + _selPkg
+    : samePkg ? '📋 ฟีเจอร์ของแพ็กเกจ ' + _selPkg + ' (เหมือนกันทั้ง 2 Option)'
+    : '🔀 เปรียบเทียบฟีเจอร์: ' + _selPkg + ' vs ' + _selPkg2;
+  let h = '<div style="border:1.5px solid var(--navy-lt);border-radius:10px;overflow:hidden;background:#fff">';
+  h += '<div style="display:flex;align-items:center;gap:8px;padding:9px 12px;background:var(--navy-lt);border-bottom:1px solid #DBEAFE">'
+     + '<span style="font-size:13px;font-weight:700;color:var(--navy-dk)">'+title+'</span>';
+  if (twoCol) h += '<button type="button" class="no-print" onclick="toggleFeatDiff()" style="margin-left:auto;font-size:11px;font-weight:700;padding:4px 10px;border-radius:7px;cursor:pointer;border:1.5px solid #BFDBFE;background:'+(_featDiffOnly?'#DBEAFE':'#fff')+';color:#1D4ED8">'+(_featDiffOnly?'แสดงทุกฟีเจอร์':'แสดงเฉพาะความต่าง')+'</button>';
+  h += '</div>';
+  if (samePkg) h += '<div style="background:#FEF9E7;border-bottom:1px solid #F6E2A0;padding:6px 12px;font-size:11.5px;color:#7A5C00">ℹ️ ทั้งสอง Option เป็นแพ็กเกจ '+_selPkg+' เหมือนกัน — รวมฟีเจอร์เป็นคอลัมน์เดียว</div>';
+  h += '<div style="display:grid;grid-template-columns:'+gridCols+';padding:6px 12px;border-bottom:2px solid #E5E7EB"><div></div>'
+     + cols.map(c=>'<div style="text-align:center;font-size:12px;font-weight:700;color:'+PKG_HEAD_CLR[PKG_ORDER[c]]+'">'+PKG_ORDER[c]+(samePkg?' (ทั้ง 2 Option)':'')+'</div>').join('') + '</div>';
+  PKG_FEATURES.forEach(g => {
+    const rows = g.rows.filter(r => {
+      if (!twoCol || !_featDiffOnly) return true;
+      return new Set(cols.map(c => JSON.stringify(r.v[c]))).size > 1;
+    });
+    if (!rows.length) return;
+    h += '<div style="font-size:11.5px;font-weight:700;color:#fff;background:#6B7A88;padding:4px 12px">'+g.cat+'</div>';
+    rows.forEach(r => {
+      h += '<div style="display:grid;grid-template-columns:'+gridCols+';padding:5px 12px;border-bottom:1px solid #EEF1F4;align-items:center">'
+         + '<div style="font-size:12px;color:#374151;line-height:1.35;padding-right:6px">'+r.n+'</div>'
+         + cols.map(c=>'<div style="text-align:center;font-size:13px">'+_featCell(r.v[c])+'</div>').join('') + '</div>';
+    });
+  });
+  h += '</div>';
+  box.innerHTML = h;
+}
+
 function selectPkg(btn) {
-  document.querySelectorAll('.pkg-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.pkg-btn[data-pkg]').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   _selPkg = btn.dataset.pkg;
   calcPrice();
+  renderPkgFeatures();
 }
 
 let _selRangeIdx = -1;
@@ -2832,6 +3047,7 @@ function toggleComparePanel() {
   const on = document.getElementById('fCompare').checked;
   document.getElementById('comparePanelB').style.display = on ? '' : 'none';
   if (on) calcPrice2();
+  renderPkgFeatures();
 }
 
 function selectPkg2(btn) {
@@ -2839,6 +3055,7 @@ function selectPkg2(btn) {
   btn.classList.add('active');
   _selPkg2 = btn.dataset.pkg2;
   calcPrice2();
+  renderPkgFeatures();
 }
 
 function autoSelectRange2() {
